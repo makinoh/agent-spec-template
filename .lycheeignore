@@ -1,0 +1,6 @@
+# Link-check exclusions (lychee は本ファイルを自動で読み込む)。
+# 自動チェッカに 403/ボット判定を返すが、人間には有効な URL を限定的に除外する。
+#
+# AWS Prescriptive Guidance（constitution.md の参考文献）は自動リクエストに 403 Forbidden を返す。
+# ページ自体は有効なため、この URL のみ除外する（ドメイン全体は除外しない）。
+https://docs\.aws\.amazon\.com/prescriptive-guidance/latest/architectural-decision-records/welcome\.html
