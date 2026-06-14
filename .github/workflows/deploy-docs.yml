@@ -44,7 +44,7 @@ jobs:
           fetch-depth: 0 # git-revision-date 等を使う場合に履歴が必要
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
