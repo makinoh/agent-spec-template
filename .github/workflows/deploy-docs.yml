@@ -1,0 +1,72 @@
+# ============================================================================
+#  ⚠️ 変更クラス: A（統治・強制機構）  —  AI は起案のみ。単独反映は禁止。
+# ----------------------------------------------------------------------------
+#  本ファイルは `.github/**` に属するため、development-process.md「1. 対象パス対応表」
+#  により Class A（統治・強制機構）に分類される。マージには以下が必須:
+#    - 人間レビュー（作成者 ≠ 承認者。constitution.md「6.」）
+#    - CODEOWNERS 承認 ＋ PR ラベル `permission-impact`
+#  このワークフローは AI が「起案」したドラフトである（AGENTS.md「3.」自律してよい行為=起案）。
+#
+#  有効化の前提（リポジトリ設定。ADOPTION.md と同様、設定して初めて機能する）:
+#    Settings → Pages → Build and deployment → Source = "GitHub Actions"
+# ============================================================================
+name: Deploy Docs (GitHub Pages)
+
+on:
+  push:
+    # 既定ブランチに合わせて調整（本テンプレートの統治文書は main 想定、現リポジトリは master）。
+    branches: [main, master]
+    paths:
+      - "docs/**"
+      - "mkdocs.yml"
+      - "requirements-docs.txt"
+      - ".github/workflows/deploy-docs.yml"
+  workflow_dispatch: {}
+
+# GITHUB_TOKEN の最小権限（Security by Default）。
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同時デプロイの衝突を防ぐ（実行中のデプロイはキャンセルしない）。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # git-revision-date 等を使う場合に履歴が必要
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install docs dependencies
+        run: pip install -r requirements-docs.txt
+
+      - name: Build site (strict)
+        run: mkdocs build --strict
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
