@@ -8,6 +8,12 @@
 
 > **🚀 すぐ使う**: GitHub の **「Use this template」** ボタンで複製 → [ADOPTION.md](ADOPTION.md) で初期設定 → 下の「[クイックスタート](#クイックスタート)」で最初の機能を作成。
 
+> **📖 学習用ドキュメント**: 入門者・初学者向けの公式ドキュメントサイトを [docs/](docs/index.md) に用意しています（MkDocs Material 製）。
+> コンセプト・チュートリアル・FAQ・用語集まで、AI駆動開発が初めてでもゼロから学べます。
+> ローカル表示は `mkdocs serve`、GitHub Pages 公開後は `https://makinoh.github.io/agent-spec-template/` で閲覧できます（公開手順は [docs/about/site-design.md](docs/about/site-design.md)）。
+
+[![AIエージェント開発テンプレート ドキュメントサイトのホーム画面](docs/assets/screenshot-home.png)](docs/index.md)
+
 ---
 
 ## ⏱️ 5分で把握する（まず読む順番）

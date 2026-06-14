@@ -16,6 +16,10 @@ __pycache__/
 .venv/
 venv/
 
+# MkDocs ドキュメントサイトのビルド成果物（mkdocs build で再生成される）
+site/
+.cache/
+
 # OS / エディタ
 .DS_Store
 Thumbs.db

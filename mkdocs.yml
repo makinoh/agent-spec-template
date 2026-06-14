@@ -1,0 +1,215 @@
+# ============================================================================
+# MkDocs 設定ファイル — AIエージェント開発テンプレート 公式ドキュメント
+# ----------------------------------------------------------------------------
+# ビルド:   mkdocs build --strict        ローカル確認: mkdocs serve
+# 依存:     pip install -r requirements-docs.txt
+# 公開:     GitHub Pages（.github/workflows/deploy-docs.yml で自動デプロイ）
+#
+# ※ 公開先: GitHub ユーザー makinoh のプロジェクトサイト
+#    （https://makinoh.github.io/agent-spec-template/）。
+#    フォークして別アカウント/別リポジトリ名で公開する場合は site_url / repo_url / repo_name を置換する。
+# ============================================================================
+
+site_name: AIエージェント開発テンプレート
+site_description: >-
+  AI駆動開発（AIDD）× 仕様駆動開発（SDD）テンプレートの公式ドキュメント。
+  Constitution・ADR・spec-kit・Architecture Governance を、AI駆動開発が初めての人でも
+  ゼロから学び、自分のプロジェクトへ導入できる教材。
+site_author: Hiroyuki Makino
+# GitHub Pages（プロジェクトサイト）の公開 URL。末尾スラッシュ必須。
+site_url: https://makinoh.github.io/agent-spec-template/
+copyright: >-
+  &copy; 2026 Hiroyuki Makino — MIT License /
+  本サイトは AIエージェント開発テンプレートの学習用ドキュメントです。
+
+# --- リポジトリ連携（右上のリンク・各ページの「編集」リンク） ---
+repo_url: https://github.com/makinoh/agent-spec-template
+repo_name: makinoh/agent-spec-template
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: site
+
+# --- テーマ（Material for MkDocs） ---
+theme:
+  name: material
+  language: ja
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: ダークモードに切り替え
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: ライトモードに切り替え
+  font:
+    text: Noto Sans JP
+    code: Roboto Mono
+  features:
+    # navigation.instant は i18n 言語スイッチャと非互換のため無効化（mkdocs-static-i18n）
+    - navigation.tracking     # スクロールで URL のアンカーを追従
+    - navigation.tabs         # 上部に第1階層タブ
+    - navigation.sections     # サイドバーにセクション見出し
+    - navigation.indexes      # セクションに index ページを割り当て
+    - navigation.top          # 「トップへ戻る」ボタン
+    - navigation.footer       # 前後ページのフッターナビ
+    - toc.follow              # 目次が現在位置に追従
+    - search.suggest          # 検索サジェスト
+    - search.highlight        # 検索ヒットのハイライト
+    - search.share            # 検索結果の共有 URL
+    - content.code.copy       # コードのコピーボタン
+    - content.code.annotate   # コード注釈
+    - content.tabs.link       # タブの同期
+    - content.tooltips        # 用語ツールチップ
+  icon:
+    repo: fontawesome/brands/github
+
+# --- プラグイン ---
+plugins:
+  - search:
+      lang:
+        - ja
+        - en
+  # 多言語化（mkdocs-static-i18n）。既定 ja、英語は段階追加（未翻訳ページは ja にフォールバック）。
+  # 英語ページは `<name>.en.md` を追加するだけで有効化される（docs_structure: suffix）。
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: ja
+          default: true
+          name: 日本語
+          build: true
+        - locale: en
+          name: English
+          build: true
+          nav_translations:
+            ホーム: Home
+            学習ロードマップ: Learning Path
+            はじめに: Getting Started
+            前提環境を整える: Prerequisites
+            "30分クイックスタート": 30-Minute Quickstart
+            最初の機能を作る: Build Your First Feature
+            コンセプト: Concepts
+            AI駆動開発（AIDD）: AI-Driven Development (AIDD)
+            仕様駆動開発（SDD）: Spec-Driven Development (SDD)
+            ADR（設計判断の記録）: ADR (Decision Records)
+            Constitution（開発憲章）: Constitution
+            ガバナンスと変更クラス: Governance & Change Classes
+            品質ゲート: Quality Gates
+            マルチエージェントとClaude Code: Multi-Agent & Claude Code
+            チュートリアル: Tutorials
+            "1. テンプレートからプロジェクト作成": "1. Create a Project"
+            "2. ADRを作成する": "2. Write an ADR"
+            "3. 仕様（Spec）を作成する": "3. Write a Spec"
+            "4. Claude Codeで実装する": "4. Implement with Claude Code"
+            "5. レビューする": "5. Review"
+            "6. 運用する": "6. Operate"
+            アーキテクチャ: Architecture
+            ガバナンス詳説: Governance In Depth
+            実例で学ぶ: Learn by Example
+            リファレンス: Reference
+            用語集: Glossary
+            文書マップ: Document Map
+            コマンド集: Commands
+            トラブルシューティング: Troubleshooting
+            このサイトについて: About This Site
+  # 任意（採用組織が有効化）: 最終更新日の表示。git 履歴が必要。
+  # - git-revision-date-localized:
+  #     enable_creation_date: true
+  #     type: date
+
+# --- Markdown 拡張 ---
+markdown_extensions:
+  # 注記・コールアウト（本サイトは markdownlint 互換のため blockquote を主に使うが、
+  # 将来の著者が admonition を使えるよう拡張は有効化しておく）
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - toc:
+      permalink: true
+      permalink_title: この見出しへのリンク
+      title: このページの目次
+
+# --- 追加メタ ---
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/makinoh/agent-spec-template
+      name: GitHub リポジトリ
+  generator: false
+
+extra_css:
+  - assets/extra.css
+
+# --- ナビゲーション（情報アーキテクチャの正本） ---
+nav:
+  - ホーム: index.md
+  - 学習ロードマップ: learning-path.md
+  - はじめに:
+      - getting-started/index.md
+      - 前提環境を整える: getting-started/prerequisites.md
+      - 30分クイックスタート: getting-started/quickstart.md
+      - 最初の機能を作る: getting-started/first-feature.md
+  - コンセプト:
+      - concepts/index.md
+      - AI駆動開発（AIDD）: concepts/ai-driven-development.md
+      - 仕様駆動開発（SDD）: concepts/spec-driven-development.md
+      - ADR（設計判断の記録）: concepts/adr.md
+      - Constitution（開発憲章）: concepts/constitution.md
+      - ガバナンスと変更クラス: concepts/governance.md
+      - spec-kit: concepts/spec-kit.md
+      - 品質ゲート: concepts/quality-gates.md
+      - マルチエージェントとClaude Code: concepts/multi-agent.md
+  - チュートリアル:
+      - tutorials/index.md
+      - "1. テンプレートからプロジェクト作成": tutorials/01-create-project.md
+      - "2. ADRを作成する": tutorials/02-write-adr.md
+      - "3. 仕様（Spec）を作成する": tutorials/03-write-spec.md
+      - "4. Claude Codeで実装する": tutorials/04-implement.md
+      - "5. レビューする": tutorials/05-review.md
+      - "6. 運用する": tutorials/06-operate.md
+  - アーキテクチャ: architecture/index.md
+  - ガバナンス詳説: governance/index.md
+  - 実例で学ぶ: examples/index.md
+  - リファレンス:
+      - reference/index.md
+      - 用語集: reference/glossary.md
+      - 文書マップ: reference/document-map.md
+      - コマンド集: reference/commands.md
+  - FAQ: faq.md
+  - トラブルシューティング: troubleshooting.md
+  - このサイトについて: about/site-design.md

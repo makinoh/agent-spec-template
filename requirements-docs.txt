@@ -1,0 +1,11 @@
+# ドキュメントサイト（MkDocs Material）のビルド依存。
+# インストール:  pip install -r requirements-docs.txt
+# ローカル確認:  mkdocs serve         本番ビルド: mkdocs build --strict
+#
+# 注: これはドキュメント生成専用の依存であり、アプリ本体の依存（採用組織が定義）とは分離している。
+#     .mise.toml（Class A・品質ゲートのツールチェーン）には手を入れず、独立した requirements で管理する。
+
+mkdocs-material>=9.5,<10
+mkdocs>=1.6,<2
+pymdown-extensions>=10
+mkdocs-static-i18n>=1.2
