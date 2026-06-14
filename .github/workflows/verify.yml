@@ -29,6 +29,10 @@ jobs:
 
       - name: Install pinned toolchain (mise → task / lychee / gitleaks / trivy / markdownlint / node)
         uses: jdx/mise-action@v4
+        with:
+          # mise の latest (例: v2026.6.7) は linux-x64 アセットが欠落して 404 になる場合がある。
+          # アセットが存在する版に固定する（上流が修正されたら更新可）。
+          version: 2026.6.6
 
       - name: task verify
         run: task verify
