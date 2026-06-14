@@ -1,0 +1,18 @@
+# Lefthook — version-controlled git hooks (distributed with the template; NOT .git/hooks).
+# Activate once:  task hooks   (or: lefthook install)
+# Hooks call the SAME Taskfile as CI → Local = AI = CI parity.
+#
+# Bypass in an emergency:  git commit --no-verify   /   LEFTHOOK=0 git push
+# (Break-glass is allowed but must be disclosed — see constitution.md「7.」.)
+
+pre-commit:
+  parallel: false
+  commands:
+    verify-fast:
+      run: task verify:fast
+
+pre-push:
+  parallel: false
+  commands:
+    verify:
+      run: task verify

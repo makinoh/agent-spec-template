@@ -1,0 +1,52 @@
+# 公開API契約（正本）。本ファイルが API の SSoT であり、生成物（クライアント/サーバ雛形）は手編集しない。
+# constitution.md「SSoT」/原則 III。CI で再生成差分を検査する想定。
+openapi: 3.1.0
+info:
+  title: User Profile Export API
+  version: 1.0.0
+  description: 認証済み利用者が自分自身のプロフィールをエクスポートする（feature 001）。
+paths:
+  /v1/users/me/profile/export:
+    get:
+      operationId: exportOwnProfile
+      summary: 自分のプロフィールをエクスポート（FR-1/FR-2/FR-3）
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [json, csv]
+            default: json
+      responses:
+        "200":
+          description: エクスポート成功（要求者自身のデータのみ）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileExport"
+            text/csv:
+              schema:
+                type: string
+        "400":
+          description: 未対応の format（FR-5）
+        "401":
+          description: 未認証
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    ProfileExport:
+      type: object
+      required: [user_id, display_name, email, locale, created_at]
+      properties:
+        user_id: { type: string }
+        display_name: { type: string }
+        email: { type: string, format: email, description: "PII (Restricted)。本人のみ。" }
+        locale: { type: string }
+        created_at: { type: string, format: date-time }
+        avatar_url: { type: string, format: uri }

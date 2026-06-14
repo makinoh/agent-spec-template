@@ -1,0 +1,11 @@
+# Pinned toolchain so Developers, AI agents, and CI run IDENTICAL tool versions.
+# Install:  mise install   (or: task setup).  CI uses jdx/mise-action with this file.
+# python3 is used from the system (any 3.x); not pinned here to keep installs fast.
+[tools]
+task = "3"
+lefthook = "1"
+node = "22"
+lychee = "latest"
+gitleaks = "8"
+trivy = "latest"
+"npm:markdownlint-cli2" = "0.18"

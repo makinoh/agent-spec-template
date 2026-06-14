@@ -1,0 +1,46 @@
+# CODEOWNERS — 統治・強制機構への変更に必須レビュアを割り当てる
+# constitution.md「6. 権限・統治への変更」/「8.」、development-process.md「5.」に対応。
+# 下記のグループ名は本テンプレート採用組織が実在チーム/個人に置き換えること（プレースホルダ）。
+#
+# ====================== TODO（採用時に必須）======================
+# 下記の @org/* を、実在する GitHub Team / ユーザ名に置き換えてください。
+# 置換するまでこれらのグループは存在せず、CODEOWNERS は機能しません
+# （= 統治文書が誰にも保護されません）。
+# 置換後、ブランチ保護で require_code_owner_reviews を有効化してください（ADOPTION.md 参照）。
+# ================================================================
+
+# --- 統治の最上位（憲章・ガバナンス・ADR メタ規則）: 憲章承認者グループ ---
+/constitution.md                      @org/governance-approvers
+/.specify/memory/constitution.md      @org/governance-approvers
+/governance/**                        @org/governance-approvers
+/adr-rules.md                         @org/governance-approvers
+/adr-template.md                      @org/governance-approvers
+/adr-template-minimal.md              @org/governance-approvers
+
+# --- 統治・強制機構（標準・CI/CD・エージェント指示）: 統治＋セキュリティ ---
+/standards/**                         @org/governance-approvers @org/security
+/standards/security-standards.md      @org/security @org/governance-approvers
+/standards/ai-governance.md           @org/governance-approvers
+/.github/**                           @org/governance-approvers
+/AGENTS.md                            @org/governance-approvers
+/CLAUDE.md                            @org/governance-approvers
+/GEMINI.md                            @org/governance-approvers
+/CODEX.md                             @org/governance-approvers
+/OPENHANDS.md                         @org/governance-approvers
+/TAKT.md                              @org/governance-approvers
+/agents/**                            @org/governance-approvers
+/SKILLS.md                            @org/governance-approvers
+
+# --- 品質ゲートの実体（task verify / hooks / 固定ツール）: 統治 ---
+/Taskfile.yml                         @org/governance-approvers
+/lefthook.yml                         @org/governance-approvers
+/.mise.toml                           @org/governance-approvers
+/scripts/**                           @org/governance-approvers
+
+# --- ADR 本体・アーキテクチャ設計: アーキテクチャレビュア ---
+/adr/**                               @org/architects @org/governance-approvers
+/architecture/**                      @org/architects @org/governance-approvers
+
+# 注: skills/ playbooks/ prompts/（Class C）・knowledge/ memory/ metrics/（Class D）は CODEOWNERS 必須対象外。
+#     通常の必須レビュー（作成者≠承認者）で担保する（過剰なゲートを避ける。development-process.md「8.」）。
+#     scripts/dev/（非ゲートの開発補助・Class C）も統治 CODEOWNERS 対象外（development-process.md「1.」カーブアウト）。

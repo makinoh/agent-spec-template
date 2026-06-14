@@ -1,0 +1,85 @@
+# Single source of truth for quality gates.
+# Developers, AI agents (Claude Code / Gemini CLI / Copilot / Codex), git hooks, and
+# GitHub Actions ALL run the same entry point:  `task verify`  (full)  /  `task verify:fast` (commit).
+# Install Task + tools:  task setup   (uses mise / .mise.toml).  List tasks:  task --list
+version: '3'
+silent: true
+
+tasks:
+  default:
+    desc: "Run the full quality gate (alias of verify)"
+    cmds:
+      - task: verify
+
+  verify:
+    desc: "FULL quality gate — single entry point for Devs / AI agents / CI"
+    cmds:
+      - task: verify:fast
+      - task: check:adr-index
+      - task: check:links
+      - task: check:secrets
+      - task: check:deps
+      - task: check:build
+
+  verify:fast:
+    desc: "FAST checks for pre-commit (structure / ADR / front matter / prompts / markdown)"
+    cmds:
+      - task: check:structure
+      - task: check:adr
+      - task: check:adr-content
+      - task: check:frontmatter
+      - task: check:prompts
+      - task: check:markdown
+
+  verify:pr:
+    desc: "PR-context governance (run by CI on pull_request)"
+    cmds:
+      - task: check:pr-governance
+      - task: check:adr-immutability
+      - task: check:adoption
+
+  # --- individual checks: each maps to ONE script (the single source of truth) ---
+  check:structure:
+    cmds: ["bash scripts/checks/structure.sh"]
+  check:adr:
+    cmds: ["bash scripts/checks/adr.sh"]
+  check:adr-content:
+    cmds: ["bash scripts/checks/adr-content.sh"]
+  check:adr-immutability:
+    cmds: ["bash scripts/checks/adr-immutability.sh"]
+  check:prompts:
+    cmds: ["bash scripts/checks/prompts.sh"]
+  check:adoption:
+    cmds: ["bash scripts/checks/adoption.sh"]
+  check:frontmatter:
+    cmds: ["bash scripts/checks/frontmatter.sh"]
+  check:markdown:
+    cmds: ["bash scripts/checks/markdown.sh"]
+  check:adr-index:
+    cmds: ["bash scripts/checks/adr-index.sh"]
+  check:links:
+    cmds: ["bash scripts/checks/links.sh"]
+  check:secrets:
+    cmds: ["bash scripts/checks/secrets.sh"]
+  check:deps:
+    cmds: ["bash scripts/checks/deps.sh"]
+  check:build:
+    cmds: ["bash scripts/checks/build.sh"]
+  check:pr-governance:
+    cmds: ["bash scripts/checks/pr_governance.sh"]
+
+  # --- helpers ---
+  fix:
+    desc: "Auto-fix (markdownlint --fix, regenerate ADR index)"
+    cmds:
+      - "bash -c 'command -v markdownlint-cli2 >/dev/null 2>&1 && markdownlint-cli2 --fix \"**/*.md\" || npx --yes markdownlint-cli2 --fix \"**/*.md\"'"
+      - "bash -c 'command -v python3 >/dev/null 2>&1 && python3 scripts/generate_adr_index.py || python scripts/generate_adr_index.py'"
+  setup:
+    desc: "Install the pinned toolchain (mise / .mise.toml)"
+    cmds: ["bash scripts/setup.sh"]
+  doctor:
+    desc: "Show which quality-gate tools are available"
+    cmds: ["bash scripts/doctor.sh"]
+  hooks:
+    desc: "Install git hooks via lefthook"
+    cmds: ["lefthook install"]

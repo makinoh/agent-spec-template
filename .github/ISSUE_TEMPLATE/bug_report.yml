@@ -1,0 +1,25 @@
+name: バグ報告 / Bug report
+description: テンプレートの不具合を報告する
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: 何が起きたか／期待した挙動
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 再現手順
+      description: 再現できる手順があれば記載してください
+    validations:
+      required: false
+  - type: input
+    id: env
+    attributes:
+      label: 環境
+      description: 例 OS / シェル / 利用エージェント
+    validations:
+      required: false

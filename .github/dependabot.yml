@@ -1,0 +1,10 @@
+# GitHub Actions のバージョンを継続的に更新する（standards/security-standards.md「6.」依存自動更新）。
+# 注: .github/workflows への変更は Class A。dependabot の PR も人間がレビュー・ラベル付与してマージする。
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"

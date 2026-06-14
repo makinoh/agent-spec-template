@@ -1,0 +1,45 @@
+name: verify
+
+# Single quality gate. CI runs the SAME entry point as Developers and AI agents: `task verify`.
+# All check logic lives in scripts/ + Taskfile.yml (single source of truth) — NOT in this file.
+# Register the "verify" job as a Required Status Check on protected branches (main, release/*).
+
+on:
+  push:
+    branches: [main, "release/*"]
+  pull_request:
+    branches: [main, "release/*"]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0   # full history for secret scan and PR diff
+
+      - name: Install pinned toolchain (mise → task / lychee / gitleaks / trivy / markdownlint / node)
+        uses: jdx/mise-action@v4
+
+      - name: task verify
+        run: task verify
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: task verify:pr (governance — pull_request only)
+        if: github.event_name == 'pull_request'
+        run: task verify:pr
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}

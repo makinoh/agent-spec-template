@@ -1,0 +1,32 @@
+# 秘密情報（シークレットスキャンの補完。憲章「Security by Default」）
+.env
+.env.*
+*.pem
+*.key
+secrets/
+*.local
+
+# 依存・ビルド成果物
+node_modules/
+dist/
+build/
+target/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# カバレッジ・ログ
+coverage/
+*.log
+
+# 品質ゲートのツールキャッシュ（再生成される）
+.lycheecache
+.task/
