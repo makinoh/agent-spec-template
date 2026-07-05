@@ -131,6 +131,10 @@ description: AIDD・SDD・ADR・Constitution・Governanceをはじめ、本テ�
 | Keep a Changelog | 変更履歴の記述形式 |
 | GDPR | EU 一般データ保護規則。同梱サンプルの題材（エクスポート・削除） |
 | OpenAPI / Prisma / Terraform | SSoT の生成元の例（API / スキーマ / IaC を正本に） |
+| RFC 9457（Problem Details） | HTTP API の機械可読エラー形式。RFC 7807 の後継。準拠の正本は `standards/api-standards.md` |
+| RFC 3339 / RFC 9562 | 日時表現／UUID の標準。データ表現の正本は `standards/coding-standards.md` |
+| BCP 240 / 225 / 195 | OAuth 2.0（RFC 9700）・JWT（RFC 8725）・TLS（RFC 9325）のセキュリティ BCP。正本は `standards/security-standards.md` |
+| 予約済み識別子 | 例示・テスト専用のドメイン（RFC 2606/6761: `example.com` 等）・IP（RFC 5737/3849）。正本は `standards/testing-standards.md` |
 
 ## 関連
 

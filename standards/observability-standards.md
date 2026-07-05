@@ -1,7 +1,7 @@
 # 可観測性標準（Observability Standards）
 
-* Version: 0.1.0（Proposed / ドラフト）
-* Date: 2026-04-01
+* Version: 0.2.0（Proposed / ドラフト）
+* Date: 2026-07-05
 * 上位規範: constitution.md（開発憲章「Observability by Default」）
 
 本書は、憲章「Observability by Default」が委譲する詳細基準の正本（SSoT）です。憲章と矛盾する場合は憲章が優先します（MUST）。
@@ -14,6 +14,8 @@
 * ログは構造化（JSON 等）し、リクエストに相関 ID（`trace_id`）を付与するべきです（SHOULD）。
 * ログ・メトリクス・トレースに PII・秘密情報を出力してはなりません（MUST NOT。security-standards.md「2.」「3.」）。
 * メトリクスは RED（Rate / Errors / Duration）を基本とし、分散トレースは OpenTelemetry を推奨します（SHOULD）。
+* ログのタイムスタンプは RFC 3339（UTC・ミリ秒以上の精度）で出力するべきです（SHOULD。coding-standards.md「3.」）。
+* ログレベルの意味論は RFC 5424 の Severity（emergency〜debug）に対応づけて定義し、スタック間・エージェント間で統一するべきです（SHOULD）。独自レベルの追加は対応表を本書に明記しない限り行いません（SHOULD NOT）。
 
 ---
 
@@ -26,4 +28,5 @@
 
 ## 3. 改正履歴
 
-（初版ドラフトのため履歴なし）
+* 0.2.0（2026-07-05）: ログのタイムスタンプ（RFC 3339）と Severity 意味論（RFC 5424）を追記。
+* 0.1.0（2026-04-01）: 初版ドラフト。
