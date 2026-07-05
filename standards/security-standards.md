@@ -1,7 +1,7 @@
 # セキュリティ標準（Security Standards）
 
-* Version: 0.1.0（Proposed / ドラフト）
-* Date: 2026-04-01
+* Version: 0.2.0（Proposed / ドラフト）
+* Date: 2026-07-05
 * 上位規範: constitution.md（開発憲章）
 
 本書は、憲章「Security by Default」「データ保護とAI入力境界」「依存関係とサプライチェーン」が委譲する詳細基準の正本（SSoT）です。憲章と矛盾する場合は憲章が優先します（MUST）。本書は standards/ai-governance.md と併用します。
@@ -68,6 +68,18 @@
 
 ---
 
-## 7. 改正履歴
+## 7. 認証・トークン・通信の準拠標準（IETF BCP）
 
-（初版ドラフトのため履歴なし）
+該当技術を採用する場合、以下の Best Current Practice への準拠を既定とします。逸脱は ADR で理由を明記しなければなりません（MUST）。
+
+* **OAuth 2.0**: BCP 240（RFC 9700: OAuth 2.0 Security Best Current Practice）に従わなければなりません（MUST）。特に、公開クライアントは認可コードフロー＋PKCE を既定とし、Implicit グラント・Resource Owner Password Credentials グラントを新規採用してはなりません（MUST NOT）。
+* **JWT**: BCP 225（RFC 8725: JSON Web Token Best Current Practices）に従わなければなりません（MUST）。特に、`alg: "none"` を受理しない・検証アルゴリズムを明示固定する・`iss` / `aud` / `exp` を検証する（MUST）。
+* **TLS**: BCP 195（RFC 9325: TLS/DTLS の推奨構成）に従うべきです（SHOULD）。TLS 1.2 未満を新規に有効化してはなりません（MUST NOT）。
+* **脆弱性報告窓口**: インターネット公開サービスは RFC 9116（`security.txt`）で報告窓口を公開するべきです（SHOULD。リポジトリの SECURITY.md と整合させる）。
+
+---
+
+## 8. 改正履歴
+
+* 0.2.0（2026-07-05）: 「7. 認証・トークン・通信の準拠標準（IETF BCP）」を新設（RFC 9700 / 8725 / 9325 / 9116）。
+* 0.1.0（2026-04-01）: 初版ドラフト。

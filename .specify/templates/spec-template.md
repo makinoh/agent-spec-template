@@ -25,6 +25,7 @@ related_adrs: []              # 関連 ADR（例: [ADR-0002]）
 ## 2. ユーザシナリオ（受け入れ可能な振る舞い）
 
 > 検証可能な形（Given/When/Then）で記述する。実装語彙ではなく振る舞いで書く。
+> 例示するドメイン・IP・メール等は予約済み識別子（`example.com`・`192.0.2.0/24` 等。standards/testing-standards.md「3.」）を使い、実在の識別子・PII を書かない。
 
 - **US-1**: ある利用者として、〜できる。
   - Given … / When … / Then …
@@ -56,6 +57,8 @@ EARS パターン（RFC 2119 の MUST/SHOULD と併用する）:
   （standards/security-standards.md・standards/ai-governance.md に照合。本番個人データ・機密は AI 入力禁止）。
 - アクセシビリティ（UI を持つ場合。standards/accessibility-standards.md）:
 - 既存標準・契約・互換性の制約:
+- 準拠する外部標準（該当時に明記。例: エラー形式=RFC 9457／日時=RFC 3339／認証=RFC 9700。
+  正本: standards/api-standards.md「3.」・coding-standards.md「3.」・security-standards.md「7.」）:
 
 ## 5. 主要エンティティ / データ（任意）
 
