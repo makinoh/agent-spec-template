@@ -101,3 +101,62 @@ ADR は「**なぜこの設計か**（判断・根拠）」の正本、spec は�
 - **起案・反映の前に `task verify` を実行し、緑であることを確認する**（赤のまま PR を出さない）。
 - 失敗したゲートを回避目的で弱めない（憲章「自己修正ループの防止」）。原因側を修正する。
 - ゲートの実体（`Taskfile.yml` / `lefthook.yml` / `.mise.toml` / `scripts/**` / `.github/**`）への変更は Class A。
+
+---
+
+## 8. UI 実装のルール（Web フロントエンドを含む変更のとき）
+
+正本は [constitution.md](constitution.md)「10.1 UI 再現性」、実装標準は [standards/design-tokens.md](standards/design-tokens.md) / [standards/frontend-ui.md](standards/frontend-ui.md)。本節はその実行指示です。
+UI を持たないプロジェクトでは本節は休眠します（`package.json` と `src/` の追加で活性化）。
+
+### 8.1 着手前に必ず実行する
+
+```bash
+task ui:tokens:check     # 生成物が最新か
+task ui:guards           # design-spec の生値・生メディアクエリ・Story 欠落
+```
+
+加えて次を確認し、いずれかに該当する場合は**着手せず質問する**（憲章「10.1.3 推測の禁止」）。
+
+- `specs/<feature>/design-spec.md` の Open Questions が未解決
+- `spec.md` に `[NEEDS CLARIFICATION]` が残っている
+- 対象コンポーネントの Island 判定（static / `client:visible` / `client:load`）が未記載
+
+### 8.2 値の扱い
+
+- CSS に生の値を書かない。`var(--...)` のみ。
+- メディアクエリは `@media (--bp-md)` の形式のみ。`@media (min-width: 768px)` は CI で落ちる。
+- トークンが不足する場合は**自分で値を決めない**。`tokens/tokens.json` への追加を提案し、ADR を起票して承認を得てから使う（Class B）。
+- `src/styles/tokens.css` / `media.css` / `tokens.d.ts` を編集しない。生成物である（憲章「10.1.1」）。
+
+### 8.3 実装順序
+
+型定義（`as const` + union）→ Story → 実装 → CSS Module の順に書く。
+Story を実装より先に書くことで、その variant が仕様上存在することの証明になる（憲章「10.1.4」）。
+
+### 8.4 完了報告
+
+`task verify` を実行し、**生の出力を報告に含める**。「問題ありません」だけの報告は無効です（憲章「10.1.5」）。
+Stylelint を無効化した箇所があれば全件列挙する（無効化は Class A・[governance/exceptions/](governance/exceptions/) 登録が必要）。
+
+### 8.5 禁止（実行してはならないコマンド）
+
+```bash
+task ui:approve:visual                        # 視覚回帰の基準画像更新（Class B / 人間のみ）
+pnpm exec playwright test --update-snapshots  # 同上
+```
+
+基準画像を書き換えられる状態では視覚回帰は検出器として機能しません（憲章「10.1.5-4」・強制台帳 #27）。
+差分が出た場合は「実装を直す」か「design-spec を更新する」のどちらかを**人間が**判断します。
+
+### 8.6 参照する文書
+
+| 知りたいこと | 見る場所 |
+| --- | --- |
+| 使える値 | `src/styles/tokens.css`（定義は `tokens/tokens.json`） |
+| 使えるブレークポイント | `src/styles/media.css` |
+| コンポーネントの構造・状態・レスポンシブ | `specs/<feature>/design-spec.md`（様式: [.specify/templates/design-spec-template.md](.specify/templates/design-spec-template.md)） |
+| 受入基準 | `specs/<feature>/spec.md` |
+| 技術標準 | [standards/design-tokens.md](standards/design-tokens.md) / [standards/frontend-ui.md](standards/frontend-ui.md) |
+| 過去の設計判断 | [adr/](adr/)（UI 関連: ADR-0003 / ADR-0004 / ADR-0005） |
+| 使用するプロンプト | [prompts/README.md](prompts/README.md)「UI 再現性シーケンス」 |

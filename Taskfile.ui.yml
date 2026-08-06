@@ -1,0 +1,115 @@
+# UI 再現性レイヤのタスク定義。
+# ルートの Taskfile.yml から includes で読み込み、既存の verify に接続する。
+#
+#   includes:
+#     ui:
+#       taskfile: ./Taskfile.ui.yml
+#
+# CI は「独自ロジックを持たず task verify を実行する」テンプレートの原則を維持する。
+# つまり verify に ui:verify を足せば、CI 側の変更は依存関係のセットアップだけで済む。
+
+version: '3'
+
+vars:
+  PM: pnpm
+
+tasks:
+  setup:
+    desc: UI レイヤの依存導入（Playwright のブラウザを含む）
+    cmds:
+      - '{{.PM}} install'
+      - '{{.PM}} exec playwright install --with-deps chromium'
+
+  tokens:
+    desc: tokens.json から CSS 変数・@custom-media・型定義を生成
+    sources: ['tokens/tokens.json', 'tokens/build.mjs']
+    generates: ['src/styles/tokens.css', 'src/styles/media.css', 'src/styles/tokens.d.ts']
+    cmds:
+      - node tokens/build.mjs
+
+  tokens:check:
+    desc: 生成物がコミット済みの内容と一致するか（手編集・生成漏れの検出）
+    cmds:
+      - task: tokens
+      - git diff --exit-code -- src/styles/tokens.css src/styles/media.css src/styles/tokens.d.ts
+
+  guards:
+    desc: design-spec の生値・生メディアクエリ・Story 欠落を検出
+    cmds:
+      - node scripts/check-spec-literals.mjs
+      - node scripts/check-media-queries.mjs
+      - node scripts/check-component-stories.mjs
+
+  lint:css:
+    desc: トークン外の値が 0 件であることの証明
+    cmds:
+      - '{{.PM}} exec stylelint "src/**/*.css"'
+
+  lint:js:
+    cmds:
+      - '{{.PM}} exec biome check .'
+
+  typecheck:
+    cmds:
+      - '{{.PM}} exec astro check'
+      - '{{.PM}} exec tsc --noEmit'
+
+  test:unit:
+    cmds:
+      - '{{.PM}} exec vitest run'
+
+  build:storybook:
+    sources: ['src/**/*', '.storybook/**/*']
+    generates: ['storybook-static/**/*']
+    cmds:
+      - '{{.PM}} exec storybook build --quiet'
+
+  test:stories:
+    desc: Storybook の interaction + a11y(axe)
+    deps: [build:storybook]
+    cmds:
+      - '{{.PM}} exec test-storybook --maxWorkers=2 --ci'
+
+  test:visual:
+    desc: 視覚回帰。これがデザイン差分の実質的な検出器
+    deps: [build:storybook]
+    cmds:
+      - '{{.PM}} exec playwright test --grep @visual'
+
+  test:e2e:
+    cmds:
+      - '{{.PM}} exec playwright test --grep-invert @visual'
+
+  lighthouse:
+    cmds:
+      - '{{.PM}} exec lhci autorun'
+
+  verify:
+    desc: UI レイヤの完全検証。ルートの task verify から呼ばれる
+    cmds:
+      - task: tokens:check
+      - task: guards
+      - task: typecheck
+      - task: lint:js
+      - task: lint:css
+      - task: test:unit
+      - task: test:stories
+      - task: test:visual
+      - task: test:e2e
+      - task: lighthouse
+
+  verify:fast:
+    desc: コミット前の高速版（ブラウザを起動しない）
+    cmds:
+      - task: tokens:check
+      - task: guards
+      - task: lint:css
+
+  approve:visual:
+    desc: |
+      視覚回帰の基準画像を更新する。Class B 相当の操作であり、
+      AI エージェントによる実行を禁止する（development-process.md 参照）。
+      更新後の画像差分は必ず人間が目視レビューすること。
+    cmds:
+      - '{{.PM}} exec playwright test --grep @visual --update-snapshots'
+      - echo "基準画像を更新しました。git diff で全画像を目視確認し、PR に理由を記載してください。"

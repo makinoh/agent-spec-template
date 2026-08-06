@@ -1,11 +1,12 @@
 <!--
 SYNC IMPACT REPORT
-- Version change: (none) → 0.1.0
+- Version change: 0.1.0 → 0.2.0（本体「10.1 UI 再現性」の新設に追従。governance/proposals/gp-0001-ui-reproducibility.md）
 - Source of truth: /constitution.md（開発憲章・本体）。本ファイルはその簡潔な派生ビューであり、
   spec-kit の Constitution Check（/speckit.plan）専用のゲート要約である。矛盾時は本体が優先する。
 - Principles (derived): I 仕様ファースト / II ADRファースト / III SSoT & Docs as Code /
   IV 既定で安全・AI入力境界 / V 変更分類と人間承認 / VI AI自律境界とHITL /
-  VII 機械検証可能なゲート / VIII 監査証跡と可逆性 / IX 知識・記憶・プロンプトSSoTと段階導入
+  VII 機械検証可能なゲート / VIII 監査証跡と可逆性 / IX 知識・記憶・プロンプトSSoTと段階導入 /
+  X UI再現性（本体「10.1」。UI を含むプロジェクトでのみ活性化）
 - Added sections: Constitution Check（ゲート手順）, Governance（改正・バージョニング）
 - Templates requiring update:
   ✅ .specify/templates/plan-template.md（Constitution Check 節が本ビューを参照）
@@ -16,9 +17,9 @@ SYNC IMPACT REPORT
 
 # Constitution（ゲート用簡潔ビュー）
 
-* Version: 0.1.0（Proposed / ドラフト）
+* Version: 0.2.0（Proposed / ドラフト）
 * Ratification date: TODO（正式批准時に確定）
-* Last amended: 2026-04-01
+* Last amended: 2026-08-06
 * 正本: [/constitution.md](../../constitution.md)（本ファイルはその派生サマリ。規範の正本は本体）
 
 > 本ビューは spec-kit の **Constitution Check** で参照するための簡潔版です。原則は宣言的・テスト可能な
@@ -84,6 +85,20 @@ AI 生成・起案の変更は AI 由来と識別可能にする（SHOULD）。�
 エージェントの作業記憶は `memory/`（非規範）に置き、確定後は `adr/` 等の正本へ昇格させて滞留させない（SHOULD）。マルチエージェントの実行指示は `AGENTS.md` を共有正本とし、名簿・協調は `agents/` に置く。
 統治の重さは段階導入プロファイル（Lite / Standard / Regulated）で調整してよい（MAY）が、絶対ルールと安全ゲートは緩和しない（MUST NOT。本体「4.」、development-process.md「8.」）。
 **Gate**: 知識/プロンプト/記憶が正本に置かれ二重管理していないか。採用プロファイルが `governance/` に記録されているか。
+
+### X. UI 再現性（UI Reproducibility）
+
+> 本原則は **UI（Web フロントエンド）を含むプロジェクトにのみ適用**する（本体「10.1」）。UI を持たない採用では休眠する。
+
+UI に現れる値の真実源は `tokens/tokens.json` のみ（MUST）。`src/styles/tokens.css` / `media.css` / `tokens.d.ts` は生成物であり手編集しない（MUST NOT）。
+CSS には `var(--...)` 以外を書かない（MUST）。メディアクエリは `@media (--bp-md)` の形式のみ（MUST）。`design-spec.md` に生の値（HEX / px / rem / ms）を書かず、トークン名で参照する（MUST）。
+`design-spec.md` / `spec.md` にない値・構造・文言を発明しない（MUST NOT）。不足は Open Questions に追記して停止する（MUST）。
+`src/components/<Name>/` は 実装 / `.module.css` / `types.ts` / `.stories.ts` を必ず備える（MUST）。variant・size・state は `as const` + union 型とし、型の緩和を禁止する（MUST NOT）。
+「差分なし」の自己申告を成果として認めない（MUST NOT）。判定は `task verify` の実行結果のみによる（MUST）。
+視覚回帰の基準画像更新（`--update-snapshots`）は Class B とし、AI エージェントの実行を禁止する（MUST NOT）。
+フォーカスリングの非表示化を禁止し（MUST NOT）、`prefers-reduced-motion` を全アニメーションで尊重する（MUST）。`client:*` は `design-spec.md` の Island 判定に従い、追加は Class B（ADR 必須）とする（MUST）。
+*根拠*: 「デザイン通りに実装されない」の大半は値の二重管理から生じる。禁止事項の文言ではなく、値を書ける場所を一箇所に閉じることで解決する。
+**Gate**: `task verify`（内側で `ui:verify`）が緑か。`design-spec.md` の Open Questions と `spec.md` の `[NEEDS CLARIFICATION]` が解消済みか。基準画像を AI が更新していないか。
 
 ## Constitution Check（/speckit.plan での使い方）
 

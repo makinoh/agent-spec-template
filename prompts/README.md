@@ -36,4 +36,23 @@ draft → active → deprecated（→ superseded_by）
 - 本番の個人データ・顧客機密・秘密情報をプロンプト例に含めてはなりません（MUST NOT。[standards/security-standards.md](../standards/security-standards.md)「2.」）。合成データを用います。
 - ツール／外部送信を伴うプロンプトは [standards/ai-governance.md](../standards/ai-governance.md)「6. ツール／MCP 実行境界」に従います。間接的プロンプトインジェクション（外部文書・ツール出力経由）を脅威として扱い、[governance/risk-register/](../governance/risk-register/) に登録します（SHOULD）。
 - 変更クラス: `prompts/**` は Class C（人間承認必須・挙動に影響。[development-process.md](../development-process.md)「1.」）。
-- プロンプトの改廃は `last_review` を更新し、重要なものは [evaluations/](evaluations/) に回帰テストを置きます（SHOULD）。検査は [scripts/checks/prompts.sh](../scripts/checks/prompts.sh) が `status`/`owner` の有無を機械点検します（資産追加時に活性化）。
+- プロンプトの改廃は `last_review` を更新し、重要なものは [evaluations/](evaluations/) に回帰テストを置きます（SHOULD）。検査は [scripts/checks/prompts.sh](../scripts/checks/prompts.sh) が `status` / `owner` / `last_review` の有無を機械点検します（資産追加時に活性化）。
+
+## 収録資産
+
+### UI 再現性シーケンス（`workflows/ui-*`）
+
+憲章「10.1 UI 再現性」を実運用するためのプロンプト列です。**順序に意味があります**。
+
+| 順 | ファイル | 実行先 | 目的 |
+| --- | --- | --- | --- |
+| 0 | [ui-00-tokens-bootstrap.md](workflows/ui-00-tokens-bootstrap.md) | Claude Code | トークンとガードレールを先に立てる |
+| 1 | [ui-01-claude-design.md](workflows/ui-01-claude-design.md) | Claude Design | トークン制約下でデザインし `design-spec.md` を出す |
+| — | （人間）Open Questions を全て解消する | — | ここを飛ばすと推測が始まる |
+| 2 | [ui-02-speckit-ui-flow.md](workflows/ui-02-speckit-ui-flow.md) | Claude Code | spec → plan → tasks |
+| 3 | [ui-03-storybook-spec.md](workflows/ui-03-storybook-spec.md) | Claude Code | 型定義と Story 設計 |
+| 4 | [ui-04-implement.md](workflows/ui-04-implement.md) | Claude Code | 実装（タスク単位） |
+
+> **1 と 2 の間の人間の作業を省略しないこと。** Open Questions が残ったまま `/speckit.specify` に進むと
+> `[NEEDS CLARIFICATION]` として持ち越されますが、実装フェーズで AI がそれを「一般的な解」で埋める誘因が生まれます
+> （憲章「10.1.3 推測の禁止」）。
