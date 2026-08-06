@@ -8,3 +8,13 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "ci"
+    # `.github/**` は Class A のため、PR には permission-impact ラベルが必須
+    # （scripts/checks/pr_governance.sh）。dependabot 自身に付与させ、毎回の手作業を無くす。
+    # 注: labels を指定すると既定ラベルは置換されるため、既定分も明記する。
+    # 注: ここで指定するラベルはリポジトリに事前に存在している必要がある。
+    # ADR 記載要件のカーブアウトは ADR-0006（permission-impact と CODEOWNERS は免除しない）。
+    labels:
+      - "dependencies"
+      - "github_actions"
+      - "permission-impact"
+      - "class:A"

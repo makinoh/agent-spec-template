@@ -1,8 +1,8 @@
 # 開発プロセス（Development Process）
 
-* Version: 0.2.0（Proposed / ドラフト）
+* Version: 0.2.1（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-06
+* Last amended: 2026-08-07
 * 上位規範: constitution.md（開発憲章）
 
 本書は、constitution.md が下位文書へ委譲する運用詳細の正本（SSoT）です。本書が未整備の事項は「未定義」として扱われ、AIエージェントは自律判断せず人間に諮らなければなりません（憲章「8. ブートストラップ規定」）。本書は憲章に従属し、矛盾する場合は憲章が優先します（MUST）。
@@ -25,6 +25,8 @@
 | `skills/**`、`playbooks/**`、`prompts/**`、`scripts/dev/**`（非ゲートの開発補助） | **C** | エージェントの挙動に影響。人間承認必須・ADR 原則不要。ツール境界は standards/ai-governance.md「6.」 |
 | `knowledge/**`、`memory/**`、`metrics/**`、`glossary.md`、`**/*.md`（統治文書を除く）、コメント、フォーマット、`README.md` | **D** | 品質ゲート全通過時に自己反映可（standards/ai-governance.md の許可条件下）。`knowledge/**`・`memory/**` が他文書の依拠する規範的知識となった場合はレビューアが昇格先のクラスへ引き上げる |
 
+> **dependabot による GitHub Actions の版数更新**: `.github/workflows/**` の `uses:` 行のみを書き換える dependabot の PR は、**Class A のまま**（`permission-impact` ラベル ＋ CODEOWNERS 承認は必須）ですが、「ADR 参照または ADR不要理由」の**記載要件のみ**を免除します（[ADR-0006](adr/adr-0006-dependabot-governance-carveout.md)）。本表が依存のパッチ／マイナー更新を Class C（ADR 原則不要）としていることとの整合であり、人間レビューは免除しません。免除条件（作成者・パス・差分行の三重）は `scripts/checks/pr_governance.sh` が機械判定します。
+>
 > 公開インターフェースの識別基準は standards/api-standards.md または architecture/* を正本とします（未整備時は Class B 側に倒す）。
 > `scripts/**` は既定で Class A（品質ゲートの実体）。**ゲート・統治に関与しない**開発補助のみ `scripts/dev/**` として Class C に置けます（過剰ゲートの回避）。ゲート・CI・統治に少しでも関与するスクリプトは `scripts/dev/` に置かず Class A とします（強制を弱めない。憲章「自己修正ループの防止」）。
 
@@ -166,6 +168,10 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 ---
 
 ## 9. 改正履歴
+
+### [0.2.1] - 2026-08-07（Proposed / 承認待ち）
+
+* 「1.」に dependabot による Actions 版数更新のカーブアウト注記を追加（[ADR-0006](adr/adr-0006-dependabot-governance-carveout.md)）。クラスは A のまま、ADR の記載要件のみ免除。
 
 ### [0.2.0] - 2026-08-06（Proposed / 承認待ち）
 

@@ -1,8 +1,8 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.2.0（Proposed / ドラフト）
+* Version: 0.2.1（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-06
+* Last amended: 2026-08-07
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
 
 本書は、憲章の各 MUST / MUST NOT に **強制手段**（構造的強制／機械強制／人間ゲート／ブートストラップ）と **整備状況** を割り当てる台帳の正本（SSoT）です。
@@ -24,8 +24,8 @@
 | 7 | ADR の status が管理語彙のいずれか（adr-rules.md/8章） | MUST | 機械 | 整備済み | verify:fast → scripts/checks/adr.sh |
 | 8 | Accepted ADR の本文・FM 実体に差分がない（不変性/8章） | MUST | 機械（base status 起点・セクション差分）＋人間 | 整備済み（CI/pull_request。判定起点を base=accepted に修正し、変更履歴以外の表・本文の改変を検出。最終判断は CODEOWNERS） | verify:pr → scripts/checks/adr-immutability.sh |
 | 9 | ADR 必須セクション存在＋FM 値制約（id↔ファイル名・profile/scope enum・日付形式・accepted 時の decision-makers/review_after 非空。adr-rules.md「3.」「4.」/8章） | MUST | 機械（本文＋FM 値検査） | 整備済み | verify:fast → scripts/checks/adr-content.sh（check_adr_content.py） |
-| 10 | A/B を含む PR に ADR 参照 or 不要理由（5章/8章） | MUST | 機械（PR 本文検査）＋人間 | ブートストラップ | .github/pull_request_template.md ＋ workflows |
-| 11 | 統治パス変更 PR に permission-impact ラベル＋CODEOWNERS 承認（6章/8章） | MUST | 人間＋機械（自動ラベル） | ブートストラップ | CODEOWNERS ＋ development-process.md「6.」 |
+| 10 | A/B を含む PR に ADR 参照 or 不要理由（5章/8章） | MUST | 機械（PR 本文検査）＋人間 | ブートストラップ（**カーブアウトあり**: dependabot による `.github/workflows/**` の `uses:` 行のみの版数更新は本記載要件を免除。ラベル・CODEOWNERS は免除しない。ADR-0006） | verify:pr → scripts/checks/pr_governance.sh ＋ .github/pull_request_template.md |
+| 11 | 統治パス変更 PR に permission-impact ラベル＋CODEOWNERS 承認（6章/8章） | MUST | 人間＋機械（自動ラベル） | ブートストラップ（dependabot の PR は `.github/dependabot.yml` の `labels:` で自動付与。免除はしない。ADR-0006） | verify:pr → scripts/checks/pr_governance.sh ＋ CODEOWNERS ＋ development-process.md「6.」 |
 | 12 | 作成者≠承認者・include administrators・force-push 禁止（6章/8章） | MUST | 構造的（ブランチ保護） | 未整備（要 GitHub 設定） | リポジトリ設定 |
 | 13 | AI は専用マシンアイデンティティで行為（6章） | MUST | 構造的（アカウント分離） | 未整備（要組織設定） | 組織 IdP / マシンアカウント |
 | 14 | AI は本書改正を単独承認しない（7章） | MUST NOT | 人間（定足数） | ブートストラップ | development-process.md「5.」 |
@@ -50,6 +50,11 @@
 ---
 
 ## 改正履歴
+
+### [0.2.1] - 2026-08-07（Proposed / 承認待ち）
+
+* #10 / #11 に dependabot の Actions 版数更新に関するカーブアウトを注記（[ADR-0006](../adr/adr-0006-dependabot-governance-carveout.md)）。免除は ADR の**記載要件のみ**で、`permission-impact` ラベルと CODEOWNERS 承認は維持する。
+* 検証箇所を `scripts/checks/pr_governance.sh` に明記（従来は workflows とだけ記載していた）。
 
 ### [0.2.0] - 2026-08-06（Proposed / 承認待ち）
 
