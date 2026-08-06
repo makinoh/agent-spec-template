@@ -1,0 +1,59 @@
+{
+  "$comment": "デザイン再現性の実質的な強制装置。ここが通れば「トークン外の値が 0 件」であることが証明される。",
+  "extends": ["stylelint-config-standard"],
+  "plugins": ["stylelint-declaration-strict-value"],
+  "ignoreFiles": ["src/styles/tokens.css", "src/styles/media.css", "dist/**", "storybook-static/**"],
+  "rules": {
+    "scale-unlimited/declaration-strict-value": [
+      [
+        "/color$/",
+        "fill",
+        "stroke",
+        "font-size",
+        "font-family",
+        "font-weight",
+        "line-height",
+        "letter-spacing",
+        "/^margin/",
+        "/^padding/",
+        "/gap$/",
+        "/^inset/",
+        "top",
+        "right",
+        "bottom",
+        "left",
+        "border-radius",
+        "box-shadow",
+        "z-index",
+        "transition-duration",
+        "transition-timing-function",
+        "animation-duration",
+        "animation-timing-function"
+      ],
+      {
+        "ignoreVariables": true,
+        "ignoreFunctions": false,
+        "expandShorthand": true,
+        "ignoreValues": [
+          "transparent",
+          "currentColor",
+          "inherit",
+          "initial",
+          "unset",
+          "revert",
+          "none",
+          "auto",
+          "0",
+          "/^(calc|clamp|min|max|env)\\(/"
+        ],
+        "severity": "error",
+        "message": "トークン外の値です。src/styles/tokens.css の var(--...) を使うか、tokens/tokens.json に追加（Class B / ADR 必須）してください。"
+      }
+    ],
+    "declaration-property-value-disallowed-list": {
+      "outline": ["/^(0|none)$/"]
+    },
+    "custom-property-pattern": null,
+    "selector-class-pattern": "^[a-z][a-zA-Z0-9]*$"
+  }
+}

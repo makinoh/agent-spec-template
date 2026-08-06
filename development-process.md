@@ -1,7 +1,8 @@
 # 開発プロセス（Development Process）
 
-* Version: 0.1.0（Proposed / ドラフト）
+* Version: 0.2.0（Proposed / ドラフト）
 * Date: 2026-04-01
+* Last amended: 2026-08-06
 * 上位規範: constitution.md（開発憲章）
 
 本書は、constitution.md が下位文書へ委譲する運用詳細の正本（SSoT）です。本書が未整備の事項は「未定義」として扱われ、AIエージェントは自律判断せず人間に諮らなければなりません（憲章「8. ブートストラップ規定」）。本書は憲章に従属し、矛盾する場合は憲章が優先します（MUST）。
@@ -26,6 +27,25 @@
 
 > 公開インターフェースの識別基準は standards/api-standards.md または architecture/* を正本とします（未整備時は Class B 側に倒す）。
 > `scripts/**` は既定で Class A（品質ゲートの実体）。**ゲート・統治に関与しない**開発補助のみ `scripts/dev/**` として Class C に置けます（過剰ゲートの回避）。ゲート・CI・統治に少しでも関与するスクリプトは `scripts/dev/` に置かず Class A とします（強制を弱めない。憲章「自己修正ループの防止」）。
+
+### UI・デザイン領域のクラス（憲章「10.1 UI 再現性」）
+
+UI を含むプロジェクトでは、上表に加えて次を適用します。上表と重複する場合は**最も厳格なクラス**を採用します。
+
+| 対象 | クラス | 理由 | AI の権限 |
+| --- | --- | --- | --- |
+| `.stylelintrc.json`、`scripts/check-*.mjs`、`scripts/checks/ui.sh`、`tokens/build.mjs`、`Taskfile.ui.yml` | **A** | 強制機構そのもの。ここを緩めれば全ゲートが無効化される | 起案のみ |
+| `constitution.md`「10.1」、`standards/design-tokens.md`、`standards/frontend-ui.md` | **A** | 統治文書 | 起案のみ |
+| `tokens/tokens.json` の追加・変更 | **B** | 値の真実源。無秩序な追加はトークン設計を崩壊させる | 起案＋ADR 起票 |
+| **視覚回帰の基準画像更新（`--update-snapshots` / `task ui:approve:visual`）** | **B** | 基準を自由に書き換えられると検出器として機能しない | **実行禁止**（人間のみ。強制台帳 #27） |
+| `specs/<feature>/design-spec.md` の変更 | **B** | UI 実装の正本 | 起案＋人間承認 |
+| コンポーネントの新規追加 / variant 追加 | **B** | `design-spec.md` の更新が先行する必要がある | 起案 |
+| `client:*` の新規付与（island 化） | **B** | バンドルサイズと Server First 原則に影響 | 起案＋ADR |
+| 既存コンポーネントの実装・CSS（design-spec の範囲内） | **C** | 通常の実装 | 実装まで |
+| Story の追加（既存 variant の状態網羅） | **C** | 検証の充実であり仕様変更ではない | 実装まで |
+| トークン参照の置換（生値 → `var()` へのリファクタ） | **C** | 挙動不変。視覚回帰が守る | 実装まで |
+
+> 生成物（`src/styles/tokens.css` / `media.css` / `tokens.d.ts`）は手編集の対象外です（憲章「10.1.1」）。`tokens/tokens.json` の変更にともなう再生成結果としてのみコミットします。
 
 ### ADR が必要となるトリガ（内容ベース）
 
@@ -147,4 +167,11 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 
 ## 9. 改正履歴
 
-（初版ドラフトのため履歴なし）
+### [0.2.0] - 2026-08-06（Proposed / 承認待ち）
+
+* 「1.」に **UI・デザイン領域のクラス**表を追加（憲章「10.1 UI 再現性」の新設に対応）。視覚回帰の基準画像更新を Class B とし AI の実行を禁止。
+* 正本記録: [governance/proposals/gp-0001-ui-reproducibility.md](governance/proposals/gp-0001-ui-reproducibility.md)
+
+### [0.1.0] - 2026-04-01
+
+* 初版ドラフト。

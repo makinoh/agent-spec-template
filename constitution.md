@@ -1,7 +1,8 @@
 # 開発憲章（Constitution）
 
-* Version: 0.1.0（Proposed / ドラフト）
+* Version: 0.2.0（Proposed / ドラフト）
 * Date: 2026-04-01
+* Last amended: 2026-08-06
 * Status: Proposed
 * Versioning: セマンティックバージョニング 2.0.0（`MAJOR.MINOR.PATCH`）に従う。  
   採番規則は「7. 変更管理」のバージョニング方針で定める。  
@@ -138,6 +139,8 @@ RFC 2119 のキーワードは *義務の強さ* を表します。
 13. ソースコードコメント
 
 下位文書が上位文書と矛盾する場合、上位文書を優先しなければなりません（MUST）。
+
+機能仕様（`specs/<feature>/*`）は、上表の階層と直交する機能単位の文書群です。その内部の優先順位は `spec.md`（何を・なぜ）→ `design-spec.md`（UIの構造・状態）→ `plan.md`（どう作るか）とします（UI領域の詳細は「10.1.7」）。
 
 charter.md / vision.md / scope.md は、プロジェクトの目的・ビジョン・スコープ（「なぜ・何を」）を定める基本方針文書であり、設計判断（ADR）より上位に位置づけます。
 
@@ -935,6 +938,94 @@ ai-governance.md は AI運用の詳細方針（自律範囲・自己反映の許
 
 ---
 
+## 10.1 UI 再現性（UI Reproducibility）
+
+本節は、Webフロントエンド（UI）を含むプロジェクトに適用します。UIを持たない採用では休眠し、UI採用時（`package.json` と `src/` の追加時）に活性化します（「8. ブートストラップ規定」と同趣旨）。
+
+本節が解決する失敗モードは「**デザインと実装の値がずれる**」ことです。他章の品質ゲートは秘密情報・依存脆弱性・テスト・ADR記載・統治設定の無断変更を検出しますが、いずれも「`padding` が `24px` ではなく `20px` になっている」を検出できません。自然言語による禁止事項ではなく、**値を書ける場所を一箇所に閉じる**ことでこれを解決します。
+
+実装標準の正本は [standards/design-tokens.md](standards/design-tokens.md) および [standards/frontend-ui.md](standards/frontend-ui.md)、判断根拠の正本は ADR-0005 です。本節はこれらを再定義せず、原則のみを定めます。
+
+---
+
+### 10.1.1 Design Token 単一真実源
+
+UIに現れるすべての値の真実源は `tokens/tokens.json` のみとしなければなりません（MUST）。
+
+1. `src/styles/tokens.css` / `src/styles/media.css` / `src/styles/tokens.d.ts` は `tokens/build.mjs` による**生成物**であり、手編集してはなりません（MUST NOT。「3. 基本原則／SSoT」の生成物非手編集の適用）。生成物とソースの不一致は `task ui:tokens:check` が検出します。
+2. トークンは2層とします。`primitive`（意味を持たない生の値）はCSSに出力せず、`semantic`（用途名）のみをCSSカスタムプロパティとして出力しなければなりません（MUST）。出力されない変数は使用できないため、primitive の誤用は構造的に発生しません。
+3. コンポーネントCSSは `var(--...)` のみを記述しなければなりません（MUST）。`stylelint-declaration-strict-value` がこれを機械的に強制します。
+4. メディアクエリの条件部ではCSS変数が評価されないため、`tokens.json` の `breakpoint` から生成される `@custom-media --bp-*` のみを使用しなければなりません（MUST）。生の値の直書きは `scripts/check-media-queries.mjs` が検出します。
+5. `/* stylelint-disable */` による無効化は Class A 変更とし、[governance/exceptions/](governance/exceptions/) への登録と専任レビュアの承認を要します（MUST）。
+
+**値のスコープにおける優先**: UIに現れる値について、他の文書（design-spec.md・plan.md 等）の記述と `tokens/tokens.json` が矛盾する場合、`tokens.json` を正とします（MUST）。これは**値のSSoT**に関する規定であり、「2. 文書管理階層」の文書優先順位を変更するものではありません（本書は引き続き最高位の統治文書です）。
+
+---
+
+### 10.1.2 アクセシビリティの下限
+
+1. WCAG 2.2 AA を満たさなければなりません（MUST。詳細は [standards/accessibility-standards.md](standards/accessibility-standards.md)）。
+2. フォーカスインジケータは `--color-focus-ring` を使用し、非表示化してはなりません（MUST NOT。`outline: none` / `outline: 0` は Stylelint が拒否します）。
+3. すべてのアニメーションは `prefers-reduced-motion: reduce` を尊重しなければなりません（MUST）。`duration` トークンは低減時に自動で `0ms` に潰れます。
+4. Storybook の a11y（axe）テストの失敗は品質ゲート違反とします（MUST）。個別ルールの無効化は理由をコード内コメントに残し、PRで明示しなければなりません（MUST）。
+
+---
+
+### 10.1.3 推測の禁止
+
+1. `design-spec.md` および `spec.md` に記載のない値・構造・文言を、実装者（人間・AIを問わず）が発明してはなりません（MUST NOT）。
+2. `design-spec.md` の Open Questions、および `spec.md` の `[NEEDS CLARIFICATION]` が未解決の項目は実装に着手してはなりません（MUST NOT）。
+3. 不足を発見した場合は実装を停止し、Open Questions に追記して確認を求めなければなりません（MUST）。「一般的には」「通常は」による補完を禁止します（MUST NOT）。
+
+> 本項は「6. AIエージェント統治と自律境界」の停止必須チェックポイントを UI 領域へ具体化したものです。
+
+---
+
+### 10.1.4 Story 無きコンポーネントの禁止
+
+1. `src/components/<Name>/` は次を必ず備えなければなりません（MUST）。`<Name>.astro`（または `.tsx` 等）／ `<Name>.module.css` ／ `types.ts` ／ `<Name>.stories.ts`
+2. `variant` / `size` / `state` は `as const` 配列と union 型で定義しなければなりません（MUST）。union にない値は型エラーとなります。型の緩和（`any` / `as` / `string` 化）を禁止します（MUST NOT）。
+3. Story の欠落は `scripts/check-component-stories.mjs` が検出します。
+
+**根拠**: Story を持たないコンポーネントは視覚回帰にも a11y 検査にも乗りません。「デザインと違っても誰も気づかない」領域を作らないための規定です。
+
+---
+
+### 10.1.5 検証は実行可能でなければならない
+
+1. 「差分はありません」「デザイン通りです」といった**自己申告を成果として認めてはなりません**（MUST NOT）。
+2. 差分の判定は次の実行結果のみによります（MUST）。`task ui:tokens:check` / `task ui:guards` / `task ui:lint:css` / `task ui:typecheck` / `task ui:test:stories` / `task ui:test:visual` / `task ui:test:e2e` / `task ui:lighthouse`
+3. 完了報告には実行したコマンドと**その生の出力**を含めなければなりません（MUST）。
+4. 視覚回帰の基準画像更新（`--update-snapshots`）は Class B 変更とし、**AIエージェントによる実行を禁止します**（MUST NOT）。基準画像を自由に更新できる状態では、視覚回帰は検出器として機能しません。
+
+> 本項は「1.1 義務レベルと強制手段」の機械強制優先、および「自己修正ループの防止」（6章）の UI 領域における具体化です。
+
+---
+
+### 10.1.6 Server First（Astro）
+
+1. 既定は静的コンポーネントとします（MUST）。
+2. `client:*` ディレクティブは `design-spec.md` の Island 判定で指定された箇所にのみ付与しなければなりません（MUST）。
+3. 新規の island 化は `design-spec.md` の更新を先行させ、バンドルサイズへの影響を ADR に記録しなければなりません（MUST。Class B）。
+
+---
+
+### 10.1.7 UI 文書の役割分担
+
+「2. 文書管理階層」を UI 領域へ具体化します。`design-spec.md` は `spec.md` の従属文書であり、`plan.md` より上位に位置づけます。
+
+| 文書 | 役割 |
+| --- | --- |
+| `specs/<feature>/spec.md` | 何を・なぜ（受入基準を含む） |
+| `specs/<feature>/design-spec.md` | UIの構造・状態・レスポンシブ挙動（**値は書かない**。トークン名で参照する） |
+| `specs/<feature>/plan.md` | どう作るか |
+| `adr/` | なぜこの設計にしたか |
+| Storybook | 上記の実行形。**仕様ではなく検証装置** |
+
+Storybook を「唯一のUI仕様」と位置づけてはなりません（MUST NOT）。仕様と検証装置を同一視すると、実装に合わせて Story を書き換える経路が開き、検証が自己言及に陥ります。Storybook は `design-spec.md` から導出されるものとします（MUST）。
+
+---
+
 ## 11. 参考文献
 
 ### RFC 2119
@@ -1054,4 +1145,19 @@ https://keepachangelog.com
 
 ---
 
-（初版ドラフトのため履歴なし）
+### [0.2.0] - 2026-08-06（Proposed / 承認待ち）
+
+正本記録: [governance/proposals/gp-0001-ui-reproducibility.md](governance/proposals/gp-0001-ui-reproducibility.md)
+
+**Added**
+
+* 「10.1 UI 再現性（UI Reproducibility）」を追加（10.1.1 Design Token 単一真実源／10.1.2 アクセシビリティの下限／10.1.3 推測の禁止／10.1.4 Story 無きコンポーネントの禁止／10.1.5 検証は実行可能でなければならない／10.1.6 Server First／10.1.7 UI 文書の役割分担）。
+* 「2. 文書管理階層」に、機能仕様（`specs/<feature>/*`）内部の優先順位に関する補足を追加。
+
+**増分の根拠**: 後方互換な原則・節の追加（既存の義務の撤廃・反転・意味変更を含まない）のため MINOR（「7. 変更管理」バージョニング方針）。
+
+> 本改正は承認待ちです。承認（development-process.md「5.」の定足数）をもって `governance/decisions/` に確定記録を作成します。
+
+### [0.1.0] - 2026-04-01
+
+* 初版ドラフト。

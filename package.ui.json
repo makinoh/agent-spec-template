@@ -1,0 +1,23 @@
+{
+  "$comment": "既存 package.json に統合する devDependencies と設定の抜粋。バージョンは採用時点の最新安定版に固定すること。",
+  "devDependencies": {
+    "stylelint": "^16",
+    "stylelint-config-standard": "^38",
+    "stylelint-declaration-strict-value": "^1.10",
+    "postcss-custom-media": "^11",
+    "@biomejs/biome": "^2",
+    "typescript": "^5",
+    "vitest": "^3",
+    "@playwright/test": "^1",
+    "storybook": "pin-to-adr-0003",
+    "@storybook/addon-a11y": "pin-to-adr-0003",
+    "@storybook/addon-docs": "pin-to-adr-0003",
+    "@storybook/test-runner": "pin-to-adr-0003",
+    "axe-playwright": "^2",
+    "@lhci/cli": "^0.14"
+  },
+  "$notes": [
+    "storybook 関連のパッケージ構成は ADR-0003 の決定（.astro 直接描画 か framework component か）に依存するため、ADR 確定後にバージョンを固定すること。",
+    "Style Dictionary は使用しない。tokens/build.mjs が依存ゼロで同等の出力を行うため、依存を増やさない判断。多プラットフォーム出力が必要になった時点で ADR を起票して再検討する。"
+  ]
+}

@@ -1,7 +1,8 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.1.0（Proposed / ドラフト）
+* Version: 0.2.0（Proposed / ドラフト）
 * Date: 2026-04-01
+* Last amended: 2026-08-06
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
 
 本書は、憲章の各 MUST / MUST NOT に **強制手段**（構造的強制／機械強制／人間ゲート／ブートストラップ）と **整備状況** を割り当てる台帳の正本（SSoT）です。
@@ -37,6 +38,12 @@
 | 20 | 緊急例外は人間承認を免除しない／72h 以内に事後レビュー（7章） | MUST/MUST NOT | 人間 | ブートストラップ | development-process.md「7.」 |
 | 21 | プロンプト資産はライフサイクル（status/owner/last_review）を持つ（IX/ai-governance「7.」） | SHOULD | 機械（FM 検査）＋人間 | 整備済み（資産追加時に活性化） | verify:fast → scripts/checks/prompts.sh |
 | 22 | 採用配線（CODEOWNERS 実体化・ブランチ保護・必須チェック）の完遂（6章/8章/#12/#19） | MUST | 人間＋機械（助言検知） | 整備中 | verify:pr → scripts/checks/adoption.sh ＋ ADOPTION.md |
+| 23 | UI の値の真実源は `tokens/tokens.json`。生成物（`src/styles/tokens.css` 等）を手編集しない（10.1.1） | MUST / MUST NOT | 機械（再生成して差分ゼロ） | 整備済み（UI 採用時に活性化。未採用時は skip） | verify → scripts/checks/ui.sh → `task ui:tokens:check`（tokens/build.mjs） |
+| 24 | CSS にトークン外の値を書かない／生のブレークポイントを直書きしない／フォーカスリングを消さない（10.1.1・10.1.2） | MUST / MUST NOT | 構造的（primitive を CSS 出力しない）＋機械（Stylelint・正規表現） | 整備済み（UI 採用時に活性化） | verify → scripts/checks/ui.sh → `task ui:lint:css`（.stylelintrc.json）・scripts/check-media-queries.mjs |
+| 25 | `design-spec.md` に生の値（HEX / px / rem / ms）を書かない（10.1.1・10.1.7） | MUST NOT | 機械（正規表現） | 整備済み（UI 採用時に活性化） | verify → scripts/checks/ui.sh → scripts/check-spec-literals.mjs |
+| 26 | Story 無きコンポーネントの禁止（必須ファイル構成。10.1.4） | MUST | 機械（構成検査） | 整備済み（UI 採用時に活性化） | verify → scripts/checks/ui.sh → scripts/check-component-stories.mjs |
+| 27 | 視覚回帰の基準画像更新（`--update-snapshots`）は Class B。AI エージェントは実行しない（10.1.5-4） | MUST NOT | 人間（PR レビュー・CODEOWNERS）＋規範（エージェント指示への明記） | **ブートストラップ**（実行者の識別は機械強制できない。基準画像の差分は PR で人間が目視承認する） | AGENTS.md「8.」＋ development-process.md「1.」＋ .github/CODEOWNERS |
+| 28 | 「差分なし」の自己申告を成果として認めない（10.1.5） | MUST NOT | 人間（レビュー）＋機械（ゲート実行の事実） | ブートストラップ | AGENTS.md「8.」完了報告 ＋ verify ジョブのログ |
 
 > 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#12, #13 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。
 
@@ -44,4 +51,11 @@
 
 ## 改正履歴
 
-（初版ドラフトのため履歴なし）
+### [0.2.0] - 2026-08-06（Proposed / 承認待ち）
+
+* 憲章「10.1 UI 再現性」の新設にともない、規範 #23〜#28 を追加（正本記録: [proposals/gp-0001-ui-reproducibility.md](proposals/gp-0001-ui-reproducibility.md)）。
+* #23〜#26 は機械強制（UI 採用時に活性化）、#27・#28 はブートストラップ（人間レビューで担保）。
+
+### [0.1.0] - 2026-04-01
+
+* 初版ドラフト。
