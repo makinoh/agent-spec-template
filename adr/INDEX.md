@@ -11,6 +11,7 @@
 | ADR-0003 | Storybook における Astro コンポーネントの描画方式 | proposed | project | 2026-08-06 | [adr-0003-storybook-astro-rendering.md](adr-0003-storybook-astro-rendering.md) |
 | ADR-0004 | Cloudflare のデプロイ先（Workers + Static Assets / Pages） | proposed | project | 2026-08-06 | [adr-0004-cloudflare-deployment-target.md](adr-0004-cloudflare-deployment-target.md) |
 | ADR-0005 | CSS の記述方式とデザイントークン強制の手段 | proposed | project | 2026-08-06 | [adr-0005-css-token-enforcement.md](adr-0005-css-token-enforcement.md) |
+| ADR-0006 | dependabot による Actions 版数更新の統治要件（ADR 記載要件のカーブアウト） | proposed | project | 2026-08-07 | [adr-0006-dependabot-governance-carveout.md](adr-0006-dependabot-governance-carveout.md) |
 
 ## 関係グラフ
 
