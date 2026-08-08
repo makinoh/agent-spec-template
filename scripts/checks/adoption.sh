@@ -20,16 +20,29 @@ if [ -f agents/README.md ] && grep -q '@bot/' agents/README.md; then
   warns=1
 fi
 
-# 3) ブランチ保護で 'verify' が必須チェックか（gh 利用可能時のみ・助言）
+# 3) ブランチ保護の点検（gh 利用可能時のみ・助言）
+#
+# 本チェックは「認証トークン」と「administration: read 権限」の双方を要する。どちらかが欠けると
+# API は 401/403/404 を返すが、保護が本当に未設定でも 404 になるため、エラーを握り潰すと
+# 「未設定」と「確認不能」を区別できない。旧実装は 2>/dev/null で理由を捨てていたため、
+# CI（.github/workflows/verify.yml の permissions に administration が無く、verify:pr ステップに
+# GITHUB_TOKEN も渡っていなかった）では保護が設定済みでも常に「未設定の可能性」を警告し続けていた。
+# = 整備済みに見えて機能していないチェック（憲章「8. ブートストラップ規定」が禁じる状態）。
+# そのため失敗理由を保持し、確認不能である旨を明示する。
 if have gh; then
-  prot="$(gh api "repos/{owner}/{repo}/branches/main/protection" 2>/dev/null || true)"
-  if [ -z "$prot" ]; then
-    warn "main のブランチ保護が未設定の可能性（ADOPTION.md「3.」: 'verify' を必須ステータスチェックに登録）"
-    warns=1
-  elif ! printf '%s' "$prot" | grep -q '"verify"'; then
-    warn "ブランチ保護に必須チェック 'verify' が見当たりません（ADOPTION.md「3.」）"
+  if prot="$(gh api "repos/{owner}/{repo}/branches/main/protection" 2>&1)"; then
+    printf '%s' "$prot" | grep -q '"contexts":\[[^]]*"verify"' || {
+      warn "ブランチ保護に必須チェック 'verify' が見当たりません（ADOPTION.md「3.」）"; warns=1; }
+    printf '%s' "$prot" | grep -q '"enforce_admins":{[^}]*"enabled":true' || {
+      warn "ブランチ保護の include administrators（enforce_admins）が無効です（ADOPTION.md「3.」・強制台帳 #12）"; warns=1; }
+  else
+    warn "main のブランチ保護を確認できませんでした（未設定、または認証・権限の不足）: $(printf '%s' "$prot" | tr '\n' ' ' | cut -c1-160)"
+    warn "  → CI の場合: .github/workflows/verify.yml の permissions に 'administration: read'、当該ステップに GITHUB_TOKEN が必要"
     warns=1
   fi
+else
+  warn "gh が見つからないためブランチ保護を確認できません（ローカルでは任意。CI では gh 同梱）"
+  warns=1
 fi
 
 [ "$warns" -eq 0 ] && ok "adoption wiring" || ok "adoption wiring (warnings — 本番運用前に解消)"

@@ -13,6 +13,10 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  # ブランチ保護の読み取りに必要（scripts/checks/adoption.sh / 強制台帳 #22）。
+  # これが無いと保護設定を取得できず、「未設定」と「確認不能」を区別できないまま
+  # 助言チェックが常に警告を出し続ける＝ゲートが実質機能しない状態になる。
+  administration: read
 
 concurrency:
   group: verify-${{ github.ref }}
@@ -43,6 +47,8 @@ jobs:
         if: github.event_name == 'pull_request'
         run: task verify:pr
         env:
+          # adoption.sh が gh CLI でブランチ保護を照会するために必要（未指定だと未認証で失敗する）。
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
