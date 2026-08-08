@@ -102,6 +102,7 @@ standards/
 ├─ architecture-standards.md    security-standards.md
 ├─ testing-standards.md         observability-standards.md
 ├─ performance-standards.md     accessibility-standards.md
+├─ design-tokens.md             frontend-ui.md   ← UI 採用時（憲章「10.1」）
 └─ ai-governance.md             ← AI 運用の詳細方針（憲章と AGENTS.md の中間層）
 ```
 

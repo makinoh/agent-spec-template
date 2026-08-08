@@ -6,7 +6,7 @@ date: 2026-08-06
 last_updated: 2026-08-06
 profile: minimal              # minimal | full
 scope: project
-proposer: "（起案者名）"
+proposer: "makinoh"
 decision-makers: []           # proposed 段階は空（accepted 時に非空・adr-rules.md「4.」）
 consulted: []
 informed: []

@@ -29,8 +29,12 @@ tasks:
 
   tokens:check:
     desc: 生成物がコミット済みの内容と一致するか（手編集・生成漏れの検出）
+    # ここで `task: tokens` を呼んではならない。tokens は sources/generates による増分判定を
+    # 持つため、tokens.json が未変更だと .task キャッシュが温まっている環境（＝初回実行後の
+    # ローカルすべて）で再生成がスキップされ、生成物が手編集されていても差分が出ず合格する。
+    # 検証タスクで増分スキップを効かせてはならないため、ビルダーを直接実行する。
     cmds:
-      - task: tokens
+      - node tokens/build.mjs
       - git diff --exit-code -- src/styles/tokens.css src/styles/media.css src/styles/tokens.d.ts
 
   guards:

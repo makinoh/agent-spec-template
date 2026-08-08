@@ -30,7 +30,7 @@ tasks:
       - task: check:ui
 
   verify:fast:
-    desc: "FAST checks for pre-commit (structure / ADR / front matter / prompts / markdown)"
+    desc: "FAST checks for pre-commit (structure / ADR / front matter / prompts / markdown / UI)"
     cmds:
       - task: check:structure
       - task: check:adr

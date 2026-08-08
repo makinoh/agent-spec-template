@@ -1,6 +1,6 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.2.3（Proposed / ドラフト）
+* Version: 0.2.4（Proposed / ドラフト）
 * Date: 2026-04-01
 * Last amended: 2026-08-08
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
@@ -38,7 +38,7 @@
 | 20 | 緊急例外は人間承認を免除しない／72h 以内に事後レビュー（7章） | MUST/MUST NOT | 人間 | ブートストラップ | development-process.md「7.」 |
 | 21 | プロンプト資産はライフサイクル（status/owner/last_review）を持つ（IX/ai-governance「7.」） | SHOULD | 機械（FM 検査）＋人間 | 整備済み（資産追加時に活性化） | verify:fast → scripts/checks/prompts.sh |
 | 22 | 採用配線（CODEOWNERS 実体化・ブランチ保護・必須チェック）の完遂（6章/8章/#12/#19） | MUST | 人間＋機械（助言検知） | **整備中** — ブランチ保護・必須チェックは完了（#19）。CODEOWNERS の `@org/*` とマシンID `@bot/*` は**テンプレート成果物の忠実性のため意図的に保持**しており、`adoption.sh` の warn は採用者向けの正しい通知として残す（[GD-0001](decisions/gd-0001-adoption-profile-lite.md)「5.」） | verify:pr → scripts/checks/adoption.sh ＋ ADOPTION.md。**注: ブランチ保護の点検は CI の `GITHUB_TOKEN` では実行できない**（管理者読み取り権限は GITHUB_TOKEN に付与できず、`administration` は `permissions:` の有効スコープでもない）。CI で実効化するには管理者読み取り権限を持つ PAT をシークレット `ADMIN_READ_TOKEN` に設定する。未設定時は「確認不能」として warn する（ADR-0006 とは無関係の別事項） |
-| 23 | UI の値の真実源は `tokens/tokens.json`。生成物（`src/styles/tokens.css` 等）を手編集しない（10.1.1） | MUST / MUST NOT | 機械（再生成して差分ゼロ） | 整備済み（UI 採用時に活性化。未採用時は skip） | verify → scripts/checks/ui.sh → `task ui:tokens:check`（tokens/build.mjs） |
+| 23 | UI の値の真実源は `tokens/tokens.json`。生成物（`src/styles/tokens.css` 等）を手編集しない（10.1.1） | MUST / MUST NOT | 機械（再生成して差分ゼロ） | 整備済み（UI 採用時に活性化。未採用時は skip）。**注: `tokens:check` は Task の増分判定（`sources`/`generates`）を経由してはならない**。経由すると `.task` キャッシュが温まった環境で再生成がスキップされ、手編集を見逃す（2026-08-08 の再チェックで検出・修正済み） | verify → scripts/checks/ui.sh → `task ui:tokens:check`（`node tokens/build.mjs` を直接実行して差分検査） |
 | 24 | CSS にトークン外の値を書かない／生のブレークポイントを直書きしない／フォーカスリングを消さない（10.1.1・10.1.2） | MUST / MUST NOT | 構造的（primitive を CSS 出力しない）＋機械（Stylelint・正規表現） | 整備済み（UI 採用時に活性化） | verify → scripts/checks/ui.sh → `task ui:lint:css`（.stylelintrc.json）・scripts/check-media-queries.mjs |
 | 25 | `design-spec.md` に生の値（HEX / px / rem / ms）を書かない（10.1.1・10.1.7） | MUST NOT | 機械（正規表現） | 整備済み（UI 採用時に活性化） | verify → scripts/checks/ui.sh → scripts/check-spec-literals.mjs |
 | 26 | Story 無きコンポーネントの禁止（必須ファイル構成。10.1.4） | MUST | 機械（構成検査） | 整備済み（UI 採用時に活性化） | verify → scripts/checks/ui.sh → scripts/check-component-stories.mjs |
@@ -50,6 +50,12 @@
 ---
 
 ## 改正履歴
+
+### [0.2.4] - 2026-08-08（Accepted）
+
+* #23 に、`task ui:tokens:check` が Task の増分判定を経由すると手編集を見逃す不具合と、その修正（ビルダー直接実行）を記録。
+  定期再チェックの陰性テスト（違反を入れてゲートが落ちるか）で検出した。台帳が「整備済み」と主張していた一方、
+  ローカル（`.task` キャッシュが温まった状態）では誤合格していた。
 
 ### [0.2.3] - 2026-08-08（Accepted）
 
