@@ -1,18 +1,18 @@
 ---
 id: ADR-0005
 title: "CSS の記述方式とデザイントークン強制の手段"
-status: proposed              # proposed | accepted | rejected | deprecated | superseded
+status: accepted              # proposed | accepted | rejected | deprecated | superseded
 date: 2026-08-06
-last_updated: 2026-08-06
+last_updated: 2026-08-08
 profile: full                 # minimal | full
 scope: project
-proposer: "（起案者名）"
-decision-makers: []           # proposed 段階は空（accepted 時に非空・adr-rules.md「4.」）
+proposer: "makinoh"
+decision-makers: ["makinoh"]  # Lite プロファイル（GD-0001）により定足数 1 名
 consulted: []
 informed: []
 tags: [frontend, css, design-tokens]
 risk: medium
-review_after: ""              # accepted 時に YYYY-MM-DD を記入
+review_after: 2027-02-08
 depends_on: []
 supersedes: []
 superseded_by: []
@@ -29,7 +29,8 @@ relates_to: [ADR-0003]
 
 | 日付 | 変更者 | 変更内容（ステータス遷移を含む） | 理由 |
 |------|--------|----------------------------------|------|
-| 2026-08-06 | （起案者） | 初版作成、Proposed に設定 | UI 再現性レイヤ（constitution.md「10.1」）の強制手段を確定するため起案 |
+| 2026-08-06 | makinoh | 初版作成、Proposed に設定 | UI 再現性レイヤ（constitution.md「10.1」）の強制手段を確定するため起案 |
+| 2026-08-08 | makinoh | Proposed → **Accepted**。`decision-makers` / `review_after` を同時更新 | GD-0002 により承認（定足数 1 名・Lite） |
 
 ## 適用スコープ
 
@@ -131,9 +132,9 @@ relates_to: [ADR-0003]
 
 | 項目 | 内容 |
 |------|------|
-| 確定した決定 | |
-| 承認者・承認日 | |
-| 見直し時期 | YYYY-MM-DD |
+| 確定した決定 | **選択肢 A（CSS Modules ＋ `stylelint-declaration-strict-value`）** を採用する |
+| 承認者・承認日 | `makinoh`（リポジトリオーナー） / 2026-08-08。定足数 1 名（Lite プロファイル・[GD-0001](../governance/decisions/gd-0001-adoption-profile-lite.md)）を充足。確定記録: [GD-0002](../governance/decisions/gd-0002-constitution-0-2-0-approval.md) |
+| 見直し時期 | 2027-02-08 |
 
 ## 結果
 

@@ -1,11 +1,11 @@
 ---
 id: GP-0001
 title: "UI 再現性レイヤの導入（憲章「10.1」の新設）"
-status: Proposed              # Draft | Proposed | Accepted | Rejected | Superseded | Withdrawn
+status: Accepted              # Draft | Proposed | Accepted | Rejected | Superseded | Withdrawn
 date: 2026-08-06
-last_updated: 2026-08-06
-proposer: "（起案者名）"
-approvers: []                 # Accepted 時に非空（development-process.md「5.」: 憲章改正は 2 名以上）
+last_updated: 2026-08-08
+proposer: "makinoh"
+approvers: ["makinoh"]        # Lite プロファイル（GD-0001）により定足数 1 名。確定記録: GD-0002
 target_version: 0.2.0         # 憲章のバージョン増分（MINOR）
 supersedes: []
 superseded_by: []
@@ -81,9 +81,9 @@ relates_to: [ADR-0005, ADR-0003, ADR-0004]
 
 | 項目 | 内容 |
 | --- | --- |
-| 承認者・承認日 | |
-| 定足数の充足 | |
-| 確定結果（Accepted / Rejected） | |
+| 承認者・承認日 | `makinoh`（リポジトリオーナー） / 2026-08-08 |
+| 定足数の充足 | 充足（Lite プロファイル: 1 名。[GD-0001](../decisions/gd-0001-adoption-profile-lite.md)） |
+| 確定結果（Accepted / Rejected） | **Accepted**（確定記録: [GD-0002](../decisions/gd-0002-constitution-0-2-0-approval.md)） |
 
 承認後の手続き:
 
@@ -95,4 +95,5 @@ relates_to: [ADR-0005, ADR-0003, ADR-0004]
 
 | 日付 | 変更者 | 変更内容 | 理由 |
 | --- | --- | --- | --- |
-| 2026-08-06 | （起案者） | 初版作成、Proposed に設定 | UI 再現性レイヤの導入提案 |
+| 2026-08-06 | makinoh | 初版作成、Proposed に設定 | UI 再現性レイヤの導入提案 |
+| 2026-08-08 | makinoh | Accepted へ遷移（確定記録: [GD-0002](../decisions/gd-0002-constitution-0-2-0-approval.md)） | 定足数 1 名（Lite）を充足 |

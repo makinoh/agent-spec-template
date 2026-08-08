@@ -169,11 +169,11 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 
 ## 9. 改正履歴
 
-### [0.2.1] - 2026-08-07（Proposed / 承認待ち）
+### [0.2.1] - 2026-08-07（Accepted / 2026-08-08 承認）
 
 * 「1.」に dependabot による Actions 版数更新のカーブアウト注記を追加（[ADR-0006](adr/adr-0006-dependabot-governance-carveout.md)）。クラスは A のまま、ADR の記載要件のみ免除。
 
-### [0.2.0] - 2026-08-06（Proposed / 承認待ち）
+### [0.2.0] - 2026-08-06（Accepted / 2026-08-08 承認）
 
 * 「1.」に **UI・デザイン領域のクラス**表を追加（憲章「10.1 UI 再現性」の新設に対応）。視覚回帰の基準画像更新を Class B とし AI の実行を禁止。
 * 正本記録: [governance/proposals/gp-0001-ui-reproducibility.md](governance/proposals/gp-0001-ui-reproducibility.md)
