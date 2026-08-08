@@ -36,8 +36,17 @@ if have gh; then
     printf '%s' "$prot" | grep -q '"enforce_admins":{[^}]*"enabled":true' || {
       warn "ブランチ保護の include administrators（enforce_admins）が無効です（ADOPTION.md「3.」・強制台帳 #12）"; warns=1; }
   else
-    warn "main のブランチ保護を確認できませんでした（未設定、または認証・権限の不足）: $(printf '%s' "$prot" | tr '\n' ' ' | cut -c1-160)"
-    warn "  → CI の場合: .github/workflows/verify.yml の permissions に 'administration: read'、当該ステップに GITHUB_TOKEN が必要"
+    detail="$(printf '%s' "$prot" | tr '\n' ' ' | cut -c1-160)"
+    case "$prot" in
+      *"Bad credentials"*|*"401"*)
+        warn "main のブランチ保護を確認できません（認証されていません）: $detail" ;;
+      *"Resource not accessible"*|*"admin rights"*|*"403"*)
+        warn "main のブランチ保護を確認できません（トークンに管理者読み取り権限がありません）: $detail"
+        warn "  → CI で実効化するには、管理者読み取り権限を持つ PAT をシークレット ADMIN_READ_TOKEN に設定する（GITHUB_TOKEN では読めない）" ;;
+      *)
+        warn "main のブランチ保護を確認できません（未設定、または権限不足。GitHub は両者を 404 で返すため区別できません）: $detail"
+        warn "  → 未設定なら ADOPTION.md「3.」に従い設定する。設定済みなのに出る場合は ADMIN_READ_TOKEN を設定する" ;;
+    esac
     warns=1
   fi
 else

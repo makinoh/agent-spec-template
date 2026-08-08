@@ -13,10 +13,11 @@ on:
 permissions:
   contents: read
   pull-requests: read
-  # ブランチ保護の読み取りに必要（scripts/checks/adoption.sh / 強制台帳 #22）。
-  # これが無いと保護設定を取得できず、「未設定」と「確認不能」を区別できないまま
-  # 助言チェックが常に警告を出し続ける＝ゲートが実質機能しない状態になる。
-  administration: read
+# 注: ブランチ保護の読み取り（scripts/checks/adoption.sh / 強制台帳 #22）には
+# リポジトリ管理者権限が要るが、GITHUB_TOKEN には付与できない
+# （`administration` は permissions: に指定可能なスコープではない）。
+# CI で当該チェックを実効化したい場合は、管理者読み取り権限を持つ PAT を
+# シークレット ADMIN_READ_TOKEN に設定する（任意。未設定なら確認不能として警告する）。
 
 concurrency:
   group: verify-${{ github.ref }}
@@ -47,8 +48,11 @@ jobs:
         if: github.event_name == 'pull_request'
         run: task verify:pr
         env:
-          # adoption.sh が gh CLI でブランチ保護を照会するために必要（未指定だと未認証で失敗する）。
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # adoption.sh が gh CLI を使うために必要（未指定だと未認証で失敗する）。
+          # ADMIN_READ_TOKEN（管理者読み取り権限を持つ PAT）が設定されていればそれを優先し、
+          # ブランチ保護チェックが実効化される。未設定なら GITHUB_TOKEN にフォールバックし、
+          # 保護は読めないため adoption.sh が「確認不能」として警告する（強制台帳 #22）。
+          GITHUB_TOKEN: ${{ secrets.ADMIN_READ_TOKEN || secrets.GITHUB_TOKEN }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_BODY: ${{ github.event.pull_request.body }}
           PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
