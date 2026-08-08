@@ -1,18 +1,18 @@
 ---
 id: ADR-0006
 title: "dependabot による Actions 版数更新の統治要件（ADR 記載要件のカーブアウト）"
-status: proposed              # proposed | accepted | rejected | deprecated | superseded
+status: accepted              # proposed | accepted | rejected | deprecated | superseded
 date: 2026-08-07
-last_updated: 2026-08-07
+last_updated: 2026-08-08
 profile: full                 # minimal | full
 scope: project
-proposer: "（起案者名）"
-decision-makers: []           # proposed 段階は空（accepted 時に非空・adr-rules.md「4.」）
+proposer: "makinoh"
+decision-makers: ["makinoh"]  # Lite プロファイル（GD-0001）により定足数 1 名
 consulted: []
 informed: []
 tags: [ci, governance, dependabot, supply-chain]
 risk: medium
-review_after: ""              # accepted 時に YYYY-MM-DD を記入
+review_after: 2027-02-08
 depends_on: []
 supersedes: []
 superseded_by: []
@@ -28,7 +28,8 @@ relates_to: []
 
 | 日付 | 変更者 | 変更内容（ステータス遷移を含む） | 理由 |
 |------|--------|----------------------------------|------|
-| 2026-08-07 | （起案者） | 初版作成、Proposed に設定 | dependabot の PR が構造的に品質ゲートを通過できない問題への対処 |
+| 2026-08-07 | makinoh | 初版作成、Proposed に設定 | dependabot の PR が構造的に品質ゲートを通過できない問題への対処 |
+| 2026-08-08 | makinoh | Proposed → **Accepted**。`decision-makers` / `review_after` を同時更新 | GD-0002 により承認。本番 CI でカーブアウトの動作を実証済み |
 
 ## 適用スコープ
 
@@ -159,9 +160,9 @@ PR_LABELS="dependencies,github_actions"
 
 | 項目 | 内容 |
 |------|------|
-| 確定した決定 | |
-| 承認者・承認日 | |
-| 見直し時期 | YYYY-MM-DD |
+| 確定した決定 | **選択肢 A（三重条件のカーブアウト ＋ ラベル自動付与）** を採用する |
+| 承認者・承認日 | `makinoh`（リポジトリオーナー） / 2026-08-08。定足数 1 名（Lite プロファイル・[GD-0001](../governance/decisions/gd-0001-adoption-profile-lite.md)）を充足。確定記録: [GD-0002](../governance/decisions/gd-0002-constitution-0-2-0-approval.md) |
+| 見直し時期 | 2027-02-08 |
 
 ## 結果
 

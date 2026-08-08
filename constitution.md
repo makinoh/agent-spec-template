@@ -1145,9 +1145,9 @@ https://keepachangelog.com
 
 ---
 
-### [0.2.0] - 2026-08-06（Proposed / 承認待ち）
+### [0.2.0] - 2026-08-06（Accepted / 2026-08-08 承認）
 
-正本記録: [governance/proposals/gp-0001-ui-reproducibility.md](governance/proposals/gp-0001-ui-reproducibility.md)
+正本記録: [governance/decisions/gd-0002-constitution-0-2-0-approval.md](governance/decisions/gd-0002-constitution-0-2-0-approval.md)（提案: [GP-0001](governance/proposals/gp-0001-ui-reproducibility.md)）
 
 **Added**
 
@@ -1156,7 +1156,7 @@ https://keepachangelog.com
 
 **増分の根拠**: 後方互換な原則・節の追加（既存の義務の撤廃・反転・意味変更を含まない）のため MINOR（「7. 変更管理」バージョニング方針）。
 
-> 本改正は承認待ちです。承認（development-process.md「5.」の定足数）をもって `governance/decisions/` に確定記録を作成します。
+> 承認済み（2026-08-08、承認者 `makinoh`）。定足数は Lite プロファイル（[GD-0001](governance/decisions/gd-0001-adoption-profile-lite.md)）により 1 名。
 
 ### [0.1.0] - 2026-04-01
 

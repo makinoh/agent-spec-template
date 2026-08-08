@@ -1,8 +1,8 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.2.1（Proposed / ドラフト）
+* Version: 0.2.2（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-07
+* Last amended: 2026-08-08
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
 
 本書は、憲章の各 MUST / MUST NOT に **強制手段**（構造的強制／機械強制／人間ゲート／ブートストラップ）と **整備状況** を割り当てる台帳の正本（SSoT）です。
@@ -26,18 +26,18 @@
 | 9 | ADR 必須セクション存在＋FM 値制約（id↔ファイル名・profile/scope enum・日付形式・accepted 時の decision-makers/review_after 非空。adr-rules.md「3.」「4.」/8章） | MUST | 機械（本文＋FM 値検査） | 整備済み | verify:fast → scripts/checks/adr-content.sh（check_adr_content.py） |
 | 10 | A/B を含む PR に ADR 参照 or 不要理由（5章/8章） | MUST | 機械（PR 本文検査）＋人間 | ブートストラップ（**カーブアウトあり**: dependabot による `.github/workflows/**` の `uses:` 行のみの版数更新は本記載要件を免除。ラベル・CODEOWNERS は免除しない。ADR-0006） | verify:pr → scripts/checks/pr_governance.sh ＋ .github/pull_request_template.md |
 | 11 | 統治パス変更 PR に permission-impact ラベル＋CODEOWNERS 承認（6章/8章） | MUST | 人間＋機械（自動ラベル） | ブートストラップ（dependabot の PR は `.github/dependabot.yml` の `labels:` で自動付与。免除はしない。ADR-0006） | verify:pr → scripts/checks/pr_governance.sh ＋ CODEOWNERS ＋ development-process.md「6.」 |
-| 12 | 作成者≠承認者・include administrators・force-push 禁止（6章/8章） | MUST | 構造的（ブランチ保護） | 未整備（要 GitHub 設定） | リポジトリ設定 |
-| 13 | AI は専用マシンアイデンティティで行為（6章） | MUST | 構造的（アカウント分離） | 未整備（要組織設定） | 組織 IdP / マシンアカウント |
+| 12 | 作成者≠承認者・include administrators・force-push 禁止（6章/8章） | MUST | 構造的（ブランチ保護） | **整備中** — include administrators（`enforce_admins`）／force-push 禁止／ブランチ削除禁止／linear history／会話解決必須は **設定済み**。**作成者≠承認者は未整備**（コラボレータ 1 名のため構造的に成立せず。waiver/exception は安全・統治の核に適用不可のため、[RISK-0001](risk-register/risk-0001-single-maintainer-separation-of-duties.md) として受容・期限付き再評価） | `main` のブランチ保護設定 ＋ [GD-0001](decisions/gd-0001-adoption-profile-lite.md)「4.」 |
+| 13 | AI は専用マシンアイデンティティで行為（6章） | MUST | 構造的（アカウント分離） | 未整備（専用マシンアカウント未発行。`agents/README.md` の `@bot/*` はテンプレート忠実性のため意図的に保持。当面は `Assisted-by:` トレーラと `ai-generated` ラベルで AI 由来を識別） | 組織 IdP / マシンアカウント ＋ [GD-0001](decisions/gd-0001-adoption-profile-lite.md)「5.」 |
 | 14 | AI は本書改正を単独承認しない（7章） | MUST NOT | 人間（定足数） | ブートストラップ | development-process.md「5.」 |
 | 15a | ビルド・型・自動テスト合格（8章/9章） | MUST | 機械 | 整備済み（スタック自動検出で活性化。コード未追加時は skip） | verify ジョブ → scripts/checks/build.sh |
 | 15b | カバレッジが最低基準を満たす（8章/9章） | MUST | 機械（閾値） | **未整備**（build.sh はカバレッジを強制しない。閾値・diff-cover の配線は採用スタックで実装する。整備までは人間レビューで担保） | scripts/checks/build.sh ＋ standards/testing-standards.md「1.」（要実装） |
 | 16 | Markdown Lint / Link Check 合格（8章） | MUST | 機械 | 整備済み（md lint は CI/ローカルで実効／Link Check は lychee 不在時ローカルでスキップ・CI で実効） | verify ジョブ → scripts/checks/markdown.sh・links.sh ＋ .markdownlint.jsonc |
 | 17 | README.md / AGENTS.md が存在、AGENTS が constitution を参照、ツール固有指示（CLAUDE.md / GEMINI.md / CODEX.md / OPENHANDS.md / TAKT.md / SKILLS.md）が AGENTS を参照（8章/6章） | MUST | 機械（存在＋参照検査） | 整備済み | verify:fast → scripts/checks/structure.sh |
 | 18 | 機密区分・脆弱性閾値・PII 基準を standards で定義（複数章） | MUST | 人間（文書整備）＋機械（存在検査） | 整備済み | standards/security-standards.md |
-| 19 | 品質ゲート未通過の変更を保護対象ブランチへマージしない（8章） | MUST NOT | 機械（必須ステータスチェック） | 整備中（要: ブランチ保護で必須チェック登録） | ブランチ保護に **`verify`** ジョブ（.github/workflows/verify.yml）を必須登録 |
+| 19 | 品質ゲート未通過の変更を保護対象ブランチへマージしない（8章） | MUST NOT | 機械（必須ステータスチェック） | **整備済み** — `main` のブランチ保護に必須チェック **`verify`** を登録済み（strict: 最新 main での再検証を要求）。`enforce_admins` 有効のため管理者にも適用 | ブランチ保護（必須チェック `verify`）＋ .github/workflows/verify.yml |
 | 20 | 緊急例外は人間承認を免除しない／72h 以内に事後レビュー（7章） | MUST/MUST NOT | 人間 | ブートストラップ | development-process.md「7.」 |
 | 21 | プロンプト資産はライフサイクル（status/owner/last_review）を持つ（IX/ai-governance「7.」） | SHOULD | 機械（FM 検査）＋人間 | 整備済み（資産追加時に活性化） | verify:fast → scripts/checks/prompts.sh |
-| 22 | 採用配線（CODEOWNERS 実体化・ブランチ保護・必須チェック）の完遂（6章/8章/#12/#19） | MUST | 人間＋機械（助言検知） | 整備中 | verify:pr → scripts/checks/adoption.sh ＋ ADOPTION.md |
+| 22 | 採用配線（CODEOWNERS 実体化・ブランチ保護・必須チェック）の完遂（6章/8章/#12/#19） | MUST | 人間＋機械（助言検知） | **整備中** — ブランチ保護・必須チェックは完了（#19）。CODEOWNERS の `@org/*` とマシンID `@bot/*` は**テンプレート成果物の忠実性のため意図的に保持**しており、`adoption.sh` の warn は採用者向けの正しい通知として残す（[GD-0001](decisions/gd-0001-adoption-profile-lite.md)「5.」） | verify:pr → scripts/checks/adoption.sh ＋ ADOPTION.md |
 | 23 | UI の値の真実源は `tokens/tokens.json`。生成物（`src/styles/tokens.css` 等）を手編集しない（10.1.1） | MUST / MUST NOT | 機械（再生成して差分ゼロ） | 整備済み（UI 採用時に活性化。未採用時は skip） | verify → scripts/checks/ui.sh → `task ui:tokens:check`（tokens/build.mjs） |
 | 24 | CSS にトークン外の値を書かない／生のブレークポイントを直書きしない／フォーカスリングを消さない（10.1.1・10.1.2） | MUST / MUST NOT | 構造的（primitive を CSS 出力しない）＋機械（Stylelint・正規表現） | 整備済み（UI 採用時に活性化） | verify → scripts/checks/ui.sh → `task ui:lint:css`（.stylelintrc.json）・scripts/check-media-queries.mjs |
 | 25 | `design-spec.md` に生の値（HEX / px / rem / ms）を書かない（10.1.1・10.1.7） | MUST NOT | 機械（正規表現） | 整備済み（UI 採用時に活性化） | verify → scripts/checks/ui.sh → scripts/check-spec-literals.mjs |
@@ -51,12 +51,18 @@
 
 ## 改正履歴
 
-### [0.2.1] - 2026-08-07（Proposed / 承認待ち）
+### [0.2.2] - 2026-08-08（Accepted）
+
+* #12 / #19 / #22 の整備状況を実態へ更新（`main` のブランチ保護と必須チェック `verify` の設定完了を反映）。正本記録: [GD-0001](decisions/gd-0001-adoption-profile-lite.md)。
+* #19 を「整備済み」へ。#12 は「作成者≠承認者」のみ未整備として [RISK-0001](risk-register/risk-0001-single-maintainer-separation-of-duties.md) を参照。
+* #13 / #22 にプレースホルダを意図的に保持する判断（GD-0001「5.」）を明記。
+
+### [0.2.1] - 2026-08-07（Accepted / 2026-08-08 承認）
 
 * #10 / #11 に dependabot の Actions 版数更新に関するカーブアウトを注記（[ADR-0006](../adr/adr-0006-dependabot-governance-carveout.md)）。免除は ADR の**記載要件のみ**で、`permission-impact` ラベルと CODEOWNERS 承認は維持する。
 * 検証箇所を `scripts/checks/pr_governance.sh` に明記（従来は workflows とだけ記載していた）。
 
-### [0.2.0] - 2026-08-06（Proposed / 承認待ち）
+### [0.2.0] - 2026-08-06（Accepted / 2026-08-08 承認）
 
 * 憲章「10.1 UI 再現性」の新設にともない、規範 #23〜#28 を追加（正本記録: [proposals/gp-0001-ui-reproducibility.md](proposals/gp-0001-ui-reproducibility.md)）。
 * #23〜#26 は機械強制（UI 採用時に活性化）、#27・#28 はブートストラップ（人間レビューで担保）。
