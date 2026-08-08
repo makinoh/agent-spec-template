@@ -1,6 +1,7 @@
 <!--
 SYNC IMPACT REPORT
-- Version change: 0.1.0 → 0.2.0（本体「10.1 UI 再現性」の新設に追従。governance/proposals/gp-0001-ui-reproducibility.md）
+- Version change: 0.2.1（本体に追従）。0.2.0 で原則 X（UI 再現性）を追加（GP-0001 / GD-0002）、
+  0.2.1 は本体「10. 標準文書」の例示補完（GD-0003）で本ビューに規範的変更なし。
 - Source of truth: /constitution.md（開発憲章・本体）。本ファイルはその簡潔な派生ビューであり、
   spec-kit の Constitution Check（/speckit.plan）専用のゲート要約である。矛盾時は本体が優先する。
 - Principles (derived): I 仕様ファースト / II ADRファースト / III SSoT & Docs as Code /
@@ -17,9 +18,9 @@ SYNC IMPACT REPORT
 
 # Constitution（ゲート用簡潔ビュー）
 
-* Version: 0.2.0（Proposed / ドラフト）
+* Version: 0.2.1（Proposed / ドラフト）
 * Ratification date: TODO（正式批准時に確定）
-* Last amended: 2026-08-06
+* Last amended: 2026-08-08
 * 正本: [/constitution.md](../../constitution.md)（本ファイルはその派生サマリ。規範の正本は本体）
 
 > 本ビューは spec-kit の **Constitution Check** で参照するための簡潔版です。原則は宣言的・テスト可能な

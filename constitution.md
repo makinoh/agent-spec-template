@@ -1,8 +1,8 @@
 # 開発憲章（Constitution）
 
-* Version: 0.2.0（Proposed / ドラフト）
+* Version: 0.2.1（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-06
+* Last amended: 2026-08-08
 * Status: Proposed
 * Versioning: セマンティックバージョニング 2.0.0（`MAJOR.MINOR.PATCH`）に従う。  
   採番規則は「7. 変更管理」のバージョニング方針で定める。  
@@ -929,6 +929,8 @@ standards/
 ├─ observability-standards.md
 ├─ performance-standards.md
 ├─ accessibility-standards.md
+├─ design-tokens.md        ← UI 採用時（「10.1」）
+├─ frontend-ui.md          ← UI 採用時（「10.1」）
 └─ ai-governance.md
 ```
 
@@ -1144,6 +1146,16 @@ https://keepachangelog.com
 本改正の正本記録は governance/decisions/ に置くべきです（SHOULD）。
 
 ---
+
+### [0.2.1] - 2026-08-08（Accepted）
+
+正本記録: [governance/decisions/gd-0003-constitution-0-2-1.md](governance/decisions/gd-0003-constitution-0-2-1.md)
+
+**Changed**
+
+* 「10. 標準文書」の `standards/` 例示に `design-tokens.md` / `frontend-ui.md` を追加（「10.1」で参照している標準が一覧に無かったため）。
+
+**増分の根拠**: 例示の補完であり、規範的意味を変えない（PATCH。「7. 変更管理」バージョニング方針）。
 
 ### [0.2.0] - 2026-08-06（Accepted / 2026-08-08 承認）
 

@@ -28,8 +28,8 @@ flowchart TD
 
 | タイミング | コマンド | 内容 |
 | --- | --- | --- |
-| **コミット前（高速）** | `task verify:fast` | structure / ADR / ADR内容 / front matter / prompts / markdown |
-| **Push前・PR・CI（包括）** | `task verify` | 上記 ＋ ADR索引 / link / secret / 依存脆弱性 / build |
+| **コミット前（高速）** | `task verify:fast` | structure / ADR / ADR内容 / front matter / prompts / markdown / **ui（再現性・高速版）** |
+| **Push前・PR・CI（包括）** | `task verify` | 上記 ＋ ADR索引 / link / secret / 依存脆弱性 / build / **ui（再現性・完全版）** |
 | **PR 文脈（統治）** | `task verify:pr` | PR ガバナンス / ADR 不変性 / 採用結線（adoption）点検 |
 
 ## 各チェックが守るもの
@@ -41,6 +41,7 @@ flowchart LR
         f2["adr: 命名規則・Status 語彙"]
         f3["frontmatter: 必須キーの存在"]
         f4["markdown: Markdown Lint"]
+        f5["ui: トークン生成物・生値・Story 構成"]
     end
     subgraph full["verify（包括）"]
         g1["links: リンク切れ検査"]
@@ -48,6 +49,7 @@ flowchart LR
         g3["deps: 依存の脆弱性検査"]
         g4["build: ビルド・型・テスト"]
         g5["adr-index: 索引の差分ゼロ"]
+        g6["ui: 視覚回帰・a11y・Lighthouse"]
     end
     fast --> full
 ```

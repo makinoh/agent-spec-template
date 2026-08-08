@@ -228,8 +228,10 @@ spec / plan / ADR の草案     →     レビュー・修正依頼
 
 | タイミング | コマンド | 内容 |
 | --- | --- | --- |
-| コミット前 | `task verify:fast` | 高速（構造・ADR命名・front matter・markdown） |
-| Push前 / PR / CI | `task verify` | 包括（＋ADR索引・リンク・秘密情報・依存脆弱性・build） |
+| コミット前 | `task verify:fast` | 高速（構造・ADR命名・front matter・prompts・markdown・UI再現性） |
+| Push前 / PR / CI | `task verify` | 包括（＋ADR索引・リンク・秘密情報・依存脆弱性・build・UI再現性） |
+
+> UI 再現性ゲート（憲章「10.1」）は `package.json` と `src/` が無い間は no-op（緑）で、UI 採用時に自動で活性化します。
 
 ```text
 task setup    # ツール導入（mise / .mise.toml）
