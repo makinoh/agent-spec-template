@@ -45,8 +45,8 @@ specs/<feature>/design-spec.md と tokens/tokens.json を読み、spec.md を作
 spec.md と constitution.md をもとに plan.md を作成してください。
 
 決めきること（「必要に応じて選択」を書かない）:
-- Storybook の Astro 対応方式（ADR-0003 の決定に従う。パッケージとバージョンを固定）
-- Cloudflare のデプロイ先（ADR-0004 の決定に従う）
+- コンポーネント層の技術と Storybook 連携方式（ADR-0003 の決定に従う。パッケージとバージョンを固定）
+- 配信・実行基盤（ADR-0004 の決定に従う）
 - フォント: self-host / サブセット / font-display / preload 対象 / メトリクス合わせ
 - 画像: R2 のバケット構成・パス命名・astro:assets 連携・srcset・aspect-ratio
 - _headers のキャッシュとセキュリティヘッダ
@@ -75,7 +75,7 @@ plan.md から tasks.md を生成してください。
 3. コンポーネント: 型定義 → Story → 実装 → CSS
 4. Layout / Page 組み立て
 5. 参照 HTML から視覚回帰の基準画像を撮影
-6. Cloudflare デプロイ設定
+6. 配信・実行基盤の設定（ADR-0004 の決定に従う）
 7. Lighthouse CI 設定
 
 各タスクは、対応コマンドが exit 0 になることをもって完了とする。

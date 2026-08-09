@@ -1,7 +1,7 @@
 <!--
 SYNC IMPACT REPORT
-- Version change: 0.2.1（本体に追従）。0.2.0 で原則 X（UI 再現性）を追加（GP-0001 / GD-0002）、
-  0.2.1 は本体「10. 標準文書」の例示補完（GD-0003）で本ビューに規範的変更なし。
+- Version change: 0.3.0（本体に追従）。0.2.0 で原則 X（UI 再現性）を追加（GP-0001 / GD-0002）、
+  0.2.1 は例示補完（GD-0003）、0.3.0 で原則 X をフレームワーク非依存へ一般化（GD-0004）。
 - Source of truth: /constitution.md（開発憲章・本体）。本ファイルはその簡潔な派生ビューであり、
   spec-kit の Constitution Check（/speckit.plan）専用のゲート要約である。矛盾時は本体が優先する。
 - Principles (derived): I 仕様ファースト / II ADRファースト / III SSoT & Docs as Code /
@@ -18,9 +18,9 @@ SYNC IMPACT REPORT
 
 # Constitution（ゲート用簡潔ビュー）
 
-* Version: 0.2.1（Proposed / ドラフト）
+* Version: 0.3.0（Proposed / ドラフト）
 * Ratification date: TODO（正式批准時に確定）
-* Last amended: 2026-08-08
+* Last amended: 2026-08-09
 * 正本: [/constitution.md](../../constitution.md)（本ファイルはその派生サマリ。規範の正本は本体）
 
 > 本ビューは spec-kit の **Constitution Check** で参照するための簡潔版です。原則は宣言的・テスト可能な
@@ -97,7 +97,8 @@ CSS には `var(--...)` 以外を書かない（MUST）。メディアクエリ�
 `src/components/<Name>/` は 実装 / `.module.css` / `types.ts` / `.stories.ts` を必ず備える（MUST）。variant・size・state は `as const` + union 型とし、型の緩和を禁止する（MUST NOT）。
 「差分なし」の自己申告を成果として認めない（MUST NOT）。判定は `task verify` の実行結果のみによる（MUST）。
 視覚回帰の基準画像更新（`--update-snapshots`）は Class B とし、AI エージェントの実行を禁止する（MUST NOT）。
-フォーカスリングの非表示化を禁止し（MUST NOT）、`prefers-reduced-motion` を全アニメーションで尊重する（MUST）。`client:*` は `design-spec.md` の Island 判定に従い、追加は Class B（ADR 必須）とする（MUST）。
+フォーカスリングの非表示化を禁止し（MUST NOT）、`prefers-reduced-motion` を全アニメーションで尊重する（MUST）。クライアント側ハイドレーションは `design-spec.md` の Island 判定に従い、新規付与は Class B（ADR 必須）とする（MUST）。
+**本原則はフレームワーク非依存**。UI フレームワーク／メタフレームワークは ADR-0003、配信基盤は ADR-0004 で採用プロジェクトが決定し、固有記法は standards/frontend-ui.md を正本とする。
 *根拠*: 「デザイン通りに実装されない」の大半は値の二重管理から生じる。禁止事項の文言ではなく、値を書ける場所を一箇所に閉じることで解決する。
 **Gate**: `task verify`（内側で `ui:verify`）が緑か。`design-spec.md` の Open Questions と `spec.md` の `[NEEDS CLARIFICATION]` が解消済みか。基準画像を AI が更新していないか。
 

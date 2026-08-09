@@ -59,9 +59,11 @@ CSS カスタムプロパティはメディアクエリの条件部で評価さ�
 `tokens.json` の `breakpoint` から `src/styles/media.css` に `@custom-media` が生成される。
 生の値の直書きは `scripts/check-media-queries.mjs` が検出する。
 
-`astro.config.mjs`:
+PostCSS プラグインとして登録します。**設定ファイル名は採用フレームワークに依存します**
+（例: `astro.config.mjs` / `next.config.js` / `nuxt.config.ts` / `vite.config.ts` / `postcss.config.mjs`）。
 
 ```js
+// 例: Vite 系（Astro / Nuxt / SvelteKit 等）の設定ファイル
 import postcssCustomMedia from 'postcss-custom-media';
 export default defineConfig({
   vite: { css: { postcss: { plugins: [postcssCustomMedia()] } } },

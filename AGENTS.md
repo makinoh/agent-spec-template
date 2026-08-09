@@ -120,7 +120,7 @@ task ui:guards           # design-spec の生値・生メディアクエリ・St
 
 - `specs/<feature>/design-spec.md` の Open Questions が未解決
 - `spec.md` に `[NEEDS CLARIFICATION]` が残っている
-- 対象コンポーネントの Island 判定（static / `client:visible` / `client:load`）が未記載
+- 対象コンポーネントの Island 判定（サーバ完結 ／ ハイドレーションあり）が未記載。記法は採用フレームワークに従う（[standards/frontend-ui.md](standards/frontend-ui.md)）
 
 ### 8.2 値の扱い
 

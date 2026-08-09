@@ -38,7 +38,8 @@ tokens/tokens.json の semantic トークンのみを使用してください。
 最重要ルール:
 - 数値・HEX を直接書かない。すべてトークン名で参照する
   悪い例: padding: 24px / 良い例: padding: var(--space-5)
-- 各コンポーネントに Island 判定（static / client:visible / client:load）を必ず付ける
+- 各コンポーネントに Island 判定（サーバ完結 / ハイドレーションあり）を必ず付ける
+  ※ ハイドレーションの記法は採用フレームワークに依存する（ADR-0003 / standards/frontend-ui.md）
 - 空状態・読込状態・エラー状態を必ず埋める。無い場合は「該当なし」と明記する
 - 判断できなかった点は Open Questions に書く。推測で埋めない
 - 文言はプレースホルダではなく実際に使うもの。未確定は [TBD: 誰が決めるか]

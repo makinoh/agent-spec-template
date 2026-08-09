@@ -54,8 +54,10 @@ tasks:
       - '{{.PM}} exec biome check .'
 
   typecheck:
+    # tsc はフレームワーク非依存のため常に実行する。
+    # フレームワーク固有の型検査（astro check / vue-tsc / svelte-check 等）は
+    # 採用プロジェクトが ADR-0003 の決定に合わせて下に追加する（憲章「10.1」はフレームワークを固定しない）。
     cmds:
-      - '{{.PM}} exec astro check'
       - '{{.PM}} exec tsc --noEmit'
 
   test:unit:
