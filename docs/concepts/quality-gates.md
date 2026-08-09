@@ -29,7 +29,7 @@ flowchart TD
 | タイミング | コマンド | 内容 |
 | --- | --- | --- |
 | **コミット前（高速）** | `task verify:fast` | structure / ADR / ADR内容 / front matter / prompts / markdown / **ui（再現性・高速版）** |
-| **Push前・PR・CI（包括）** | `task verify` | 上記 ＋ ADR索引 / link / secret / 依存脆弱性 / build / **ui（再現性・完全版）** |
+| **Push前・PR・CI（包括）** | `task verify` | 上記 ＋ ADR索引 / link / secret / 依存脆弱性 / build / **ui（再現性・完全版）** / **selftest（ゲート自己診断）** |
 | **PR 文脈（統治）** | `task verify:pr` | PR ガバナンス / ADR 不変性 / 採用結線（adoption）点検 |
 
 ## 各チェックが守るもの
@@ -50,6 +50,7 @@ flowchart LR
         g4["build: ビルド・型・テスト"]
         g5["adr-index: 索引の差分ゼロ"]
         g6["ui: 視覚回帰・a11y・Lighthouse"]
+        g7["selftest: ゲートが違反を検出するか"]
     end
     fast --> full
 ```

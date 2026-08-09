@@ -1,8 +1,8 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.2.4（Proposed / ドラフト）
+* Version: 0.3.0（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-08
+* Last amended: 2026-08-09
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
 
 本書は、憲章の各 MUST / MUST NOT に **強制手段**（構造的強制／機械強制／人間ゲート／ブートストラップ）と **整備状況** を割り当てる台帳の正本（SSoT）です。
@@ -44,12 +44,22 @@
 | 26 | Story 無きコンポーネントの禁止（必須ファイル構成。10.1.4） | MUST | 機械（構成検査） | 整備済み（UI 採用時に活性化） | verify → scripts/checks/ui.sh → scripts/check-component-stories.mjs |
 | 27 | 視覚回帰の基準画像更新（`--update-snapshots`）は Class B。AI エージェントは実行しない（10.1.5-4） | MUST NOT | 人間（PR レビュー・CODEOWNERS）＋規範（エージェント指示への明記） | **ブートストラップ**（実行者の識別は機械強制できない。基準画像の差分は PR で人間が目視承認する） | AGENTS.md「8.」＋ development-process.md「1.」＋ .github/CODEOWNERS |
 | 28 | 「差分なし」の自己申告を成果として認めない（10.1.5） | MUST NOT | 人間（レビュー）＋機械（ゲート実行の事実） | ブートストラップ | AGENTS.md「8.」完了報告 ＋ verify ジョブのログ |
+| **29** | **機械強制と定義したルールが実際に違反を検出すること**（8章「未整備の強制手段を整備済みであるかのように扱わない」） | MUST | 機械（陰性テスト：違反を注入してゲートが落ちるかを確認） | 整備済み（オフライン・決定論的。実行時間 1 秒未満） | verify → scripts/checks/selftest.sh（12 ケース＋陽性対照。対象外は links / deps / 視覚回帰） |
+| **30** | 依存・ツールチェーンの LTS 追随とレンジ上限、既知脆弱性の不在（security-standards「6.」/ 依存） | SHOULD / MUST NOT | 機械（版数照会 ＋ OSV） | 整備済み（**verify には含めない**。外部 API 依存のため月次スケジュールで実行） | .github/workflows/audit.yml → `task audit:deps` → scripts/audit_deps.py ＋ playbooks/dependency-audit.md |
 
 > 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#12, #13 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。
 
 ---
 
 ## 改正履歴
+
+### [0.3.0] - 2026-08-09（Accepted）
+
+* **#29 を新設**: ゲート自己診断（陰性テスト）。本台帳が「整備済み」と主張するゲートが、実際に違反を検出するかを機械で確認する。
+  2026-08-06〜08 に「整備済みに見えて機能していないゲート」が 3 件（lychee の偽陽性 / adoption.sh の CI 無効化 / ui:tokens:check の誤合格）見つかったことへの構造的対処。
+  実測: `tokens:check` のバグを再注入すると自己診断が exit 1 で検出する（ハーネス故障も陽性対照で検出）。
+* **#30 を新設**: 依存・ツールチェーン監査。trivy はマニフェストのない段階で空振りするため、その空白を埋める。
+  外部 API 依存のため `task verify` には含めず、必須ゲートの決定論性を保つ。
 
 ### [0.2.4] - 2026-08-08（Accepted）
 
