@@ -1,23 +1,26 @@
 {
-  "$comment": "既存 package.json に統合する devDependencies と設定の抜粋。バージョンは採用時点の最新安定版に固定すること。",
+  "$comment": "既存 package.json に統合する devDependencies と設定の抜粋。レンジは 2026-08-08 に最新安定版へ更新し、OSV で既知脆弱性 0 件を確認済み。採用時点で最新安定版へ再確認し、lockfile で固定すること。",
   "devDependencies": {
-    "stylelint": "^16",
-    "stylelint-config-standard": "^38",
-    "stylelint-declaration-strict-value": "^1.10",
-    "postcss-custom-media": "^11",
+    "stylelint": "^17",
+    "stylelint-config-standard": "^40",
+    "stylelint-declaration-strict-value": "^1.11",
+    "postcss-custom-media": "^12",
     "@biomejs/biome": "^2",
     "typescript": "^5",
-    "vitest": "^3",
+    "vitest": "^4",
     "@playwright/test": "^1",
     "storybook": "pin-to-adr-0003",
     "@storybook/addon-a11y": "pin-to-adr-0003",
     "@storybook/addon-docs": "pin-to-adr-0003",
     "@storybook/test-runner": "pin-to-adr-0003",
     "axe-playwright": "^2",
-    "@lhci/cli": "^0.14"
+    "@lhci/cli": "^0.15"
   },
   "$notes": [
     "storybook 関連のパッケージ構成は ADR-0003 の決定（.astro 直接描画 か framework component か）に依存するため、ADR 確定後にバージョンを固定すること。",
-    "Style Dictionary は使用しない。tokens/build.mjs が依存ゼロで同等の出力を行うため、依存を増やさない判断。多プラットフォーム出力が必要になった時点で ADR を起票して再検討する。"
+    "Style Dictionary は使用しない。tokens/build.mjs が依存ゼロで同等の出力を行うため、依存を増やさない判断。多プラットフォーム出力が必要になった時点で ADR を起票して再検討する。",
+    "stylelint 生態系は連動する: stylelint-config-standard@40 は peerDependencies に stylelint ^17.0.0 を要求し、stylelint-declaration-strict-value@1.11 は stylelint >=16<=17 に対応する（2026-08-08 実測）。3 者は同時に上げること。",
+    "typescript は ^5 に据え置く。7 系が公開されているが、Astro / Storybook / vitest 側の対応状況を採用時点で確認してから上げること（本テンプレートでは UI スタック未導入のため検証できない）。",
+    "vitest は ^4。^3 が解決する 3.2.7 も GHSA-5xrq-8626-4rwp（CVE-2026-47429, CRITICAL）の修正後だが、3.2.6 未満は影響を受けるため下限の低いレンジを避ける。"
   ]
 }
