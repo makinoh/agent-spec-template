@@ -129,7 +129,7 @@ task verify      → check:ui      → scripts/checks/ui.sh full → task ui:ver
    ```yaml
    - uses: pnpm/action-setup@v4
    - uses: actions/setup-node@v4
-     with: { node-version: '22', cache: 'pnpm' }
+     with: { node-version: '24', cache: 'pnpm' }
    - run: pnpm install --frozen-lockfile
    - run: pnpm exec playwright install --with-deps chromium
    ```
@@ -145,8 +145,9 @@ task verify      → check:ui      → scripts/checks/ui.sh full → task ui:ver
 
 5. 参照 HTML から視覚回帰の基準画像を撮影し、**人間が**承認する。
 
-> `scripts/check-*.mjs` は `node:fs` の `globSync` を使用するため **Node.js 22 以上**が必要です
-> （[.mise.toml](.mise.toml) で `node = "22"` に固定済み）。
+> `scripts/check-*.mjs` は `node:fs` の `globSync` を使用するため **Node.js 22 以上**が必要です。
+> [.mise.toml](.mise.toml) は Active LTS を追跡し `node = "24"` を採用しています
+> （[standards/security-standards.md](standards/security-standards.md)「6.」ランタイムの LTS 追随）。
 
 > **活性化直後の注意**: `package.json` と `src/` を追加した時点で UI ゲートが有効になり、
 > `task ui:guards` が `specs/**/design-spec.md` を要求します（1 件も無いと fail）。

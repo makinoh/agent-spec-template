@@ -1,11 +1,20 @@
-# Pinned toolchain so Developers, AI agents, and CI run IDENTICAL tool versions.
+# Toolchain for Developers, AI agents, and CI.
 # Install:  mise install   (or: task setup).  CI uses jdx/mise-action with this file.
 # python3 is used from the system (any 3.x); not pinned here to keep installs fast.
+#
+# 固定方針（すべてが完全固定ではないことを明示する。憲章「8. ブートストラップ規定」）:
+#   - 決定論を優先するツールはメジャー/マイナーで固定する（task / lefthook / gitleaks / node /
+#     markdownlint-cli2）。検出結果が版で変わるため、同一 PR は同一結果になることを優先する。
+#   - lychee / trivy は意図的に `latest`。脆弱性 DB と到達性判定は新しいほど正しく、
+#     固定すると検出漏れが生じるため。結果が実行時刻に依存することは許容する。
+#
+# ランタイムの LTS 方針: Node.js は **Active LTS** を追跡する
+#   （standards/security-standards.md「6.」）。24 は 2025-10-28 から Active LTS（EOL 2028-04-30）。
 [tools]
 task = "3"
-lefthook = "1"
-node = "22"
+lefthook = "2"
+node = "24"
 lychee = "latest"
 gitleaks = "8"
 trivy = "latest"
-"npm:markdownlint-cli2" = "0.18"
+"npm:markdownlint-cli2" = "0.23"
