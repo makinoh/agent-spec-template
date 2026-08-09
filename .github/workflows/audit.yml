@@ -1,0 +1,47 @@
+# ============================================================================
+#  ⚠️ 変更クラス: A（統治・強制機構）  —  AI は起案のみ。単独反映は禁止。
+# ----------------------------------------------------------------------------
+#  依存・ツールチェーンの定期監査（版数 / LTS 追随 / 既知脆弱性）。
+#
+#  なぜ verify から分離するか:
+#    本監査は外部 API（endoflife.date / GitHub / npm / PyPI / OSV）に依存する。
+#    これを `task verify` に含めると、必須ステータスチェックが外部サービスの可用性に
+#    依存し、「CI が落ちるのは自分のせいではない」状態を常態化させる。
+#    必須ゲートは決定論的に保ち、時間とともに結果が変わる監査は分離する。
+#
+#  CI に独自ロジックは持たせない（本ファイルは `task audit:deps` を呼ぶだけ）。
+#  検査内容の正本は scripts/audit_deps.py / scripts/checks/deps-audit.sh。
+# ============================================================================
+name: audit
+
+on:
+  schedule:
+    # 毎月 1 日 03:00 UTC。頻度を上げても行動につながらないため月次とする。
+    - cron: "0 3 1 * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audit
+  cancel-in-progress: false
+
+jobs:
+  deps:
+    name: deps-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install pinned toolchain (mise)
+        uses: jdx/mise-action@v4
+        with:
+          version: 2026.6.6
+
+      - name: task audit:deps
+        run: task audit:deps | tee "$GITHUB_STEP_SUMMARY"
+        env:
+          # GitHub API のレート制限（未認証 60 req/h）を回避する。読み取りのみ。
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
