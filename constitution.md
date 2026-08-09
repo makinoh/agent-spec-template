@@ -1,8 +1,8 @@
 # 開発憲章（Constitution）
 
-* Version: 0.2.1（Proposed / ドラフト）
+* Version: 0.3.0（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-08
+* Last amended: 2026-08-09
 * Status: Proposed
 * Versioning: セマンティックバージョニング 2.0.0（`MAJOR.MINOR.PATCH`）に従う。  
   採番規則は「7. 変更管理」のバージョニング方針で定める。  
@@ -948,6 +948,8 @@ ai-governance.md は AI運用の詳細方針（自律範囲・自己反映の許
 
 実装標準の正本は [standards/design-tokens.md](standards/design-tokens.md) および [standards/frontend-ui.md](standards/frontend-ui.md)、判断根拠の正本は ADR-0005 です。本節はこれらを再定義せず、原則のみを定めます。
 
+**本節は特定のフレームワーク・メタフレームワーク・クラウド基盤を前提としません。** UIフレームワーク／メタフレームワークの選定は ADR-0003、配信・実行基盤の選定は ADR-0004 で、採用プロジェクトが**開発の性質を確認したうえで**決定します。採用技術に固有の記法・設定（ハイドレーション指定の書き方、設定ファイル名、デプロイ手順等）は [standards/frontend-ui.md](standards/frontend-ui.md) を正本とし、本書には記載しません（最高位の統治文書を特定製品に依存させないため）。
+
 ---
 
 ### 10.1.1 Design Token 単一真実源
@@ -985,7 +987,7 @@ UIに現れるすべての値の真実源は `tokens/tokens.json` のみとし�
 
 ### 10.1.4 Story 無きコンポーネントの禁止
 
-1. `src/components/<Name>/` は次を必ず備えなければなりません（MUST）。`<Name>.astro`（または `.tsx` 等）／ `<Name>.module.css` ／ `types.ts` ／ `<Name>.stories.ts`
+1. `src/components/<Name>/` は次を必ず備えなければなりません（MUST）。実装ファイル `<Name>.<ext>`（拡張子は採用フレームワークに従う。例: `.tsx` / `.vue` / `.svelte` / `.astro`）／ `<Name>.module.css` ／ `types.ts` ／ `<Name>.stories.<ext>`
 2. `variant` / `size` / `state` は `as const` 配列と union 型で定義しなければなりません（MUST）。union にない値は型エラーとなります。型の緩和（`any` / `as` / `string` 化）を禁止します（MUST NOT）。
 3. Story の欠落は `scripts/check-component-stories.mjs` が検出します。
 
@@ -1004,11 +1006,13 @@ UIに現れるすべての値の真実源は `tokens/tokens.json` のみとし�
 
 ---
 
-### 10.1.6 Server First（Astro）
+### 10.1.6 Server First（既定はクライアント JavaScript を送らない）
 
-1. 既定は静的コンポーネントとします（MUST）。
-2. `client:*` ディレクティブは `design-spec.md` の Island 判定で指定された箇所にのみ付与しなければなりません（MUST）。
-3. 新規の island 化は `design-spec.md` の更新を先行させ、バンドルサイズへの影響を ADR に記録しなければなりません（MUST。Class B）。
+1. 既定は**サーバ側で完結するコンポーネント**（クライアント JavaScript を送出しないもの）とします（MUST）。
+2. クライアント側ハイドレーションは、`design-spec.md` の Island 判定で指定された箇所にのみ付与しなければなりません（MUST）。**ハイドレーションの指定方法は採用フレームワークに依存します**（例: Astro の `client:*`、React Server Components の `"use client"`、Nuxt の `<ClientOnly>`）。具体的な記法は [standards/frontend-ui.md](standards/frontend-ui.md) を正本とします。
+3. 新規のハイドレーション付与は `design-spec.md` の更新を先行させ、バンドルサイズへの影響を ADR に記録しなければなりません（MUST。Class B）。
+
+**根拠**: 既定を「送らない」に置くことで、クライアント JavaScript の増加が**明示的な決定を経る**ようになります。これはフレームワークに依らず成立する原則です。
 
 ---
 
@@ -1146,6 +1150,18 @@ https://keepachangelog.com
 本改正の正本記録は governance/decisions/ に置くべきです（SHOULD）。
 
 ---
+
+### [0.3.0] - 2026-08-09（Accepted）
+
+正本記録: [governance/decisions/gd-0004-framework-neutral-ui-governance.md](governance/decisions/gd-0004-framework-neutral-ui-governance.md)
+
+**Changed**
+
+* 「10.1」を**フレームワーク非依存**に一般化。前文に「特定のフレームワーク・メタフレームワーク・クラウド基盤を前提としない」旨と、選定は ADR-0003 / ADR-0004 で行う旨を明記。
+* 「10.1.6」の見出しから製品名（Astro）を削除し、`client:*` 固有記法への依存を解消。義務（既定はサーバ完結／ハイドレーションは design-spec の Island 判定に従う／新規付与は Class B）は保持したまま、記法の正本を standards/frontend-ui.md へ委譲。
+* 「10.1.4」の必須ファイル構成から Astro 固有の拡張子前提を除去（採用フレームワークに従う）。
+
+**増分の根拠**: 既存の義務の**撤廃・反転はなく**、適用範囲を特定フレームワークから全フレームワークへ**拡大**する実質的拡張のため MINOR（「7. 変更管理」バージョニング方針）。
 
 ### [0.2.1] - 2026-08-08（Accepted）
 

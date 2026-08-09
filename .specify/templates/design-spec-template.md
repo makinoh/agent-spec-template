@@ -47,7 +47,7 @@ owner: <承認者>
 | States | default / hover / active / focus-visible / disabled / loading |
 | Props | `label: string`（必須） / `variant: ButtonVariant`（既定 `primary`） … |
 | Slots | 有無と用途 |
-| Island 判定 | static ／ `client:visible` ／ `client:load`（**必ず選ぶ**） |
+| Island 判定 | サーバ完結 ／ ハイドレーションあり（**必ず選ぶ**）。ハイドレーションありの場合は読み込み条件（初期表示時 / 可視時 / 操作時）も記す。記法は採用フレームワークに従う（ADR-0003） |
 | 空状態 | 表示内容。該当しない場合は「該当なし」 |
 | 読込状態 | 表示内容。該当しない場合は「該当なし」 |
 | エラー状態 | 表示内容。該当しない場合は「該当なし」 |

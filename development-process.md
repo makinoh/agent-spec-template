@@ -38,11 +38,12 @@ UI を含むプロジェクトでは、上表に加えて次を適用します�
 | --- | --- | --- | --- |
 | `.stylelintrc.json`、`scripts/check-*.mjs`、`scripts/checks/ui.sh`、`tokens/build.mjs`、`Taskfile.ui.yml` | **A** | 強制機構そのもの。ここを緩めれば全ゲートが無効化される | 起案のみ |
 | `constitution.md`「10.1」、`standards/design-tokens.md`、`standards/frontend-ui.md` | **A** | 統治文書 | 起案のみ |
+| UI フレームワーク／メタフレームワーク／配信基盤の選定・変更（ADR-0003 / ADR-0004） | **A** | 全コンポーネントと配信構成に波及する不可逆に近い決定 | 起案＋ADR。**開発の性質を確認してから確定する** |
 | `tokens/tokens.json` の追加・変更 | **B** | 値の真実源。無秩序な追加はトークン設計を崩壊させる | 起案＋ADR 起票 |
 | **視覚回帰の基準画像更新（`--update-snapshots` / `task ui:approve:visual`）** | **B** | 基準を自由に書き換えられると検出器として機能しない | **実行禁止**（人間のみ。強制台帳 #27） |
 | `specs/<feature>/design-spec.md` の変更 | **B** | UI 実装の正本 | 起案＋人間承認 |
 | コンポーネントの新規追加 / variant 追加 | **B** | `design-spec.md` の更新が先行する必要がある | 起案 |
-| `client:*` の新規付与（island 化） | **B** | バンドルサイズと Server First 原則に影響 | 起案＋ADR |
+| クライアント側ハイドレーションの新規付与（island 化。記法は採用フレームワークに従う） | **B** | バンドルサイズと Server First 原則に影響 | 起案＋ADR |
 | 既存コンポーネントの実装・CSS（design-spec の範囲内） | **C** | 通常の実装 | 実装まで |
 | Story の追加（既存 variant の状態網羅） | **C** | 検証の充実であり仕様変更ではない | 実装まで |
 | トークン参照の置換（生値 → `var()` へのリファクタ） | **C** | 挙動不変。視覚回帰が守る | 実装まで |

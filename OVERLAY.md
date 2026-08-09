@@ -89,7 +89,7 @@ scripts/check-spec-literals.mjs                 design-spec の生値検出
 scripts/check-media-queries.mjs                 生ブレークポイント検出
 scripts/check-component-stories.mjs             Story 欠落検出
 standards/design-tokens.md                      トークン規約（Class A）
-standards/frontend-ui.md                        Astro/Storybook/Cloudflare 標準（Class A）
+standards/frontend-ui.md                        フロントエンド標準（Class A。基盤非依存の要求＋付録に実装例）
 .specify/templates/design-spec-template.md      design-spec の雛形
 .stylelintrc.json                               強制機構（Class A）
 lighthouserc.json                               Lighthouse 閾値
@@ -119,9 +119,12 @@ task verify      → check:ui      → scripts/checks/ui.sh full → task ui:ver
 
 ## 採用手順（UI プロジェクトで有効化する）
 
-1. **[ADR-0003](adr/adr-0003-storybook-astro-rendering.md) と [ADR-0004](adr/adr-0004-cloudflare-deployment-target.md) を決める。**
-   特に ADR-0003（Storybook で `.astro` を直接描画するか、UI プリミティブを Preact 等で書くか）を
-   保留したまま進むと、コンポーネントを作った後に「Storybook に載せられないので Story が書けない」ことが判明し、
+1. **開発の性質を確認し、[ADR-0003](adr/adr-0003-storybook-astro-rendering.md) と [ADR-0004](adr/adr-0004-cloudflare-deployment-target.md) を決める。**
+   本テンプレートは**フレームワークもクラウド基盤も固定しません**（[GD-0004](governance/decisions/gd-0004-framework-neutral-ui-governance.md)）。
+   選定の順序は [standards/frontend-ui.md](standards/frontend-ui.md)「1.」を正本とし、
+   **開発の性質（コンテンツ中心／業務アプリ／ハイブリッド）の確認が先**です。
+   特に ADR-0003（コンポーネント層をメタフレームワークから分離するか）を保留したまま進むと、
+   コンポーネントを作った後に「Storybook に載せられないので Story が書けない」ことが判明し、
    憲章「10.1.4」を満たせないまま実装だけが進みます。
 2. `package.ui.json` の devDependencies を `package.json` へ統合し、バージョンを固定する。
 3. `.github/workflows/verify.yml` の `task verify` の前に依存セットアップを追加する。
