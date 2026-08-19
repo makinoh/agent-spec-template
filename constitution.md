@@ -1,8 +1,8 @@
 # 開発憲章（Constitution）
 
-* Version: 0.4.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
+* Version: 0.5.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
 * Date: 2026-04-01
-* Last amended: 2026-08-19
+* Last amended: 2026-08-20
 * Status: Proposed
 * Versioning: セマンティックバージョニング 2.0.0（`MAJOR.MINOR.PATCH`）に従う。  
   採番規則は「7. 変更管理」のバージョニング方針で定める。  
@@ -885,6 +885,7 @@ CI/CDの整備は優先的に行うべきです（SHOULD）。
 * ビルドおよび型チェック（該当する場合）に合格すること
 * 自動テストに合格すること
 * テストカバレッジが standards/testing-standards.md に定める最低基準を満たすこと
+* テスト品質（mutation score・spec 由来のテスト・認可の否定パステストを含む）が standards/testing-standards.md に定める基準を満たすこと
 * シークレットスキャンに合格すること（秘密情報のハードコードが無いこと）
 * 依存関係の脆弱性スキャンに合格すること（standards/security-standards.md に定める重大度基準以上の既知脆弱性が無いこと）
 
@@ -1167,6 +1168,18 @@ https://keepachangelog.com
 本改正の正本記録は governance/decisions/ に置くべきです（SHOULD）。
 
 ---
+
+### [0.5.0] - 2026-08-20（Proposed）
+
+正本記録: governance/decisions/（本提案の確定時に作成。提案書: governance/proposals/gp-0006-test-quality-gates.md）
+
+**Added**
+
+* 「8. 機械的に検証可能なルール」コード品質・セキュリティに、テスト品質（mutation score・spec由来テスト・認可否定パステスト）の基準充足を MUST 化するバレットを追加した。詳細（具体的な基準・初期値・設計）は standards/testing-standards.md「4.」（新設）に委譲する。
+
+**背景（増分の根拠となる論証）**: 憲章「6.」はテストの追加・修正を AI エージェントの自律行為として許可する一方、これまでテスト品質の唯一のゲートはカバレッジだった。同一エージェントが実装とテストの両方を書き、カバレッジのみで検証する構成は検証が自己言及に陥る。この論証は「10.1.7 UI 文書の役割分担」が Storybook についてすでに述べているものと同一の構造であり、本改訂はそれをユニットテスト一般へ一般化する。
+
+**増分の根拠**: 既存 MUST の撤廃・反転はなく、新規 MUST の追加のため MINOR（「7. 変更管理」バージョニング方針の MINOR 例示「第8章への MUST ルール追加」に該当）。**この判定は提案であり、確定は人間に委ねる**。
 
 ### [0.4.0] - 2026-08-19（Proposed）
 

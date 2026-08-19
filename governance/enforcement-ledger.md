@@ -1,8 +1,8 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.5.0（Proposed / ドラフト）
+* Version: 0.6.0（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-19
+* Last amended: 2026-08-20
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
 
 本書は、憲章の各 MUST / MUST NOT に **強制手段**（構造的強制／機械強制／人間ゲート（不可避）／人間ゲート（暫定））と **整備状況** を割り当てる台帳の正本（SSoT）です。
@@ -51,12 +51,32 @@
 | **33** | (a)(b)(c) いずれにも該当しない人間ゲートは失効期限・担当・移行先ゲートを付して強制台帳へ登録する（3章「検証手段の選択」/1.1） | MUST | 機械強制（必須項目の充足検査） | — | 整備済み（本 WU で `scripts/checks/enforcement-ledger.sh` を実装し、人間ゲート（暫定）行の失効期限・担当・移行先ゲートの非空を機械検証する） | — | — | — | verify:fast → scripts/checks/enforcement-ledger.sh（check_enforcement_ledger.py） |
 | **34** | 失効期限を過ぎた人間ゲート（暫定）が 0 件である（8章ブートストラップ規定の機械化） | MUST | 機械強制（失効期限の日付比較） | — | 整備済み（現時点で人間ゲート（暫定）行は 0 件のため恒常的に合格するが、`scripts/checks/selftest.sh` が期限超過行の注入により検出能力を確認する） | — | — | — | verify:fast → scripts/checks/enforcement-ledger.sh（check_enforcement_ledger.py） |
 | **35** | 台帳が憲章の全 MUST / MUST NOT を網羅する（既存の網羅性規定の機械化。1.1／8章） | SHOULD | 機械強制（advisory: 出現数の粗い突合）＋人間（定期見直しでの最終確認） | — | 整備中（1 MUST = 1 行の厳密な対応を機械検証する精度は本 WU では達成していない。非ブロッキングの助言出力に留め、憲章「7.」定期見直しで人間が最終確認する。過大な精度を主張しない） | — | — | — | verify:fast → scripts/checks/enforcement-ledger.sh（advisory 出力） |
+| **36** | 変更ファイルの mutation score が最低基準を満たす（testing-standards.md「4.1」「4.2」／8章） | MUST | 人間ゲート（暫定） | — | 未整備（本リポジトリはコードスタックを持たず `scripts/checks/build.sh` が no code stack detected を報告する。mutation testing ツールの選定・CI 配線は採用スタックで実施する。整備までは人間レビューで担保し、整備済みと扱わない） | TBD-HUMAN | TBD-HUMAN | 採用スタックの mutation testing ツールを CI に配線し、変更ファイルの mutation score が「4.2」の閾値未満の場合に fail させる仕組み（具体的なツールは未選定） | standards/testing-standards.md「4.1」「4.2」（現状は人間レビュー。機械検証は未実装） |
+| **37** | 受入基準に対応するテストは spec.md から導出する。実装を読んで書いたテストを充足根拠としない（testing-standards.md「4.3」／8章） | MUST / MUST NOT | 人間ゲート（暫定） | — | 未整備（テストが spec 由来か実装追従かを機械的に判別する手段が現状ない。コードレビューでの FR-ID/US-ID 対応確認により人間レビューで暫定担保） | TBD-HUMAN | TBD-HUMAN | テストコードへの FR-ID/US-ID トレーサビリティタグの必須化と、spec.md の要求IDとテストの対応表を機械検証する仕組み（設計は本 WU の範囲外） | standards/testing-standards.md「4.3」（現状は人間レビュー） |
+| **38** | 認可を要するエンドポイントは権限を持たない主体からのアクセス拒否を検証するテストを備える（testing-standards.md「4.4」／8章） | MUST | 人間ゲート（暫定） | — | 未整備（個別テストの存在確認は人間レビュー。全ルートを漏れなく検証する仕組みは #39 を参照） | TBD-HUMAN | TBD-HUMAN | #39 のルートインベントリ設計の実装により、認可要求ルートに対応する否定パステストの存在を CI で検証する仕組み | standards/testing-standards.md「4.4」（現状は人間レビュー） |
+| **39** | 認可否定パステストの網羅性検証（ルート一覧を生成物として持ち、生成処理の再実行で差分検証する設計。testing-standards.md「4.5」） | SHOULD（設計提案の実装可否） | 人間ゲート（暫定） | — | 未整備（設計案の提示のみ。実装は WU-05 の範囲外） | TBD-HUMAN | TBD-HUMAN | ルーティング定義（採用フレームワークのルート定義／OpenAPI 等）からルート一覧を生成物として出力し認可要求フラグを付与、対応する否定パステストの存在を機械検証。生成処理を CI で再実行し差分ゼロを確認する（SSoT パターン。憲章「3. 基本原則」） | standards/testing-standards.md「4.5」（設計案。実装未着手） |
 
-> 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#13, #15b 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。人間ゲート（暫定）行は現時点で 0 件である（#3〜#33 の再分類の結果、既存の「人間」を要する行はいずれも (a)/(b)/(c) のいずれかで恒久的に正当化される人間ゲート（不可避）と判定されたため。この判定自体の妥当性は人間による確認を要する。詳細は governance/proposals/gp-0003-enforcement-ledger-schema.md「5. 未解決事項」）。
+> 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#13, #15b 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。#3〜#33 の再分類の結果、既存の「人間」を要する行はいずれも (a)/(b)/(c) のいずれかで恒久的に正当化される人間ゲート（不可避）と判定され、人間ゲート（暫定）に該当する行は0件だった（詳細は governance/proposals/gp-0003-enforcement-ledger-schema.md「5. 未解決事項」）。**#36〜#39（GP-0006／WU-05）が本台帳における最初の人間ゲート（暫定）行である**。テスト品質（mutation score・spec由来テスト・認可否定パステスト）の3つの新規 MUST と、その網羅性検証の設計案は、このリポジトリにコードスタックが存在しないため実効的な機械検証を実装できず、失効期限・担当は `TBD-HUMAN`（未確定）のまま登録した。詳細は governance/proposals/gp-0006-test-quality-gates.md「未解決事項」を参照。
 
 ---
 
 ## 改正履歴
+
+### [0.6.0] - 2026-08-20（Proposed）
+
+正本記録: governance/proposals/gp-0006-test-quality-gates.md（WU-05）
+
+**Added**
+
+* #36〜#39 を新設: constitution.md「8.」に追加された新規テスト品質 MUST（mutation score／spec由来テスト／認可否定パステスト。standards/testing-standards.md「4.」）と、その網羅性検証の設計案（ルートインベントリ・testing-standards.md「4.5」）を、いずれも未整備の人間ゲート（暫定）として登録した。失効期限・担当は `TBD-HUMAN`（数値・人名の発明を避けるためのプレースホルダ）。
+* 本 WU-05 が新設する3つの MUST は、このリポジトリにコードスタックが存在しない（`scripts/checks/build.sh` が「no code stack detected」を報告する）ため、実効的な機械検証を今回は実装していない。整備済みと僭称しない（憲章「8. ブートストラップ規定」）。
+* #36〜#39 は、本台帳における**最初の**人間ゲート（暫定）行である（GP-0003／WU-02 の再分類では該当0件だった）。
+
+**Changed**
+
+* 「人間ゲート（暫定）行は現時点で0件」としていた表下の注記を更新し、#36〜#39 の4件が該当する旨を明記した。
+
+**注記（行番号の重複について）**: #36〜#39 は本 PR 起案時点の base（`governance/gp-0003-enforcement-ledger-schema`）における最終行（#35）からの連番である。同じ base から並行して起案されている他の作業単位（WU-03・04・06〜09 等）も同じ番号帯を採番している可能性があり、マージ時に人間が行番号の重複を解消する必要がある（governance/proposals/gp-0006-test-quality-gates.md「未解決事項」参照）。
 
 ### [0.5.0] - 2026-08-19（Proposed）
 
