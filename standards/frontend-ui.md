@@ -61,7 +61,7 @@ export type ButtonVariant = (typeof BUTTON_VARIANTS)[number];
 - Storybook をビルドし、Playwright で各 Story のスクリーンショットを撮ります。
 - タグ `@visual` を付け、`task ui:test:visual` で実行します。
 - 閾値は `maxDiffPixelRatio: 0.001`。緩めません（MUST NOT）。
-- **基準画像の更新は Class B。AI エージェントは実行しません**（憲章「10.1.5-4」・強制台帳 #27）。
+- **基準画像の更新は Class B。AI エージェントは実行しません**（憲章「10.1.5」・強制台帳 #27）。
 - フォント読み込み完了を待ちます。待たないと恒常的に不安定になります。
 
 ```ts
