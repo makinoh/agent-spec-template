@@ -61,7 +61,7 @@ run_case() {
 
 # ---------- 陽性対照: 無傷の複製がすべて通ること ----------
 # ここが落ちる場合はハーネスの故障であり、陰性テストの結果は信用できない。
-for c in structure adr adr-content frontmatter prompts; do
+for c in structure adr adr-content frontmatter prompts enforcement-ledger; do
   set +e; bash "scripts/checks/$c.sh" >/dev/null 2>&1; rc=$?; set -e
   [ "$rc" -eq 0 ] || { err "陽性対照の失敗: scripts/checks/$c.sh が無傷の複製で落ちた（ハーネス故障）"; exit 1; }
 done
@@ -110,6 +110,14 @@ run_case "adr-index.sh: 索引が陳腐化" "python3" \
 run_case "markdown.sh: Markdown Lint 違反" "markdownlint-cli2" \
   "printf '\n\`\`\`\nno language\n\`\`\`\n' >> glossary.md" \
   'bash scripts/checks/markdown.sh'
+
+run_case "enforcement-ledger.sh: 人間ゲート（不可避）の理由区分欠落" "python3" \
+  "sed -i 's/構造的強制（接続権限不付与）＋人間ゲート（不可避） | (a) |/構造的強制（接続権限不付与）＋人間ゲート（不可避） | — |/' governance/enforcement-ledger.md" \
+  'bash scripts/checks/enforcement-ledger.sh'
+
+run_case "enforcement-ledger.sh: 人間ゲート（暫定）の失効期限超過" "python3" \
+  "sed -i 's/機械強制（シークレットスキャン） | — | 整備済み（CI で実効。ローカルは gitleaks 不在時スキップ） | — | — | — |/機械強制（シークレットスキャン）＋人間ゲート（暫定） | — | 整備済み（CI で実効。ローカルは gitleaks 不在時スキップ） | 2020-01-01 | TBD-HUMAN | TBD-HUMAN |/' governance/enforcement-ledger.md" \
+  'bash scripts/checks/enforcement-ledger.sh'
 
 # UI ゲート: 生成物の手編集検出（2026-08-08 に誤合格が判明した箇所。回帰を防ぐ）
 run_case "ui: tokens:check が生成物の手編集を検出" "task" \
