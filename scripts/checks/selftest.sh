@@ -61,7 +61,7 @@ run_case() {
 
 # ---------- 陽性対照: 無傷の複製がすべて通ること ----------
 # ここが落ちる場合はハーネスの故障であり、陰性テストの結果は信用できない。
-for c in structure adr adr-content frontmatter prompts enforcement-ledger; do
+for c in structure adr adr-content frontmatter prompts enforcement-ledger governance-metrics; do
   set +e; bash "scripts/checks/$c.sh" >/dev/null 2>&1; rc=$?; set -e
   [ "$rc" -eq 0 ] || { err "陽性対照の失敗: scripts/checks/$c.sh が無傷の複製で落ちた（ハーネス故障）"; exit 1; }
 done
@@ -118,6 +118,16 @@ run_case "enforcement-ledger.sh: 人間ゲート（不可避）の理由区分�
 run_case "enforcement-ledger.sh: 人間ゲート（暫定）の失効期限超過" "python3" \
   "sed -i 's/機械強制（シークレットスキャン） | — | 整備済み（CI で実効。ローカルは gitleaks 不在時スキップ） | — | — | — |/機械強制（シークレットスキャン）＋人間ゲート（暫定） | — | 整備済み（CI で実効。ローカルは gitleaks 不在時スキップ） | 2020-01-01 | TBD-HUMAN | TBD-HUMAN |/' governance/enforcement-ledger.md" \
   'bash scripts/checks/enforcement-ledger.sh'
+
+run_case "governance-metrics.sh: 機械強制率が baseline を下回る（waiver なし）" "python3" \
+  'sed -i "s/\"mechanized_norms\": 32/\"mechanized_norms\": 38/" metrics/governance-health-snapshot.json' \
+  'bash scripts/checks/governance-metrics.sh'
+
+run_case "governance-metrics.sh: 失効済み waiver は低下を正当化しない（無条件バイパスの禁止）" "python3" \
+  'sed -i "s/\"mechanized_norms\": 32/\"mechanized_norms\": 38/" metrics/governance-health-snapshot.json &&
+   mkdir -p governance/waivers &&
+   printf -- "---\ntarget_check: governance-metrics.mechanized-rate\nstatus: Active\nexpires: 2020-01-01\n---\n\n# selftest waiver (expired, negative-test fixture only)\n" > governance/waivers/wv-9999-selftest-expired.md' \
+  'bash scripts/checks/governance-metrics.sh'
 
 # UI ゲート: 生成物の手編集検出（2026-08-08 に誤合格が判明した箇所。回帰を防ぐ）
 run_case "ui: tokens:check が生成物の手編集を検出" "task" \

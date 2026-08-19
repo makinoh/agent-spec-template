@@ -1,8 +1,8 @@
 # 開発憲章（Constitution）
 
-* Version: 0.4.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
+* Version: 0.5.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
 * Date: 2026-04-01
-* Last amended: 2026-08-19
+* Last amended: 2026-08-20
 * Status: Proposed
 * Versioning: セマンティックバージョニング 2.0.0（`MAJOR.MINOR.PATCH`）に従う。  
   採番規則は「7. 変更管理」のバージョニング方針で定める。  
@@ -825,6 +825,8 @@ governance/
 
 見直しの結果「変更不要」であった場合も、見直しを実施した記録を残すべきです（SHOULD）。
 
+見直しの確認項目には、統治健全性メトリクス（機械強制率の推移、および人間ゲート（暫定）残数の推移）を含めるべきです（SHOULD）。機械強制率は、強制台帳（governance/enforcement-ledger.md）の各行のうち構造的強制または機械強制を強制手段に含む行の割合として算出します。これらの指標の算出方法・基準値は governance/enforcement-ledger.md および metrics/governance-health-snapshot.json を正本とします。機械強制率の低下は、governance/waivers/ の有効な waiver がない限り機械強制で防ぎます（「8. 機械的に検証可能なルール」強制台帳 #36・#37）。
+
 ---
 
 ## 8. 機械的に検証可能なルール
@@ -1167,6 +1169,16 @@ https://keepachangelog.com
 本改正の正本記録は governance/decisions/ に置くべきです（SHOULD）。
 
 ---
+
+### [0.5.0] - 2026-08-20（Proposed）
+
+正本記録: governance/decisions/（本提案の確定時に作成。提案書: governance/proposals/gp-0004-governance-health-metrics.md）
+
+**Added**
+
+* 「7. 変更管理」定期見直しの確認項目に、統治健全性メトリクス（機械強制率の推移、人間ゲート（暫定）残数の推移）の確認を追加した。算出方法・基準値の正本を governance/enforcement-ledger.md および metrics/governance-health-snapshot.json とした。機械強制率の低下は governance/waivers/ の有効な waiver がない限り機械強制で防ぐ（強制台帳 #36・#37。scripts/checks/governance-metrics.sh）。
+
+**増分の根拠**: 既存の MUST / MUST NOT の**撤廃・反転はない**。「定期見直し」への確認項目追加は既存の SHOULD レベルの見直し活動を具体化する後方互換な追加であり、既存の義務を弱めない。憲章「7. 変更管理」バージョニング方針の MINOR 例示（「新たな原則の追加、第8章への MUST ルール追加、新たな standards の規定」）と同種の追加的拡張（本件は7章の既存節への確認項目追加および8章強制台帳への新規機械検証ルール追加）に該当するため **MINOR** と判定する。**この判定はAIによる提案であり、確定は人間承認者が行う**（憲章「7.」：AI は本書改正を単独で承認・反映してはならない MUST NOT）。
 
 ### [0.4.0] - 2026-08-19（Proposed）
 

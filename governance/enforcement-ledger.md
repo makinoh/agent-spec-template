@@ -1,8 +1,8 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.5.0（Proposed / ドラフト）
+* Version: 0.6.0（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-19
+* Last amended: 2026-08-20
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
 
 本書は、憲章の各 MUST / MUST NOT に **強制手段**（構造的強制／機械強制／人間ゲート（不可避）／人間ゲート（暫定））と **整備状況** を割り当てる台帳の正本（SSoT）です。
@@ -51,12 +51,26 @@
 | **33** | (a)(b)(c) いずれにも該当しない人間ゲートは失効期限・担当・移行先ゲートを付して強制台帳へ登録する（3章「検証手段の選択」/1.1） | MUST | 機械強制（必須項目の充足検査） | — | 整備済み（本 WU で `scripts/checks/enforcement-ledger.sh` を実装し、人間ゲート（暫定）行の失効期限・担当・移行先ゲートの非空を機械検証する） | — | — | — | verify:fast → scripts/checks/enforcement-ledger.sh（check_enforcement_ledger.py） |
 | **34** | 失効期限を過ぎた人間ゲート（暫定）が 0 件である（8章ブートストラップ規定の機械化） | MUST | 機械強制（失効期限の日付比較） | — | 整備済み（現時点で人間ゲート（暫定）行は 0 件のため恒常的に合格するが、`scripts/checks/selftest.sh` が期限超過行の注入により検出能力を確認する） | — | — | — | verify:fast → scripts/checks/enforcement-ledger.sh（check_enforcement_ledger.py） |
 | **35** | 台帳が憲章の全 MUST / MUST NOT を網羅する（既存の網羅性規定の機械化。1.1／8章） | SHOULD | 機械強制（advisory: 出現数の粗い突合）＋人間（定期見直しでの最終確認） | — | 整備中（1 MUST = 1 行の厳密な対応を機械検証する精度は本 WU では達成していない。非ブロッキングの助言出力に留め、憲章「7.」定期見直しで人間が最終確認する。過大な精度を主張しない） | — | — | — | verify:fast → scripts/checks/enforcement-ledger.sh（advisory 出力） |
+| **36** | 機械強制率（(構造的強制＋機械強制) の MUST/MUST NOT 件数 ÷ 全 MUST/MUST NOT 件数）は非減少でなければならない。低下する PR は失敗させる（7章 定期見直し／統治健全性メトリクス） | MUST | 機械強制（baseline スナップショットとの比較。分数の整数交差乗算で厳密比較） | — | 整備済み（本 WU で `scripts/checks/governance-metrics.sh` を実装。baseline は `metrics/governance-health-snapshot.json`。算出は台帳を機械的に走査し、複数手段併記行は構造的強制／機械強制のいずれかを含めば inclusive に算入する。カウント方法の根拠は `scripts/check_governance_metrics.py` docstring 参照） | — | — | — | verify:fast → scripts/checks/governance-metrics.sh（check_governance_metrics.py）／基準値: metrics/governance-health-snapshot.json |
+| **37** | #36 の低下が正当な場合、governance/waivers/ の**有効な**（target_check 一致・status=Active・失効期限が実日付かつ未経過の）waiver でのみ通過を許容し、無条件のバイパスを設けてはならない（7章 定期見直し／統治健全性メトリクス） | MUST NOT | 機械強制（waiver フロントマターの照合。TBD-HUMAN 等のプレースホルダは無効な失効期限として扱い waiver を無効化する） | — | 整備済み（本 WU で実装。waiver の記録項目は governance/waivers/README.md「機械可読な紐付け」に従う。現時点で該当 waiver は0件のため #36 は常に無条件では通過しない） | — | — | — | verify:fast → scripts/checks/governance-metrics.sh（check_governance_metrics.py）／governance/waivers/README.md |
 
 > 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#13, #15b 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。人間ゲート（暫定）行は現時点で 0 件である（#3〜#33 の再分類の結果、既存の「人間」を要する行はいずれも (a)/(b)/(c) のいずれかで恒久的に正当化される人間ゲート（不可避）と判定されたため。この判定自体の妥当性は人間による確認を要する。詳細は governance/proposals/gp-0003-enforcement-ledger-schema.md「5. 未解決事項」）。
 
 ---
 
 ## 改正履歴
+
+### [0.6.0] - 2026-08-20（Proposed）
+
+正本記録: governance/proposals/gp-0004-governance-health-metrics.md（WU-03）
+
+**Added**
+
+* #36 を新設: 機械強制率（(構造的強制＋機械強制) の MUST/MUST NOT 件数 ÷ 全件数）の非減少制約。低下する PR は `scripts/checks/governance-metrics.sh` が `task verify:fast` で失敗させる。基準値は `metrics/governance-health-snapshot.json`（本 WU で台帳の現状から実測して初期シード値 30/36 を記録）。
+* #37 を新設: #36 の低下を正当化する経路として `governance/waivers/` の waiver 連携を実装。waiver は `target_check` 一致・`status: Active`・実日付かつ未経過の `expires` をすべて満たす場合のみ有効とし、無条件のバイパスを設けない（`governance/waivers/README.md`「機械可読な紐付け」を新設）。
+* `scripts/check_governance_metrics.py` は本台帳のパーサ（`scripts/check_enforcement_ledger.py` の `load_rows` / `DATE_RE` / `GATE_BOOTSTRAP`）を再利用し、正規表現を分岐させていない。
+
+**増分の根拠**: 既存の義務の撤廃・反転はない。新規行2件（#36・#37）の追加と、それを裏づける新規機械検証スクリプトの追加であり、憲章「7. 変更管理」バージョニング方針の MINOR 例示（機械検証ルールの追加）に該当する。
 
 ### [0.5.0] - 2026-08-19（Proposed）
 
