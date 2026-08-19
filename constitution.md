@@ -1,8 +1,8 @@
 # 開発憲章（Constitution）
 
-* Version: 0.4.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
+* Version: 0.5.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
 * Date: 2026-04-01
-* Last amended: 2026-08-19
+* Last amended: 2026-08-20
 * Status: Proposed
 * Versioning: セマンティックバージョニング 2.0.0（`MAJOR.MINOR.PATCH`）に従う。  
   採番規則は「7. 変更管理」のバージョニング方針で定める。  
@@ -887,6 +887,7 @@ CI/CDの整備は優先的に行うべきです（SHOULD）。
 * テストカバレッジが standards/testing-standards.md に定める最低基準を満たすこと
 * シークレットスキャンに合格すること（秘密情報のハードコードが無いこと）
 * 依存関係の脆弱性スキャンに合格すること（standards/security-standards.md に定める重大度基準以上の既知脆弱性が無いこと）
+* 第一者コードの静的解析（SAST: Static Application Security Testing）に合格すること（重大度基準は standards/security-standards.md に定める基準とし、依存関係の脆弱性スキャン（直前の項目）とは別項目として同標準に定義する。standards/coding-standards.md「1. 整形・静的解析」が定めるフォーマッタ／リンタ／型チェックとは検出対象が異なり、両者を混同しない）
 
 ---
 
@@ -1167,6 +1168,16 @@ https://keepachangelog.com
 本改正の正本記録は governance/decisions/ に置くべきです（SHOULD）。
 
 ---
+
+### [0.5.0] - 2026-08-20（Proposed）
+
+正本記録: governance/decisions/（本提案の確定時に作成。提案書: governance/proposals/gp-0005-sast-gate.md）
+
+**Added**
+
+* 「8. 機械的に検証可能なルール」コード品質・セキュリティの MUST に「第一者コードの静的解析（SAST）に合格すること」を追加した。重大度基準の正本は standards/security-standards.md とし、依存関係の脆弱性スキャン（同章の既存項目）とは**別項目として**定義する。SAST 製品名は本書に記載せず、能力要件のみを規定する（ツール選定は ADR で行う）。
+
+**増分の根拠**: 既存の MUST / MUST NOT の**撤廃・反転はない**。新設した MUST（第一者コードの SAST 合格）は既存ルールに対する後方互換な追加拘束であり、既存の義務を弱めない。新たな機械検証対象ルールの追加に該当するため **MINOR** と判定する（「7. 変更管理」バージョニング方針）。現行は `0.y.z`（Status: Proposed の未批准期間）であり後方互換性は保証されないが、実質が追加的拡張であるため引き続き MINOR 系列（0.4.0 → 0.5.0）を提案する。**この判定は提案であり、確定は人間に委ねる**（本 WU の CON-05 / 7章「増分種別の判定が曖昧な場合は確定前にその理由を提示する」に従う）。
 
 ### [0.4.0] - 2026-08-19（Proposed）
 
