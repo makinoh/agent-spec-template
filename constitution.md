@@ -1,8 +1,8 @@
 # 開発憲章（Constitution）
 
-* Version: 0.4.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
+* Version: 0.5.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
 * Date: 2026-04-01
-* Last amended: 2026-08-19
+* Last amended: 2026-08-20
 * Status: Proposed
 * Versioning: セマンティックバージョニング 2.0.0（`MAJOR.MINOR.PATCH`）に従う。  
   採番規則は「7. 変更管理」のバージョニング方針で定める。  
@@ -825,6 +825,8 @@ governance/
 
 見直しの結果「変更不要」であった場合も、見直しを実施した記録を残すべきです（SHOULD）。
 
+見直しの入力には、[governance/escape-analysis/](governance/escape-analysis/) が記録するエスケープ欠陥の分類（本番障害が既存ゲートで検出可能だったか、ゲート設定が不適切だったか、現行技術で機械検出不可能だったか）を含めなければなりません（MUST）。分類の蓄積は、機械強制整備の優先度、および人間ゲート（不可避）の正当性を継続的に再検証する根拠とします（development-process.md「6.」/governance/escape-analysis/README.md）。
+
 ---
 
 ## 8. 機械的に検証可能なルール
@@ -1167,6 +1169,18 @@ https://keepachangelog.com
 本改正の正本記録は governance/decisions/ に置くべきです（SHOULD）。
 
 ---
+
+### [0.5.0] - 2026-08-20（Proposed）
+
+正本記録: governance/decisions/（本提案の確定時に作成。提案書: [governance/proposals/gp-0008-auditability-and-escape-analysis.md](governance/proposals/gp-0008-auditability-and-escape-analysis.md)）
+
+**Added**
+
+* 「7. 変更管理」定期見直しの入力に、[governance/escape-analysis/](governance/escape-analysis/) が記録するエスケープ欠陥の3分類（既存ゲートで検出可能だったがゲート未整備／ゲート設定が不適切／現行技術で機械検出不可能）を追加することを MUST 化した。分類の蓄積を機械強制整備の優先度根拠、および人間ゲート（不可避）の正当性の継続的な再検証根拠として用いる。
+
+**増分の根拠**: 既存の MUST / MUST NOT の**撤廃・反転はない**。「7. 変更管理」定期見直し（既存 SHOULD）に新しい入力源を追加する MUST を新設する後方互換な追加拘束であり、既存義務を弱めない。新たな原則・機械検証対象ルールの追加に該当するため **MINOR** と判定する（「7. 変更管理」バージョニング方針）。**この判定は提案であり、確定は人間に委ねる**。
+
+> **注（並行 WU との衝突可能性）**: 「7. 定期見直し」は、本 PR と並行して起票されている別作業単位（WU-03、監査ログ・DORA計測基盤）でも同一箇所へ計測指標を追加する変更が見込まれる。両者は同一段落付近を対象とするため、マージ時に人間による競合解消が必要になる可能性が高い。本 PR 側では調整を行わない（別 WU の担当）。
 
 ### [0.4.0] - 2026-08-19（Proposed）
 
