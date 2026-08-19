@@ -31,7 +31,7 @@ tasks:
       - task: check:selftest
 
   verify:fast:
-    desc: "FAST checks for pre-commit (structure / ADR / front matter / prompts / markdown / UI)"
+    desc: "FAST checks for pre-commit (structure / ADR / front matter / prompts / markdown / enforcement ledger / UI)"
     cmds:
       - task: check:structure
       - task: check:adr
@@ -39,6 +39,7 @@ tasks:
       - task: check:frontmatter
       - task: check:prompts
       - task: check:markdown
+      - task: check:enforcement-ledger
       - task: check:ui-fast
 
   verify:pr:
@@ -67,6 +68,9 @@ tasks:
     cmds: ["bash scripts/checks/markdown.sh"]
   check:adr-index:
     cmds: ["bash scripts/checks/adr-index.sh"]
+  # 強制台帳のスキーマ整合性（憲章「3. 基本原則」検証手段の選択／「8.」ブートストラップ規定の機械化）。
+  check:enforcement-ledger:
+    cmds: ["bash scripts/checks/enforcement-ledger.sh"]
   check:links:
     cmds: ["bash scripts/checks/links.sh"]
   check:secrets:
