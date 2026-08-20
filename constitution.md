@@ -1,6 +1,6 @@
 # 開発憲章（Constitution）
 
-* Version: 0.6.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
+* Version: 0.7.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
 * Date: 2026-04-01
 * Last amended: 2026-08-20
 * Status: Proposed
@@ -825,6 +825,8 @@ governance/
 
 見直しの結果「変更不要」であった場合も、見直しを実施した記録を残すべきです（SHOULD）。
 
+見直しの入力には、[governance/escape-analysis/](governance/escape-analysis/) が記録するエスケープ欠陥の分類（本番障害が既存ゲートで検出可能だったか、ゲート設定が不適切だったか、現行技術で機械検出不可能だったか）を含めなければなりません（MUST）。分類の蓄積は、機械強制整備の優先度、および人間ゲート（不可避）の正当性を継続的に再検証する根拠とします（development-process.md「6.」/governance/escape-analysis/README.md）。
+
 ---
 
 ## 8. 機械的に検証可能なルール
@@ -1169,6 +1171,18 @@ https://keepachangelog.com
 本改正の正本記録は governance/decisions/ に置くべきです（SHOULD）。
 
 ---
+
+### [0.7.0] - 2026-08-20（Proposed）
+
+正本記録: governance/decisions/（本提案の確定時に作成。提案書: [governance/proposals/gp-0008-auditability-and-escape-analysis.md](governance/proposals/gp-0008-auditability-and-escape-analysis.md)）
+
+**Added**
+
+* 「7. 変更管理」定期見直しの入力に、[governance/escape-analysis/](governance/escape-analysis/) が記録するエスケープ欠陥の3分類（既存ゲートで検出可能だったがゲート未整備／ゲート設定が不適切／現行技術で機械検出不可能）を追加することを MUST 化した。分類の蓄積を機械強制整備の優先度根拠、および人間ゲート（不可避）の正当性の継続的な再検証根拠として用いる。
+
+**増分の根拠**: 既存の MUST / MUST NOT の**撤廃・反転はない**。「7. 変更管理」定期見直し（既存 SHOULD）に新しい入力源を追加する MUST を新設する後方互換な追加拘束であり、既存義務を弱めない。新たな原則・機械検証対象ルールの追加に該当するため **MINOR** と判定する（「7. 変更管理」バージョニング方針）。**この判定は提案であり、確定は人間に委ねる**。
+
+> **注（並行 WU との衝突・番号調整）**: 本エントリはもともと 0.5.0、続いて 0.6.0 として起案したが、base ブランチへ並行マージされた WU-05（0.5.0。[GP-0006](governance/proposals/gp-0006-test-quality-gates.md)）と WU-04（0.6.0。[GP-0005](governance/proposals/gp-0005-sast-gate.md)）が先にその番号を採番したため、本コンフリクト解消時に 0.7.0 へ繰り下げた。「7. 定期見直し」の編集箇所自体は WU-04／WU-05（いずれも「8. 機械的に検証可能なルール」を編集）と重複しなかったため、本文の競合は発生していない。並行起票中の WU-03（統治健全性メトリクス）も同じ「7. 定期見直し」節を編集する可能性が高く、本マージ時点ではまだ base に到達していないため未確認である。マージ時に人間による最終確認を要する。
 
 ### [0.6.0] - 2026-08-20（Proposed）
 
