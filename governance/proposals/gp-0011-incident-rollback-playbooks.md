@@ -125,7 +125,7 @@ development-process.md「7.」は「ロールバック/インシデント手順�
 
 ## 6. 承認
 
-> development-process.md「7.」・`.github/**`・`governance/**` の改正は統治承認者の承認を要する（development-process.md「5.」）。本リポジトリは Lite プロファイル（[GD-0001](decisions/gd-0001-adoption-profile-lite.md)）のため定足数 1 名。AI エージェントは単独で承認・反映してはならない（MUST NOT。憲章「7.」）。
+> development-process.md「7.」・`.github/**`・`governance/**` の改正は統治承認者の承認を要する（development-process.md「5.」）。本リポジトリは Lite プロファイル（[GD-0001](../decisions/gd-0001-adoption-profile-lite.md)）のため定足数 1 名。AI エージェントは単独で承認・反映してはならない（MUST NOT。憲章「7.」）。
 
 | 項目 | 内容 |
 | --- | --- |

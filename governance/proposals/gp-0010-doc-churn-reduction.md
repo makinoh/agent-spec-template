@@ -180,7 +180,7 @@ WU-09 は4つの作業単位から成るが、**性質が異なる**。
 
 ## 6. 承認
 
-> 憲章の改正は憲章承認者グループの承認を要する（development-process.md「5.」）。本リポジトリは Lite プロファイル（[GD-0001](gd-0001-adoption-profile-lite.md)）のため定足数 1 名。AI エージェントは単独で承認・反映してはならない（MUST NOT。憲章「7.」）。
+> 憲章の改正は憲章承認者グループの承認を要する（development-process.md「5.」）。本リポジトリは Lite プロファイル（[GD-0001](../decisions/gd-0001-adoption-profile-lite.md)）のため定足数 1 名。AI エージェントは単独で承認・反映してはならない（MUST NOT。憲章「7.」）。
 
 | 項目 | 内容 |
 | --- | --- |
