@@ -1,6 +1,6 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.6.0（Proposed / ドラフト）
+* Version: 0.7.0（Proposed / ドラフト）
 * Date: 2026-04-01
 * Last amended: 2026-08-20
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
@@ -55,12 +55,25 @@
 | **37** | 受入基準に対応するテストは spec.md から導出する。実装を読んで書いたテストを充足根拠としない（testing-standards.md「4.3」／8章） | MUST / MUST NOT | 人間ゲート（暫定） | — | 未整備（テストが spec 由来か実装追従かを機械的に判別する手段が現状ない。コードレビューでの FR-ID/US-ID 対応確認により人間レビューで暫定担保） | TBD-HUMAN | TBD-HUMAN | テストコードへの FR-ID/US-ID トレーサビリティタグの必須化と、spec.md の要求IDとテストの対応表を機械検証する仕組み（設計は本 WU の範囲外） | standards/testing-standards.md「4.3」（現状は人間レビュー） |
 | **38** | 認可を要するエンドポイントは権限を持たない主体からのアクセス拒否を検証するテストを備える（testing-standards.md「4.4」／8章） | MUST | 人間ゲート（暫定） | — | 未整備（個別テストの存在確認は人間レビュー。全ルートを漏れなく検証する仕組みは #39 を参照） | TBD-HUMAN | TBD-HUMAN | #39 のルートインベントリ設計の実装により、認可要求ルートに対応する否定パステストの存在を CI で検証する仕組み | standards/testing-standards.md「4.4」（現状は人間レビュー） |
 | **39** | 認可否定パステストの網羅性検証（ルート一覧を生成物として持ち、生成処理の再実行で差分検証する設計。testing-standards.md「4.5」） | SHOULD（設計提案の実装可否） | 人間ゲート（暫定） | — | 未整備（設計案の提示のみ。実装は WU-05 の範囲外） | TBD-HUMAN | TBD-HUMAN | ルーティング定義（採用フレームワークのルート定義／OpenAPI 等）からルート一覧を生成物として出力し認可要求フラグを付与、対応する否定パステストの存在を機械検証。生成処理を CI で再実行し差分ゼロを確認する（SSoT パターン。憲章「3. 基本原則」） | standards/testing-standards.md「4.5」（設計案。実装未着手） |
+| **40** | Class A/B の PR は変更行数の上限を超えてはならない（development-process.md「5.」／3章 検証手段の選択。WU-08） | MUST NOT | 人間ゲート（暫定）＋機械強制（advisory 計測のみ。閾値未設定のため hard-fail はしない） | — | 整備中（変更行数の計測・Class A/B 分類・生成物/ロックファイル除外・上限比較ロジックは実装済みで `verify:pr` から実行されるが、上限の具体的数値が未確定〔`TBD-HUMAN`〕のため現状は advisory のみで hard-fail しない。整備済みと過大に主張しない） | TBD-HUMAN | TBD-HUMAN | `scripts/checks/diff-size.sh`（`scripts/check_diff_size.py`）に環境変数 `DIFF_SIZE_LIMIT_CLASS_A` / `DIFF_SIZE_LIMIT_CLASS_B`（整数）を設定し hard-fail 化する。設定先は `.github/workflows/verify.yml` の `verify:pr` ステージ env（`BASE_SHA`/`HEAD_SHA` と同様の配線）を想定 | verify:pr → scripts/checks/diff-size.sh（check_diff_size.py） |
 
-> 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#13, #15b 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。#3〜#33 の再分類の結果、既存の「人間」を要する行はいずれも (a)/(b)/(c) のいずれかで恒久的に正当化される人間ゲート（不可避）と判定され、人間ゲート（暫定）に該当する行は0件だった（詳細は governance/proposals/gp-0003-enforcement-ledger-schema.md「5. 未解決事項」）。**#36〜#39（GP-0006／WU-05）が本台帳における最初の人間ゲート（暫定）行である**。テスト品質（mutation score・spec由来テスト・認可否定パステスト）の3つの新規 MUST と、その網羅性検証の設計案は、このリポジトリにコードスタックが存在しないため実効的な機械検証を実装できず、失効期限・担当は `TBD-HUMAN`（未確定）のまま登録した。詳細は governance/proposals/gp-0006-test-quality-gates.md「未解決事項」を参照。
+> 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#13, #15b 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。#3〜#33 の再分類の結果、既存の「人間」を要する行はいずれも (a)/(b)/(c) のいずれかで恒久的に正当化される人間ゲート（不可避）と判定され、人間ゲート（暫定）に該当する行は0件だった（詳細は governance/proposals/gp-0003-enforcement-ledger-schema.md「5. 未解決事項」）。**#36〜#39（GP-0006／WU-05）が本台帳における最初の人間ゲート（暫定）行である**。テスト品質（mutation score・spec由来テスト・認可否定パステスト）の3つの新規 MUST と、その網羅性検証の設計案は、このリポジトリにコードスタックが存在しないため実効的な機械検証を実装できず、失効期限・担当は `TBD-HUMAN`（未確定）のまま登録した。詳細は governance/proposals/gp-0006-test-quality-gates.md「未解決事項」を参照。**#40（GP-0009／WU-08）は、上限値そのものが未確定（`TBD-HUMAN`）のまま先に計測・分類ロジックのみを実装した人間ゲート（暫定）の追加例である**。詳細は governance/proposals/gp-0009-human-gate-diff-size-limit.md「7. 未解決事項」（特に OUT-03）を参照。
 
 ---
 
 ## 改正履歴
+
+### [0.7.0] - 2026-08-20（Proposed）
+
+正本記録: governance/proposals/gp-0009-human-gate-diff-size-limit.md（WU-08）
+
+**Added**
+
+* **#40 を新設**: 「Class A/B の PR は変更行数の上限を超えてはならない（MUST NOT）」（development-process.md「5.」新設・WU-08）を人間ゲート（暫定）として登録。失効期限・担当は `TBD-HUMAN`（上限値の具体的な数値を AI が発明することを避けるためのプレースホルダ。development-process.md「1.」検証手段の選択の趣旨）。移行先ゲートは `scripts/checks/diff-size.sh`（`scripts/check_diff_size.py`）に閾値環境変数を設定することで hard-fail 化する具体的な移行手段を明記した。
+* `scripts/check_diff_size.py` ＋ `scripts/checks/diff-size.sh` を新設し、`verify:pr` に配線（`pr_governance.sh` と同じ `BASE_SHA`/`HEAD_SHA` を再利用。新規 env var は追加していない）。閾値が未設定の現状は advisory 出力のみで hard-fail しない。
+* `scripts/checks/selftest.sh` に、閾値を一時的に設定した場合の hard-fail 検出を確認する陰性テストを1件追加。
+
+**注記（行番号について）**: 本 WU-08 は base（`origin/governance/gp-0003-enforcement-ledger-schema`、WU-05／PR #24 マージ後）に rebase 済みであり、#40 は rebase 時点での実際の次行番号である（#36〜#39 は WU-05 が確定させた既存行）。ただし本 PR 起案時点でなお並行中の他の作業単位があれば、その PR 側で番号帯の再調整が必要になる可能性がある。
 
 ### [0.6.0] - 2026-08-20（Proposed）
 

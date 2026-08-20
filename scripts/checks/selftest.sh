@@ -131,6 +131,17 @@ run_case "ui: tokens:check が生成物の手編集を検出" "task" \
    git -c user.email=s@l -c user.name=s commit -qm edit >/dev/null 2>&1' \
   'task ui:tokens:check'
 
+# diff-size.sh: 上限値は既定で未設定（TBD-HUMAN）のため advisory のみで hard-fail しない。
+# selftest では一時的に低い閾値を環境変数で与え、hard-fail 化ロジック自体が正しく動作することを
+# 確認する（実運用では Taskfile.yml / .github/workflows/verify.yml のどちらにも閾値を設定して
+# いないため、この閾値注入は selftest 内に閉じる。git diff ベースの検査のため、他の陰性テストと
+# 異なりコミットを作る＝UI ケースと同様に本ファイル末尾へ配置する）。
+run_case "diff-size.sh: 閾値設定時に上限超過を検出する（synthetic diff）" "python3" \
+  'yes "diff-size selftest synthetic line" | head -50 >> governance/waivers/README.md &&
+   git add -A >/dev/null 2>&1 &&
+   git -c user.email=s@l -c user.name=s commit -qm "selftest: synthetic diff-size violation" >/dev/null 2>&1' \
+  'DIFF_SIZE_LIMIT_CLASS_A=10 bash scripts/checks/diff-size.sh'
+
 # 対象外の明示（黙って落とさない）
 warn "対象外: links.sh（lychee・ネットワーク依存）／deps.sh（trivy・脆弱性DB依存）／視覚回帰（ブラウザ必須）"
 

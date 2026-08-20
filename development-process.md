@@ -1,8 +1,8 @@
 # 開発プロセス（Development Process）
 
-* Version: 0.2.1（Proposed / ドラフト）
+* Version: 0.3.0（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-07
+* Last amended: 2026-08-20
 * 上位規範: constitution.md（開発憲章）
 
 本書は、constitution.md が下位文書へ委譲する運用詳細の正本（SSoT）です。本書が未整備の事項は「未定義」として扱われ、AIエージェントは自律判断せず人間に諮らなければなりません（憲章「8. ブートストラップ規定」）。本書は憲章に従属し、矛盾する場合は憲章が優先します（MUST）。
@@ -113,6 +113,15 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 
 却下された改正提案も `governance/decisions/` に記録する（憲章7章）。
 
+### 差分規模の上限（人間ゲートの実質化）
+
+承認は「作成者以外の人間 1 名以上」（本節冒頭の表）で定義されていますが、AI 駆動で PR の生成量が増えると、レビュアが実質的に精査できない規模の差分に対しても形式的な承認だけが行われ、人間ゲートが形骸化するおそれがあります。対策は承認者を増やすことではなく、**人間ゲートが機能する条件（レビュー可能な差分規模）を機械的に強制すること**です（constitution.md「3. 基本原則」検証手段の選択）。
+
+* Class A および Class B に分類される PR は、変更行数が上限を超えてはなりません（MUST NOT）。上限を超える場合は、変更を分割するか、[governance/waivers/](governance/waivers/README.md) に登録された時限的な適用除外を要します。
+* 変更行数は、追加行数＋削除行数の合計から、生成物・ロックファイル等のレビュー対象外の差分（`adr/INDEX.md`、`src/styles/tokens.css` 等。除外リストの正本は `scripts/check_diff_size.py`）を除いて算定します。除外リストの追加・変更自体は `scripts/**` に該当するため Class A として扱います（本書「1.」対象パス表）。
+* **上限の具体的な数値は本書で確定していません（`TBD-HUMAN`）。** 数値を人間の判断なしに AI エージェントが発明してはなりません（MUST NOT。憲章「10.1.3 推測の禁止」と同趣旨）。数値が確定するまでの間、本ルールは `governance/enforcement-ledger.md` に人間ゲート（暫定）として登録し、`scripts/checks/diff-size.sh`（`scripts/check_diff_size.py`）を advisory（助言のみ・非ブロッキング）で `verify:pr` に配線して実測値を可視化します。人間が上限値を確定し `DIFF_SIZE_LIMIT_CLASS_A` / `DIFF_SIZE_LIMIT_CLASS_B` を設定した時点で、同一スクリプトがそのまま hard-fail ゲートへ移行します（新たな配線の追加は不要）。
+* 正本記録: [governance/proposals/gp-0009-human-gate-diff-size-limit.md](governance/proposals/gp-0009-human-gate-diff-size-limit.md)（GP-0009）。
+
 ---
 
 ## 6. 監査証跡の記録方式（憲章「監査証跡」の委譲先）
@@ -169,6 +178,11 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 ---
 
 ## 9. 改正履歴
+
+### [0.3.0] - 2026-08-20（Proposed / ドラフト）
+
+* 「5.」に**差分規模の上限（人間ゲートの実質化）**を新設。Class A/B の PR は変更行数の上限を超えてはならない（MUST NOT）とし、超過時は分割または `governance/waivers/` の適用除外を要求。上限の具体的数値は未確定（`TBD-HUMAN`）であり、確定までは `scripts/checks/diff-size.sh` を advisory（助言のみ）で `verify:pr` に配線して実測値を可視化する。
+* 正本記録: [governance/proposals/gp-0009-human-gate-diff-size-limit.md](governance/proposals/gp-0009-human-gate-diff-size-limit.md)（GP-0009）。
 
 ### [0.2.1] - 2026-08-07（Accepted / 2026-08-08 承認）
 
