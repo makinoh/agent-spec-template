@@ -1,6 +1,6 @@
 # 開発プロセス（Development Process）
 
-* Version: 0.3.1（Proposed / ドラフト）
+* Version: 0.4.1（Proposed / ドラフト）
 * Date: 2026-04-01
 * Last amended: 2026-08-20
 * 上位規範: constitution.md（開発憲章）
@@ -113,6 +113,15 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 
 却下された改正提案も `governance/decisions/` に記録する（憲章7章）。
 
+### 差分規模の上限（人間ゲートの実質化）
+
+承認は「作成者以外の人間 1 名以上」（本節冒頭の表）で定義されていますが、AI 駆動で PR の生成量が増えると、レビュアが実質的に精査できない規模の差分に対しても形式的な承認だけが行われ、人間ゲートが形骸化するおそれがあります。対策は承認者を増やすことではなく、**人間ゲートが機能する条件（レビュー可能な差分規模）を機械的に強制すること**です（constitution.md「3. 基本原則」検証手段の選択）。
+
+* Class A および Class B に分類される PR は、変更行数が上限を超えてはなりません（MUST NOT）。上限を超える場合は、変更を分割するか、[governance/waivers/](governance/waivers/README.md) に登録された時限的な適用除外を要します。
+* 変更行数は、追加行数＋削除行数の合計から、生成物・ロックファイル等のレビュー対象外の差分（`adr/INDEX.md`、`src/styles/tokens.css` 等。除外リストの正本は `scripts/check_diff_size.py`）を除いて算定します。除外リストの追加・変更自体は `scripts/**` に該当するため Class A として扱います（本書「1.」対象パス表）。
+* **上限の具体的な数値は本書で確定していません（`TBD-HUMAN`）。** 数値を人間の判断なしに AI エージェントが発明してはなりません（MUST NOT。憲章「10.1.3 推測の禁止」と同趣旨）。数値が確定するまでの間、本ルールは `governance/enforcement-ledger.md` に人間ゲート（暫定）として登録し、`scripts/checks/diff-size.sh`（`scripts/check_diff_size.py`）を advisory（助言のみ・非ブロッキング）で `verify:pr` に配線して実測値を可視化します。人間が上限値を確定し `DIFF_SIZE_LIMIT_CLASS_A` / `DIFF_SIZE_LIMIT_CLASS_B` を設定した時点で、同一スクリプトがそのまま hard-fail ゲートへ移行します（新たな配線の追加は不要）。
+* 正本記録: [governance/proposals/gp-0009-human-gate-diff-size-limit.md](governance/proposals/gp-0009-human-gate-diff-size-limit.md)（GP-0009）。
+
 ---
 
 ## 6. 監査証跡の記録方式（憲章「監査証跡」の委譲先）
@@ -178,13 +187,20 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 
 ## 9. 改正履歴
 
-### [0.3.1] - 2026-08-20（Proposed）
+### [0.4.1] - 2026-08-20（Proposed）
 
 正本記録: [governance/proposals/gp-0011-incident-rollback-playbooks.md](governance/proposals/gp-0011-incident-rollback-playbooks.md)（WU-10）
 
 * 「7.」の「ロールバック/インシデント手順の詳細は…（整備までは人間判断）」を、実在する2文書（[playbooks/incident-response.md](playbooks/incident-response.md) / [playbooks/rollback.md](playbooks/rollback.md)）への参照へ置換し、「整備までは」の hedge を除去（両文書とも「雛形」であることは維持）。
 * 「7.」に、Class A PR のロールバック手順欄の記載要件（機械検証は有無のみ、内容の妥当性は人間ゲート（不可避）(b)）を追記。
 * **増分の根拠**: 既存の MUST/MUST NOT を撤廃・反転せず、空白だった参照先を実体で埋め、新規の記載要件を1件追加した追記的更新のため **PATCH**（「7. 変更管理」に相当する憲章のバージョニング方針に準拠。本書自体は同方針を準用する）。
+* **注（並行 WU との衝突・番号調整）**: 本エントリはもともと 0.3.1 として起案したが、base ブランチへ先にマージされた WU-08（0.4.0。[GP-0009](governance/proposals/gp-0009-human-gate-diff-size-limit.md)）が既にその番号帯を採番していたため、本コンフリクト解消時に 0.4.1 へ繰り下げた。
+
+### [0.4.0] - 2026-08-20（Proposed / ドラフト）
+
+* 「5.」に**差分規模の上限（人間ゲートの実質化）**を新設。Class A/B の PR は変更行数の上限を超えてはならない（MUST NOT）とし、超過時は分割または `governance/waivers/` の適用除外を要求。上限の具体的数値は未確定（`TBD-HUMAN`）であり、確定までは `scripts/checks/diff-size.sh` を advisory（助言のみ）で `verify:pr` に配線して実測値を可視化する。
+* 正本記録: [governance/proposals/gp-0009-human-gate-diff-size-limit.md](governance/proposals/gp-0009-human-gate-diff-size-limit.md)（GP-0009）。
+* **注（並行 WU との衝突・番号調整）**: 本エントリはもともと 0.3.0 として起案したが、base ブランチへ先にマージされた WU-07（0.3.0。[GP-0008](governance/proposals/gp-0008-auditability-and-escape-analysis.md)）が同番号を採番していたため、本コンフリクト解消時に 0.4.0 へ繰り下げた。
 
 ### [0.3.0] - 2026-08-20（Proposed）
 
