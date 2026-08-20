@@ -26,6 +26,7 @@ tasks:
       - task: check:links
       - task: check:secrets
       - task: check:deps
+      - task: check:sast
       - task: check:build
       - task: check:ui
       - task: check:selftest
