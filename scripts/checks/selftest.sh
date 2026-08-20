@@ -61,7 +61,7 @@ run_case() {
 
 # ---------- 陽性対照: 無傷の複製がすべて通ること ----------
 # ここが落ちる場合はハーネスの故障であり、陰性テストの結果は信用できない。
-for c in structure adr adr-content frontmatter prompts enforcement-ledger sast pr_governance; do
+for c in structure adr adr-content frontmatter prompts enforcement-ledger sast pr_governance governance-metrics; do
   set +e; bash "scripts/checks/$c.sh" >/dev/null 2>&1; rc=$?; set -e
   [ "$rc" -eq 0 ] || { err "陽性対照の失敗: scripts/checks/$c.sh が無傷の複製で落ちた（ハーネス故障）"; exit 1; }
 done
@@ -167,6 +167,16 @@ fi
 run_case "pr_governance.sh: 既知AIエージェント識別のPR作成者にai-generatedラベル欠落" "" \
   ':' \
   'CI=true PR_AUTHOR=claude-code-bot PR_LABELS=class:A bash scripts/checks/pr_governance.sh'
+
+run_case "governance-metrics.sh: 機械強制率が baseline を下回る（waiver なし）" "python3" \
+  'sed -i "s/\"mechanized_norms\": 34/\"mechanized_norms\": 40/" metrics/governance-health-snapshot.json' \
+  'bash scripts/checks/governance-metrics.sh'
+
+run_case "governance-metrics.sh: 失効済み waiver は低下を正当化しない（無条件バイパスの禁止）" "python3" \
+  'sed -i "s/\"mechanized_norms\": 34/\"mechanized_norms\": 40/" metrics/governance-health-snapshot.json &&
+   mkdir -p governance/waivers &&
+   printf -- "---\ntarget_check: governance-metrics.mechanized-rate\nstatus: Active\nexpires: 2020-01-01\n---\n\n# selftest waiver (expired, negative-test fixture only)\n" > governance/waivers/wv-9999-selftest-expired.md' \
+  'bash scripts/checks/governance-metrics.sh'
 
 # UI ゲート: 生成物の手編集検出（2026-08-08 に誤合格が判明した箇所。回帰を防ぐ）
 run_case "ui: tokens:check が生成物の手編集を検出" "task" \
