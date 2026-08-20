@@ -26,12 +26,13 @@ tasks:
       - task: check:links
       - task: check:secrets
       - task: check:deps
+      - task: check:sast
       - task: check:build
       - task: check:ui
       - task: check:selftest
 
   verify:fast:
-    desc: "FAST checks for pre-commit (structure / ADR / front matter / prompts / markdown / UI / constitution sync)"
+    desc: "FAST checks for pre-commit (structure / ADR / front matter / prompts / markdown / enforcement ledger / UI / constitution sync)"
     cmds:
       - task: check:structure
       - task: check:adr
@@ -39,6 +40,8 @@ tasks:
       - task: check:frontmatter
       - task: check:prompts
       - task: check:markdown
+      - task: check:enforcement-ledger
+      - task: check:governance-metrics
       - task: check:ui-fast
       - task: check:constitution-sync
 
@@ -71,6 +74,12 @@ tasks:
     cmds: ["bash scripts/checks/markdown.sh"]
   check:adr-index:
     cmds: ["bash scripts/checks/adr-index.sh"]
+  # 強制台帳のスキーマ整合性（憲章「3. 基本原則」検証手段の選択／「8.」ブートストラップ規定の機械化）。
+  check:enforcement-ledger:
+    cmds: ["bash scripts/checks/enforcement-ledger.sh"]
+  # 統治健全性メトリクス（憲章「7. 変更管理」定期見直し）。機械強制率の非減少制約。
+  check:governance-metrics:
+    cmds: ["bash scripts/checks/governance-metrics.sh"]
   check:links:
     cmds: ["bash scripts/checks/links.sh"]
   check:secrets:

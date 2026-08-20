@@ -34,7 +34,7 @@ WU-09 は4つの作業単位から成るが、**性質が異なる**。
 
 **なぜ問題か**: `.specify/templates/plan-template.md`「1. Constitution Check」は次のように簡潔ビューを正本として直接参照する。
 
-```
+```markdown
 > 正本: [.specify/memory/constitution.md](../memory/constitution.md)（詳細は constitution.md）。
 > 各原則の Gate を満たすかを判定する。満たさない場合は「6. Complexity Tracking」に記録する。
 ```
@@ -48,7 +48,7 @@ WU-09 は4つの作業単位から成るが、**性質が異なる**。
 * `scripts/sync_constitution_version.py`（新規・SHOULD 対応）: 「可能なら生成処理を置く」の実装。`constitution.md` のバージョン番号を読み取り、`.specify/memory/constitution.md` の `* Version:` 行の**数値部分のみ**を書き換える（`（Proposed / ドラフト）`等、簡潔ビュー側の既存の注記・SYNC IMPACT REPORT・原則本文には一切触れない）。内容全体の生成化は本 WU の対象外（既存の SYNC IMPACT REPORT が示すとおり、簡潔ビューの原則本文は憲章本体の要約であり、要約の質は機械生成に適さないため）。`task fix` にも接続した。`--check` フラグで CI 的な差分検査もできる（`scripts/generate_adr_index.py --check` と同じ設計）。
 * 本 PR で `scripts/sync_constitution_version.py` を一度実行し、実際の乖離（0.3.0 → 0.4.0）を解消した。これにより新設ゲートを含む `task verify:fast` が緑になる（CON-04: 自らのゲートを弱めて通したのではなく、新設ゲートが検出した既存の乖離を、その場で正規の同期手段で修正した）。
 * `scripts/checks/selftest.sh`: 乖離が解消されたため、既存 `run_case` パターンに沿った合成陰性テストを追加し（`.specify/memory/constitution.md` のバージョンを `0.0.1` に注入 → 検出を確認）、陽性対照ループにも `constitution-sync` を追加した。実測: 検出12件/見逃し0件（既存11件＋新設1件）。
-* `governance/enforcement-ledger.md`: #34 として登録（レベル SHOULD・機械・整備済み「バージョン欄のみ」。内容全体の同期は未整備のまま明記し、整備済みであるかのように扱っていない。憲章「8. ブートストラップ規定」）。台帳バージョンを 0.4.0 → 0.5.0（MINOR、新規行追加。台帳自身の改正履歴の先例に整合）。
+* `governance/enforcement-ledger.md`: #46 として登録（レベル SHOULD・機械強制・整備済み「バージョン欄のみ」。内容全体の同期は未整備のまま明記し、整備済みであるかのように扱っていない。憲章「8. ブートストラップ規定」）。当初は #34 として起案したが、`origin/governance/gp-0003-enforcement-ledger-schema` へのマージ時に base が #45 まで進んでいたため #46 へ繰り下げた（「3.」「4.」参照）。台帳バージョンを 0.8.0 → 0.9.0（MINOR、新規行追加。台帳自身の改正履歴の先例に整合）。
 
 **既知の限界（意図的なスコープ限定）**: 本チェックは `* Version:` の**数値のみ**を検証する。「Last amended」日付、Principles 一覧、Gate 定義本文など、簡潔ビューの他の内容が正本と意味的に乖離していても検出しない。完全な生成化が理想だが（WU09-01 の指示どおり）、簡潔ビューは正本の**要約**であり、要約の生成は原則本文の言い換え判断を要するため機械化が難しい。これは 5. 未解決事項に残す。
 
@@ -154,16 +154,16 @@ WU-09 は4つの作業単位から成るが、**性質が異なる**。
 | 既存の義務 | **撤廃・反転なし**。WU09-01 は新規の機械検証（SHOULD の一部を機械化）を追加しただけであり、既存の MUST/MUST NOT/SHOULD を変更していない。WU09-02〜04 は起案のみで実装を伴わない。 |
 | `task verify:fast` | `check:constitution-sync` が追加され、以後コミット前に簡潔ビューのバージョン追従を検証する。 |
 | `.specify/memory/constitution.md` | バージョン番号のみ `0.3.0` → `0.4.0` に同期（本 PR に含む）。他の内容は不変。 |
-| `governance/enforcement-ledger.md` | #34 を新設。台帳バージョン 0.4.0 → 0.5.0（MINOR、新規行追加）。 |
+| `governance/enforcement-ledger.md` | #46 を新設（当初 #34。マージ時に改番）。台帳バージョン 0.8.0 → 0.9.0（MINOR、新規行追加）。 |
 | `CLAUDE.md`/`GEMINI.md`/`CODEX.md`/`OPENHANDS.md`/`TAKT.md` | **本 PR では変更していない**（読解調査のみ）。WU09-02 の実施可否は別途人間判断。 |
 | `constitution.md`「4章」「9章」 | **本 PR では変更していない**（WU09-03/04 は提案のみ）。 |
-| 他の並行ドラフト（WU-06・WU-10） | 同一ベース（`refactor/framework-neutral-ui-governance`）から並行して起票されており、`governance/enforcement-ledger.md` の行番号・`Taskfile.yml`・`scripts/checks/` に重複が生じる可能性がある。本 PR は台帳 #34 のみを新設し、既存行は変更していないが、マージ順序によっては行番号の衝突（他 WU も #34 を採番する等）が起きうる。**人間がマージ時に一括調整することを想定する**（本提案「6. 承認」参照）。 |
+| 他の並行ドラフト（WU-02〜WU-08） | 同一ベース（`refactor/framework-neutral-ui-governance`）から並行して起票されており、実際に `governance/enforcement-ledger.md` の行番号（#34 が既存の #34〜#45 と衝突）・`Taskfile.yml`（`verify:fast` の `desc:` 行）・`scripts/checks/selftest.sh`（陽性対照ループ）で衝突が発生した。`origin/governance/gp-0003-enforcement-ledger-schema` へのマージ時に、既存行はすべて保持したまま本 PR の新規行を #46 へ繰り下げ、`desc:` と陽性対照ループは両側の追加を連結して解消した（Q-06 は解決済み。詳細は「7. 変更履歴」）。 |
 
 ## 4. バージョン増分の判定（GP-0010 自体）
 
 本提案は `constitution.md` 本体の規範文言を一切変更していない（WU09-01 は machine check の新設であり、既存原則・ゲートの追加ではなく既存 SHOULD の検証手段の追加。WU09-02〜04 は提案のみ）。したがって `constitution.md` のバージョン増分判定は不要（`target_version: N/A`）。
 
-`governance/enforcement-ledger.md` は #34 の新設に伴い、台帳自身の改正履歴の先例（新規行追加＝MINOR。0.2.0 で#23-28追加、0.3.0 で#29-30追加、0.4.0 で#31-33追加、いずれも新規行追加時に MINOR 相当の増分）に整合させ 0.4.0 → 0.5.0 とした。WU09-04 で扱う `constitution.md` 自体のバージョン増分判定は「2.4」を参照（提案のみ、確定は人間）。
+`governance/enforcement-ledger.md` は #46（当初 #34）の新設に伴い、台帳自身の改正履歴の先例（新規行追加＝MINOR。0.2.0 で#23-28追加、0.3.0 で#29-30追加、0.4.0 で#31-33追加、0.5.0〜0.8.0 で#34〜#45 追加、いずれも新規行追加時に MINOR 相当の増分）に整合させ、マージ後の base 到達点 0.8.0 → 0.9.0 とした（起案時点の想定 0.4.0 → 0.5.0 は base の進行により実現しなかった。「7. 変更履歴」参照）。WU09-04 で扱う `constitution.md` 自体のバージョン増分判定は「2.4」を参照（提案のみ、確定は人間）。
 
 ## 5. 未解決事項（OUT-03 対応）
 
@@ -174,7 +174,7 @@ WU-09 は4つの作業単位から成るが、**性質が異なる**。
 | Q-03 | WU09-03 の実施可否 | クイックリファレンス生成には development-process.md 対象パス表の構造化データ化（YAML/JSON 等への正本移行）が前提となり、development-process.md 自体の Class A 改修を要する | 構造化データ移行を別 WU として起票するか、現状の手書き2重管理を許容するか |
 | Q-04 | WU09-04 の削除可否 | 「テストが完了している」「CIが成功している」は削除の実質的な影響が小さいが、「実装が完了している」は代替を欠く精神条項であり、削除により（形式上とはいえ）SHOULD レベルの記述が1件減る | 3項目一括で削除するか、「実装が完了している」のみ残す（または具体的な代替基準を新設する）か |
 | Q-05 | WU09-04 のバージョン増分 | 憲章「7. 変更管理」の増分表は「SHOULD項目の一部削除」というケースを明示的に扱っていない（MAJOR は MUST/MUST NOT のみ、MINORは追加のみを想定） | 本提案は PATCH を提案するが、確定は人間。あわせて増分表自体にこのケースを追記するかも別途判断が必要 |
-| Q-06 | 台帳行番号の衝突 | 本 PR は #34 を採番したが、並行ドラフト（WU-06・WU-10）も同一ベースから同じ番号帯を採番している可能性がある | マージ時に人間が行番号を一括調整する |
+| Q-06 | 台帳行番号の衝突（**解決済み**） | 本 PR は当初 #34 を採番したが、並行ドラフト（WU-02〜WU-08）が同一番号帯（#34〜#45）を先に確定させていたことが `origin/governance/gp-0003-enforcement-ledger-schema` へのマージ時に判明した | マージ時に #46 へ繰り下げて解消（「7. 変更履歴」）。既存行 #1〜#45 は無変更 |
 
 **上記が未解決の間、本提案の値を確定として扱わない**（プロンプト側制約 OUT-03: TBD-HUMAN を暫定値で埋めて先に進まない）。
 
@@ -194,3 +194,4 @@ WU-09 は4つの作業単位から成るが、**性質が異なる**。
 | 日付 | 変更者 | 変更内容 | 理由 |
 | --- | --- | --- | --- |
 | 2026-08-20 | claude-code (Sonnet 5) | 初版作成、Proposed に設定。WU09-01 実装＋WU09-02/03/04 提案を記載 | 統治改訂プロンプト WU-09 の起案 |
+| 2026-08-20 | claude-code (Sonnet 5) | base（`governance/gp-0003-enforcement-ledger-schema`）を WU-02〜WU-08（#34〜#45・台帳スキーマ拡張・governance-metrics 等）の到達点へ `git merge`。行番号を #34 から #46 へ改番、台帳バージョン増分を 0.4.0→0.5.0 から 0.8.0→0.9.0 へ改め、`Taskfile.yml`（`verify:fast` desc）・`scripts/checks/selftest.sh`（陽性対照ループ）の衝突を両側の追加を連結して解消 | WU-02〜WU-08 との行番号・記述の衝突解消（「3.」Q-06 参照） |
