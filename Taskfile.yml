@@ -50,6 +50,7 @@ tasks:
       - task: check:pr-governance
       - task: check:adr-immutability
       - task: check:adoption
+      - task: check:diff-size
 
   # --- individual checks: each maps to ONE script (the single source of truth) ---
   check:structure:
@@ -86,6 +87,9 @@ tasks:
     cmds: ["bash scripts/checks/build.sh"]
   check:pr-governance:
     cmds: ["bash scripts/checks/pr_governance.sh"]
+  # 差分規模の計測（development-process.md「5.」新設 MUST NOT／WU-08）。上限未確定のため advisory。
+  check:diff-size:
+    cmds: ["bash scripts/checks/diff-size.sh"]
   # ゲート自己診断（陰性テスト）。違反を注入して各ゲートが落ちることを確認する。
   # オフライン・決定論的なため verify に含める（憲章「8. ブートストラップ規定」）。
   check:selftest:
