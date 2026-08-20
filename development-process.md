@@ -1,8 +1,8 @@
 # 開発プロセス（Development Process）
 
-* Version: 0.2.1（Proposed / ドラフト）
+* Version: 0.2.2（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-07
+* Last amended: 2026-08-20
 * 上位規範: constitution.md（開発憲章）
 
 本書は、constitution.md が下位文書へ委譲する運用詳細の正本（SSoT）です。本書が未整備の事項は「未定義」として扱われ、AIエージェントは自律判断せず人間に諮らなければなりません（憲章「8. ブートストラップ規定」）。本書は憲章に従属し、矛盾する場合は憲章が優先します（MUST）。
@@ -129,7 +129,8 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 
 * 緊急承認者: 指名されたグループ（`@org/incident-commanders`、プレースホルダ）。
 * 手順: 緊急時は事前検証を事後検証へ切り替えてよい（MAY）が、人間（緊急承認者）の承認は免除されない（MUST NOT 免除）。適用の事実・理由・範囲・承認者を記録し、**72時間以内**に事後レビュー（スキップしたゲートの事後実行を含む）を完了する（MUST。憲章7章）。
-* ロールバック/インシデント手順の詳細は本書付録または `standards/` で管理する（整備までは人間判断）。
+* インシデント対応の手順（検知・初動・収束・事後）は [playbooks/incident-response.md](playbooks/incident-response.md) で、ロールバックの可否判断・実行手順は [playbooks/rollback.md](playbooks/rollback.md) で管理する。いずれも雛形であり、採用組織が自スタック・SLA に合わせて具体化する（MUST。具体化そのものは各採用組織の判断）。
+* Class A の PR は、本番反映後に問題が発生した場合の復旧手順（ロールバック手順）を PR 本文に記載しなければならない（MUST。`.github/pull_request_template.md`「ロールバック手順」欄）。記載の**有無**（非プレースホルダの実体を伴うか）は機械検証する（`task verify:pr` → `scripts/checks/pr_governance.sh`）。記載**内容の妥当性**（復旧手順として十分か）は機械検証できないため、恒久的な人間ゲート（不可避）(b) 責任の引受として、レビュアが判断する（constitution.md「3. 基本原則」検証手段の選択／governance/enforcement-ledger.md #34・#35）。
 
 ---
 
@@ -169,6 +170,12 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 ---
 
 ## 9. 改正履歴
+
+### [0.2.2] - 2026-08-20（Proposed）
+
+* 「7.」の「ロールバック/インシデント手順の詳細は…（整備までは人間判断）」を、実在する2文書（[playbooks/incident-response.md](playbooks/incident-response.md) / [playbooks/rollback.md](playbooks/rollback.md)）への参照へ置換し、「整備までは」の hedge を除去（両文書とも「雛形」であることは維持）。
+* 「7.」に、Class A PR のロールバック手順欄の記載要件（機械検証は有無のみ、内容の妥当性は人間ゲート（不可避）(b)）を追記。
+* 正本記録: [governance/proposals/gp-0011-incident-rollback-playbooks.md](governance/proposals/gp-0011-incident-rollback-playbooks.md)
 
 ### [0.2.1] - 2026-08-07（Accepted / 2026-08-08 承認）
 

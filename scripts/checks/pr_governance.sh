@@ -71,4 +71,26 @@ elif echo "$changed" | grep -Eq "$ab"; then
     warn "Class A/B path changed — PR body must reference ADR-#### or give a real 'ADR不要理由:'（プレースホルダ不可）"
   fi
 fi
+
+# --- ロールバック手順（development-process.md「7.」／governance/enforcement-ledger.md #34-35） ---
+# Class A の PR は「## ロールバック手順」セクションに非プレースホルダの実体を記載しなければならない（MUST）。
+# 本チェックは「記載の有無」のみを機械検証する（ADR不要理由の抽出と同じ技術：見出し以下の本文を取り出し、
+# HTML コメントを除去し、残りが空であればプレースホルダ扱い）。記載**内容の妥当性**は機械検証できないため
+# 人間ゲート（不可避）(b) 責任の引受として、レビュアが判断する（機械検証の対象外。台帳 #35）。
+if echo "${PR_LABELS:-}" | grep -q "class:A"; then
+  rollback_body="$(printf '%s\n' "${PR_BODY:-}" | awk '/^##[[:space:]]*ロールバック手順/{f=1;next} /^##[[:space:]]/{f=0} f')"
+  rollback_stripped="$(printf '%s' "$rollback_body" | sed -E 's/<!--.*-->//g')"
+  if printf '%s' "$rollback_stripped" | grep -Eq '[^[:space:]]'; then
+    rollback_ok=1
+  else
+    rollback_ok=0
+  fi
+  if [ "$rollback_ok" = 1 ]; then :
+  elif [ "${CI:-}" = "true" ]; then
+    err "class:A PR must include non-placeholder content under '## ロールバック手順' in the body（development-process.md「7.」）"; exit 1
+  else
+    warn "class:A PR — body should include non-placeholder content under '## ロールバック手順'（development-process.md「7.」。プレースホルダ不可）"
+  fi
+fi
+
 ok "PR governance"
