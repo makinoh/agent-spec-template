@@ -61,7 +61,7 @@ run_case() {
 
 # ---------- 陽性対照: 無傷の複製がすべて通ること ----------
 # ここが落ちる場合はハーネスの故障であり、陰性テストの結果は信用できない。
-for c in structure adr adr-content frontmatter prompts enforcement-ledger sast governance-metrics; do
+for c in structure adr adr-content frontmatter prompts enforcement-ledger sast pr_governance governance-metrics; do
   set +e; bash "scripts/checks/$c.sh" >/dev/null 2>&1; rc=$?; set -e
   [ "$rc" -eq 0 ] || { err "陽性対照の失敗: scripts/checks/$c.sh が無傷の複製で落ちた（ハーネス故障）"; exit 1; }
 done
@@ -161,12 +161,19 @@ else
   fail=$((fail + 1))
 fi
 
+# pr_governance.sh: AI 生成識別（WU07-01）。既知の AI エージェント・マシンアカウントが PR 作成者なのに
+# ai-generated ラベルが無い場合、CI では非ゼロ終了しなければならない（development-process.md「6.」MUST）。
+# ファイル変更を伴わない検査（PR 作成者の属性のみで判定）のため、注入（mutate）は no-op。
+run_case "pr_governance.sh: 既知AIエージェント識別のPR作成者にai-generatedラベル欠落" "" \
+  ':' \
+  'CI=true PR_AUTHOR=claude-code-bot PR_LABELS=class:A bash scripts/checks/pr_governance.sh'
+
 run_case "governance-metrics.sh: 機械強制率が baseline を下回る（waiver なし）" "python3" \
-  'sed -i "s/\"mechanized_norms\": 32/\"mechanized_norms\": 38/" metrics/governance-health-snapshot.json' \
+  'sed -i "s/\"mechanized_norms\": 34/\"mechanized_norms\": 40/" metrics/governance-health-snapshot.json' \
   'bash scripts/checks/governance-metrics.sh'
 
 run_case "governance-metrics.sh: 失効済み waiver は低下を正当化しない（無条件バイパスの禁止）" "python3" \
-  'sed -i "s/\"mechanized_norms\": 32/\"mechanized_norms\": 38/" metrics/governance-health-snapshot.json &&
+  'sed -i "s/\"mechanized_norms\": 34/\"mechanized_norms\": 40/" metrics/governance-health-snapshot.json &&
    mkdir -p governance/waivers &&
    printf -- "---\ntarget_check: governance-metrics.mechanized-rate\nstatus: Active\nexpires: 2020-01-01\n---\n\n# selftest waiver (expired, negative-test fixture only)\n" > governance/waivers/wv-9999-selftest-expired.md' \
   'bash scripts/checks/governance-metrics.sh'
