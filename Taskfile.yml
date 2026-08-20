@@ -31,7 +31,7 @@ tasks:
       - task: check:selftest
 
   verify:fast:
-    desc: "FAST checks for pre-commit (structure / ADR / front matter / prompts / markdown / UI)"
+    desc: "FAST checks for pre-commit (structure / ADR / front matter / prompts / markdown / UI / constitution sync)"
     cmds:
       - task: check:structure
       - task: check:adr
@@ -40,6 +40,7 @@ tasks:
       - task: check:prompts
       - task: check:markdown
       - task: check:ui-fast
+      - task: check:constitution-sync
 
   verify:pr:
     desc: "PR-context governance (run by CI on pull_request)"
@@ -51,6 +52,9 @@ tasks:
   # --- individual checks: each maps to ONE script (the single source of truth) ---
   check:structure:
     cmds: ["bash scripts/checks/structure.sh"]
+  # 簡潔ビュー（.specify/memory/constitution.md）のバージョンが正本（constitution.md）に追従しているか（WU09-01/GP-0010）。
+  check:constitution-sync:
+    cmds: ["bash scripts/checks/constitution-sync.sh"]
   check:adr:
     cmds: ["bash scripts/checks/adr.sh"]
   check:adr-content:
@@ -95,10 +99,11 @@ tasks:
 
   # --- helpers ---
   fix:
-    desc: "Auto-fix (markdownlint --fix, regenerate ADR index)"
+    desc: "Auto-fix (markdownlint --fix, regenerate ADR index, sync constitution concise-view version)"
     cmds:
       - "bash -c 'command -v markdownlint-cli2 >/dev/null 2>&1 && markdownlint-cli2 --fix \"**/*.md\" || npx --yes markdownlint-cli2 --fix \"**/*.md\"'"
       - "bash -c 'command -v python3 >/dev/null 2>&1 && python3 scripts/generate_adr_index.py || python scripts/generate_adr_index.py'"
+      - "bash -c 'command -v python3 >/dev/null 2>&1 && python3 scripts/sync_constitution_version.py || python scripts/sync_constitution_version.py'"
   setup:
     desc: "Install the pinned toolchain (mise / .mise.toml)"
     cmds: ["bash scripts/setup.sh"]

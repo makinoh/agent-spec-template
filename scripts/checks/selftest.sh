@@ -61,7 +61,7 @@ run_case() {
 
 # ---------- 陽性対照: 無傷の複製がすべて通ること ----------
 # ここが落ちる場合はハーネスの故障であり、陰性テストの結果は信用できない。
-for c in structure adr adr-content frontmatter prompts; do
+for c in structure adr adr-content frontmatter prompts constitution-sync; do
   set +e; bash "scripts/checks/$c.sh" >/dev/null 2>&1; rc=$?; set -e
   [ "$rc" -eq 0 ] || { err "陽性対照の失敗: scripts/checks/$c.sh が無傷の複製で落ちた（ハーネス故障）"; exit 1; }
 done
@@ -98,6 +98,10 @@ run_case "prompts.sh: last_review の欠落" "" \
 run_case "structure.sh: AGENTS.md が憲章参照を失う" "" \
   "sed -i 's/constitution\.md/CONST_REMOVED/g' AGENTS.md" \
   'bash scripts/checks/structure.sh'
+
+run_case "constitution-sync.sh: 簡潔ビューのバージョンが正本から乖離" "" \
+  "sed -i 's/^\* Version: [0-9.]*/* Version: 0.0.1/' .specify/memory/constitution.md" \
+  'bash scripts/checks/constitution-sync.sh'
 
 run_case "structure.sh: 必須文書の欠落" "" \
   'rm -f README.md' \

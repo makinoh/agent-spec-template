@@ -18,7 +18,7 @@ SYNC IMPACT REPORT
 
 # Constitution（ゲート用簡潔ビュー）
 
-* Version: 0.3.0（Proposed / ドラフト）
+* Version: 0.4.0（Proposed / ドラフト）
 * Ratification date: TODO（正式批准時に確定）
 * Last amended: 2026-08-09
 * 正本: [/constitution.md](../../constitution.md)（本ファイルはその派生サマリ。規範の正本は本体）
