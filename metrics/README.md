@@ -31,7 +31,7 @@ metrics/
 
 「standards/ へ移す」という文言が想定する形（独立した standards/*.md 文書の新設）はここでは採っていません。
 代わりに `scripts/checks/` 配下への新規チェックスクリプトの追加（それ自体が本リポジトリの規約上 Class A 化を伴う。
-AGENTS.md「7.」）と、強制台帳（[governance/enforcement-ledger.md](../governance/enforcement-ledger.md) #36・#37）への
+AGENTS.md「7.」）と、強制台帳（[governance/enforcement-ledger.md](../governance/enforcement-ledger.md) #40・#41）への
 登録によって同じ効果（Class A・機械強制・監査可能）を達成しています。閾値の低下は
 [governance/waivers/](../governance/waivers/) の有効な waiver がない限り許容しません。
 本ディレクトリの他の指標（dora.md・ai-metrics.md）は引き続き観測専用であり、この例外の対象外です。
