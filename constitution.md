@@ -1,6 +1,6 @@
 # 開発憲章（Constitution）
 
-* Version: 0.6.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
+* Version: 0.7.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
 * Date: 2026-04-01
 * Last amended: 2026-08-20
 * Status: Proposed
@@ -890,6 +890,7 @@ CI/CDの整備は優先的に行うべきです（SHOULD）。
 * テスト品質（mutation score・spec 由来のテスト・認可の否定パステストを含む）が standards/testing-standards.md に定める基準を満たすこと
 * シークレットスキャンに合格すること（秘密情報のハードコードが無いこと）
 * 依存関係の脆弱性スキャンに合格すること（standards/security-standards.md に定める重大度基準以上の既知脆弱性が無いこと）
+* 第一者コードの静的解析（SAST: Static Application Security Testing）に合格すること（重大度基準は standards/security-standards.md に定める基準とし、依存関係の脆弱性スキャン（直前の項目）とは別項目として同標準に定義する。standards/coding-standards.md「1. 整形・静的解析」が定めるフォーマッタ／リンタ／型チェックとは検出対象が異なり、両者を混同しない）
 
 ---
 
@@ -1171,7 +1172,7 @@ https://keepachangelog.com
 
 ---
 
-### [0.6.0] - 2026-08-20（Proposed）
+### [0.7.0] - 2026-08-20（Proposed）
 
 正本記録: governance/decisions/（本提案の確定時に作成。提案書: [governance/proposals/gp-0008-auditability-and-escape-analysis.md](governance/proposals/gp-0008-auditability-and-escape-analysis.md)）
 
@@ -1181,7 +1182,17 @@ https://keepachangelog.com
 
 **増分の根拠**: 既存の MUST / MUST NOT の**撤廃・反転はない**。「7. 変更管理」定期見直し（既存 SHOULD）に新しい入力源を追加する MUST を新設する後方互換な追加拘束であり、既存義務を弱めない。新たな原則・機械検証対象ルールの追加に該当するため **MINOR** と判定する（「7. 変更管理」バージョニング方針）。**この判定は提案であり、確定は人間に委ねる**。
 
-> **注（並行 WU との衝突・番号調整）**: 本エントリはもともと 0.5.0 として起案したが、base ブランチへ並行マージされた WU-05（[GP-0006](governance/proposals/gp-0006-test-quality-gates.md)）が先に 0.5.0 を採番したため、`origin/governance/gp-0003-enforcement-ledger-schema` を本ブランチへマージした際に 0.6.0 へ繰り下げた。「7. 定期見直し」の編集箇所自体は WU-05（「8. 機械的に検証可能なルール」を編集）と重複しなかったため、本文の競合は発生していない。「7. 定期見直し」については本 WU 起案時点で並行起票中と見込んでいた別作業単位（WU-03、監査ログ・DORA計測基盤）との競合が、本マージ時点ではまだ base に到達していないため未確認である。マージ時に人間による最終確認を要する。
+> **注（並行 WU との衝突・番号調整）**: 本エントリはもともと 0.5.0、続いて 0.6.0 として起案したが、base ブランチへ並行マージされた WU-05（0.5.0。[GP-0006](governance/proposals/gp-0006-test-quality-gates.md)）と WU-04（0.6.0。[GP-0005](governance/proposals/gp-0005-sast-gate.md)）が先にその番号を採番したため、本コンフリクト解消時に 0.7.0 へ繰り下げた。「7. 定期見直し」の編集箇所自体は WU-04／WU-05（いずれも「8. 機械的に検証可能なルール」を編集）と重複しなかったため、本文の競合は発生していない。並行起票中の WU-03（統治健全性メトリクス）も同じ「7. 定期見直し」節を編集する可能性が高く、本マージ時点ではまだ base に到達していないため未確認である。マージ時に人間による最終確認を要する。
+
+### [0.6.0] - 2026-08-20（Proposed）
+
+正本記録: governance/decisions/（本提案の確定時に作成。提案書: governance/proposals/gp-0005-sast-gate.md）
+
+**Added**
+
+* 「8. 機械的に検証可能なルール」コード品質・セキュリティの MUST に「第一者コードの静的解析（SAST）に合格すること」を追加した。重大度基準の正本は standards/security-standards.md とし、依存関係の脆弱性スキャン（同章の既存項目）とは**別項目として**定義する。SAST 製品名は本書に記載せず、能力要件のみを規定する（ツール選定は ADR で行う）。
+
+**増分の根拠**: 既存の MUST / MUST NOT の**撤廃・反転はない**。新設した MUST（第一者コードの SAST 合格）は既存ルールに対する後方互換な追加拘束であり、既存の義務を弱めない。新たな機械検証対象ルールの追加に該当するため **MINOR** と判定する（「7. 変更管理」バージョニング方針）。現行は `0.y.z`（Status: Proposed の未批准期間）であり後方互換性は保証されないが、実質が追加的拡張であるため引き続き MINOR 系列を提案する。0.5.0 は本ブランチのマージ元（gp-0006 由来のテスト品質ゲート追加）が既に使用しているため、本エントリは 0.6.0 とする（PR #26 のコンフリクト解消時に採番を調整。憲章「7.」バージョニング方針）。**この判定は提案であり、確定は人間に委ねる**（本 WU の CON-05 / 7章「増分種別の判定が曖昧な場合は確定前にその理由を提示する」に従う）。
 
 ### [0.5.0] - 2026-08-20（Proposed）
 

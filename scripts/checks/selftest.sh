@@ -61,7 +61,7 @@ run_case() {
 
 # ---------- 陽性対照: 無傷の複製がすべて通ること ----------
 # ここが落ちる場合はハーネスの故障であり、陰性テストの結果は信用できない。
-for c in structure adr adr-content frontmatter prompts enforcement-ledger pr_governance; do
+for c in structure adr adr-content frontmatter prompts enforcement-ledger sast pr_governance; do
   set +e; bash "scripts/checks/$c.sh" >/dev/null 2>&1; rc=$?; set -e
   [ "$rc" -eq 0 ] || { err "陽性対照の失敗: scripts/checks/$c.sh が無傷の複製で落ちた（ハーネス故障）"; exit 1; }
 done
@@ -118,6 +118,48 @@ run_case "enforcement-ledger.sh: 人間ゲート（不可避）の理由区分�
 run_case "enforcement-ledger.sh: 人間ゲート（暫定）の失効期限超過" "python3" \
   "sed -i 's/機械強制（シークレットスキャン） | — | 整備済み（CI で実効。ローカルは gitleaks 不在時スキップ） | — | — | — |/機械強制（シークレットスキャン）＋人間ゲート（暫定） | — | 整備済み（CI で実効。ローカルは gitleaks 不在時スキップ） | 2020-01-01 | TBD-HUMAN | TBD-HUMAN |/' governance/enforcement-ledger.md" \
   'bash scripts/checks/enforcement-ledger.sh'
+
+# ---------- sast.sh: 休眠・活性化の両方向を確認する（WU04-02。台帳 #40） ----------
+# run_case は「違反注入 → 非ゼロ終了で検出」の二値判定用のため、休眠/活性化メッセージの
+# 内容確認はここで個別に行う（陰性テストではなく、切り替えロジック自体の動作確認）。
+restore
+set +e; out_dormant="$(bash scripts/checks/sast.sh 2>&1)"; rc_dormant=$?; set -e
+if [ "$rc_dormant" -eq 0 ] && printf '%s' "$out_dormant" | grep -q "dormant"; then
+  printf '    [検出] sast.sh: 休眠時（manifest 無し）に exit 0 かつ休眠メッセージを出す\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: sast.sh が休眠時に正しく振る舞わなかった（exit=$rc_dormant）"
+  fail=$((fail + 1))
+fi
+
+restore
+printf '{"name":"selftest","private":true}\n' > package.json
+set +e; out_active="$(bash scripts/checks/sast.sh 2>&1)"; rc_active=$?; set -e
+if [ "$rc_active" -eq 0 ] && printf '%s' "$out_active" | grep -q "no SAST tool is wired" \
+   && ! printf '%s' "$out_active" | grep -q "dormant"; then
+  printf '    [検出] sast.sh: 活性化時（package.json 検出）は休眠メッセージを出さず、未配線を正直に警告して exit 0\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: sast.sh が活性化を検出できなかった（exit=$rc_active）"
+  fail=$((fail + 1))
+fi
+restore
+
+run_case "sast.sh: SAST_CMD が設定され失敗を報告した場合は exit 0 にしない（合否伝播の確認）" "" \
+  'printf "{\"name\":\"selftest\",\"private\":true}\n" > package.json' \
+  'SAST_CMD=false bash scripts/checks/sast.sh'
+
+restore
+printf '{"name":"selftest","private":true}\n' > package.json
+set +e; SAST_CMD=true bash scripts/checks/sast.sh >/dev/null 2>&1; rc_tool_ok=$?; set -e
+restore
+if [ "$rc_tool_ok" -eq 0 ]; then
+  printf '    [検出] sast.sh: SAST_CMD が成功を報告した場合は exit 0（過検知しない）\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: sast.sh が SAST_CMD 成功時に誤って失敗した（exit=$rc_tool_ok）"
+  fail=$((fail + 1))
+fi
 
 # pr_governance.sh: AI 生成識別（WU07-01）。既知の AI エージェント・マシンアカウントが PR 作成者なのに
 # ai-generated ラベルが無い場合、CI では非ゼロ終了しなければならない（development-process.md「6.」MUST）。
