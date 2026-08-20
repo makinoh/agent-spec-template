@@ -55,10 +55,11 @@
 | **37** | 受入基準に対応するテストは spec.md から導出する。実装を読んで書いたテストを充足根拠としない（testing-standards.md「4.3」／8章） | MUST / MUST NOT | 人間ゲート（暫定） | — | 未整備（テストが spec 由来か実装追従かを機械的に判別する手段が現状ない。コードレビューでの FR-ID/US-ID 対応確認により人間レビューで暫定担保） | TBD-HUMAN | TBD-HUMAN | テストコードへの FR-ID/US-ID トレーサビリティタグの必須化と、spec.md の要求IDとテストの対応表を機械検証する仕組み（設計は本 WU の範囲外） | standards/testing-standards.md「4.3」（現状は人間レビュー） |
 | **38** | 認可を要するエンドポイントは権限を持たない主体からのアクセス拒否を検証するテストを備える（testing-standards.md「4.4」／8章） | MUST | 人間ゲート（暫定） | — | 未整備（個別テストの存在確認は人間レビュー。全ルートを漏れなく検証する仕組みは #39 を参照） | TBD-HUMAN | TBD-HUMAN | #39 のルートインベントリ設計の実装により、認可要求ルートに対応する否定パステストの存在を CI で検証する仕組み | standards/testing-standards.md「4.4」（現状は人間レビュー） |
 | **39** | 認可否定パステストの網羅性検証（ルート一覧を生成物として持ち、生成処理の再実行で差分検証する設計。testing-standards.md「4.5」） | SHOULD（設計提案の実装可否） | 人間ゲート（暫定） | — | 未整備（設計案の提示のみ。実装は WU-05 の範囲外） | TBD-HUMAN | TBD-HUMAN | ルーティング定義（採用フレームワークのルート定義／OpenAPI 等）からルート一覧を生成物として出力し認可要求フラグを付与、対応する否定パステストの存在を機械検証。生成処理を CI で再実行し差分ゼロを確認する（SSoT パターン。憲章「3. 基本原則」） | standards/testing-standards.md「4.5」（設計案。実装未着手） |
-| **40** | 機械強制率（(構造的強制＋機械強制) の MUST/MUST NOT 件数 ÷ 全 MUST/MUST NOT 件数）は非減少でなければならない。低下する PR は失敗させる（7章 定期見直し／統治健全性メトリクス） | MUST | 機械強制（baseline スナップショットとの比較。分数の整数交差乗算で厳密比較） | — | 整備済み（本 WU で `scripts/checks/governance-metrics.sh` を実装。baseline は `metrics/governance-health-snapshot.json`。算出は台帳を機械的に走査し、複数手段併記行は構造的強制／機械強制のいずれかを含めば inclusive に算入する。カウント方法の根拠は `scripts/check_governance_metrics.py` docstring 参照） | — | — | — | verify:fast → scripts/checks/governance-metrics.sh（check_governance_metrics.py）／基準値: metrics/governance-health-snapshot.json |
-| **41** | #40 の低下が正当な場合、governance/waivers/ の**有効な**（target_check 一致・status=Active・失効期限が実日付かつ未経過の）waiver でのみ通過を許容し、無条件のバイパスを設けてはならない（7章 定期見直し／統治健全性メトリクス） | MUST NOT | 機械強制（waiver フロントマターの照合。TBD-HUMAN 等のプレースホルダは無効な失効期限として扱い waiver を無効化する） | — | 整備済み（本 WU で実装。waiver の記録項目は governance/waivers/README.md「機械可読な紐付け」に従う。現時点で該当 waiver は0件のため #40 は常に無条件では通過しない） | — | — | — | verify:fast → scripts/checks/governance-metrics.sh（check_governance_metrics.py）／governance/waivers/README.md |
+| **40** | 第一者コードの静的解析（SAST）に合格すること（8章。WU-04で新設） | MUST | 機械強制（休眠/活性化のスタック検出とゲート配線）＋人間ゲート（暫定）（実ツールによる脆弱性検出ロジックは未配線） | — | 整備中（休眠時 skip・活性化時のツール解決ロジック〔`$SAST_CMD` または `scripts/dev/sast-tool.sh`〕は実装・動作確認済み〔dormant / no-tool-warn / tool-pass / tool-fail の4状態を確認〕。**実ツールによる脆弱性検出そのものは未整備**——SAST_CMD 未設定のため、現状は活性化時も「未配線」警告を出して exit 0 する。「整備済み」と扱わない（憲章「8. ブートストラップ規定」）） | TBD-HUMAN | TBD-HUMAN | ADR で SAST ツールを選定し `SAST_CMD`（または `scripts/dev/sast-tool.sh`）として配線。CI に実ツールを導入し、standards/security-standards.md「8.」の重大度カットオフを確定した上で hard-fail 化する | verify ジョブ → scripts/checks/sast.sh ＋ standards/security-standards.md「8.」「8.1」 |
+| **41** | 機械強制率（(構造的強制＋機械強制) の MUST/MUST NOT 件数 ÷ 全 MUST/MUST NOT 件数）は非減少でなければならない。低下する PR は失敗させる（7章 定期見直し／統治健全性メトリクス） | MUST | 機械強制（baseline スナップショットとの比較。分数の整数交差乗算で厳密比較） | — | 整備済み（本 WU で `scripts/checks/governance-metrics.sh` を実装。baseline は `metrics/governance-health-snapshot.json`。算出は台帳を機械的に走査し、複数手段併記行は構造的強制／機械強制のいずれかを含めば inclusive に算入する。カウント方法の根拠は `scripts/check_governance_metrics.py` docstring 参照） | — | — | — | verify:fast → scripts/checks/governance-metrics.sh（check_governance_metrics.py）／基準値: metrics/governance-health-snapshot.json |
+| **42** | #41 の低下が正当な場合、governance/waivers/ の**有効な**（target_check 一致・status=Active・失効期限が実日付かつ未経過の）waiver でのみ通過を許容し、無条件のバイパスを設けてはならない（7章 定期見直し／統治健全性メトリクス） | MUST NOT | 機械強制（waiver フロントマターの照合。TBD-HUMAN 等のプレースホルダは無効な失効期限として扱い waiver を無効化する） | — | 整備済み（本 WU で実装。waiver の記録項目は governance/waivers/README.md「機械可読な紐付け」に従う。現時点で該当 waiver は0件のため #41 は常に無条件では通過しない） | — | — | — | verify:fast → scripts/checks/governance-metrics.sh（check_governance_metrics.py）／governance/waivers/README.md |
 
-> 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#13, #15b 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。#3〜#33 の再分類の結果、既存の「人間」を要する行はいずれも (a)/(b)/(c) のいずれかで恒久的に正当化される人間ゲート（不可避）と判定され、人間ゲート（暫定）に該当する行は0件だった（詳細は governance/proposals/gp-0003-enforcement-ledger-schema.md「5. 未解決事項」）。**#36〜#39（GP-0006／WU-05）が本台帳における最初の人間ゲート（暫定）行である**。テスト品質（mutation score・spec由来テスト・認可否定パステスト）の3つの新規 MUST と、その網羅性検証の設計案は、このリポジトリにコードスタックが存在しないため実効的な機械検証を実装できず、失効期限・担当は `TBD-HUMAN`（未確定）のまま登録した。詳細は governance/proposals/gp-0006-test-quality-gates.md「未解決事項」を参照。#40〜#41（GP-0004／WU-03）は統治健全性メトリクス（機械強制率の非減少制約とその waiver 連携）であり、いずれも整備済み・機械強制のみの行のため人間ゲート（暫定）には該当しない。詳細は governance/proposals/gp-0004-governance-health-metrics.md を参照。
+> 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#13, #15b 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。#3〜#33 の再分類の結果、既存の「人間」を要する行はいずれも (a)/(b)/(c) のいずれかで恒久的に正当化される人間ゲート（不可避）と判定され、人間ゲート（暫定）に該当する行は0件だった（詳細は governance/proposals/gp-0003-enforcement-ledger-schema.md「5. 未解決事項」）。**#36〜#39（GP-0006／WU-05）が本台帳における最初の人間ゲート（暫定）行**、**#40（GP-0005／WU-04）が2組目**である。テスト品質（#36〜#39）・SAST 実ツール検出（#40）はいずれもこのリポジトリにコードスタックが存在しない、または実ツール未配線のため実効的な機械検証を実装できず、失効期限・担当は `TBD-HUMAN`（未確定）のまま登録した。#41〜#42（GP-0004／WU-03）は統治健全性メトリクス（機械強制率の非減少制約とその waiver 連携）であり、いずれも整備済み・機械強制のみの行のため人間ゲート（暫定）には該当しない。詳細は governance/proposals/gp-0006-test-quality-gates.md・gp-0005-sast-gate.md・gp-0004-governance-health-metrics.md それぞれを参照。
 
 ---
 
@@ -70,29 +71,33 @@
 
 **Added**
 
-* #40 を新設: 機械強制率（(構造的強制＋機械強制) の MUST/MUST NOT 件数 ÷ 全件数）の非減少制約。低下する PR は `scripts/checks/governance-metrics.sh` が `task verify:fast` で失敗させる。基準値は `metrics/governance-health-snapshot.json`（本 WU で台帳の現状から実測して初期シード値を記録）。
-* #41 を新設: #40 の低下を正当化する経路として `governance/waivers/` の waiver 連携を実装。waiver は `target_check` 一致・`status: Active`・実日付かつ未経過の `expires` をすべて満たす場合のみ有効とし、無条件のバイパスを設けない（`governance/waivers/README.md`「機械可読な紐付け」を新設）。
+* #41 を新設: 機械強制率（(構造的強制＋機械強制) の MUST/MUST NOT 件数 ÷ 全件数）の非減少制約。低下する PR は `scripts/checks/governance-metrics.sh` が `task verify:fast` で失敗させる。基準値は `metrics/governance-health-snapshot.json`（本 WU で台帳の現状から実測して初期シード値を記録）。
+* #42 を新設: #41 の低下を正当化する経路として `governance/waivers/` の waiver 連携を実装。waiver は `target_check` 一致・`status: Active`・実日付かつ未経過の `expires` をすべて満たす場合のみ有効とし、無条件のバイパスを設けない（`governance/waivers/README.md`「機械可読な紐付け」を新設）。
 * `scripts/check_governance_metrics.py` は本台帳のパーサ（`scripts/check_enforcement_ledger.py` の `load_rows` / `DATE_RE` / `GATE_BOOTSTRAP`）を再利用し、正規表現を分岐させていない。
 
-**行番号について**: 本 WU の起案時点の base（`governance/gp-0003-enforcement-ledger-schema`）は #36〜#39（GP-0006／WU-05）を既に含んでいたため、本 WU の新規行は当初案の #36・#37 から #40・#41 へ改番した。
+**行番号について**: 本 WU の起案時点の base（`governance/gp-0003-enforcement-ledger-schema`）は #36〜#39（GP-0006／WU-05）を既に含んでいたため、本 WU の新規行は当初案の #36・#37 から #40・#41 へ、さらに base への並行マージ順（WU-04／SAST が #40 を先に確定）に応じて #41・#42 へ改番した。
 
-**増分の根拠**: 既存の義務の撤廃・反転はない。新規行2件（#40・#41）の追加と、それを裏づける新規機械検証スクリプトの追加であり、憲章「7. 変更管理」バージョニング方針の MINOR 例示（機械検証ルールの追加）に該当する。
+**増分の根拠**: 既存の義務の撤廃・反転はない。新規行2件（#41・#42）の追加と、それを裏づける新規機械検証スクリプトの追加であり、憲章「7. 変更管理」バージョニング方針の MINOR 例示（機械検証ルールの追加）に該当する。
 
 ### [0.6.0] - 2026-08-20（Proposed）
 
-正本記録: governance/proposals/gp-0006-test-quality-gates.md（WU-05）
+正本記録: governance/proposals/gp-0006-test-quality-gates.md（WU-05）＋ governance/proposals/gp-0005-sast-gate.md（WU-04）
 
-**Added**
+**Added（GP-0006／WU-05）**
 
 * #36〜#39 を新設: constitution.md「8.」に追加された新規テスト品質 MUST（mutation score／spec由来テスト／認可否定パステスト。standards/testing-standards.md「4.」）と、その網羅性検証の設計案（ルートインベントリ・testing-standards.md「4.5」）を、いずれも未整備の人間ゲート（暫定）として登録した。失効期限・担当は `TBD-HUMAN`（数値・人名の発明を避けるためのプレースホルダ）。
 * 本 WU-05 が新設する3つの MUST は、このリポジトリにコードスタックが存在しない（`scripts/checks/build.sh` が「no code stack detected」を報告する）ため、実効的な機械検証を今回は実装していない。整備済みと僭称しない（憲章「8. ブートストラップ規定」）。
-* #36〜#39 は、本台帳における**最初の**人間ゲート（暫定）行である（GP-0003／WU-02 の再分類では該当0件だった）。
+
+**Added（GP-0005／WU-04）**
+
+* #40 を新設: 第一者コードの静的解析（SAST）に合格すること（constitution.md「8.」新設 MUST）。休眠/活性化のスタック検出とゲート配線（`scripts/checks/sast.sh`）は機械強制・整備済みだが、実ツールによる脆弱性検出そのものは `SAST_CMD` 未配線のため未整備であり、**人間ゲート（暫定）として失効期限・担当・移行先ゲートをすべて `TBD-HUMAN` で登録**する。移行先ゲートには、ADR による SAST ツール選定・`SAST_CMD` 配線・重大度カットオフ確定という具体的な技術的道筋を記載した。
+* `scripts/checks/selftest.sh` に、sast.sh の休眠/活性化切り替えと SAST_CMD 配線時の合否伝播を検証するケースを追加（WU04-02 の活性化検出が実際に動作することの陰性/陽性確認）。
 
 **Changed**
 
-* 「人間ゲート（暫定）行は現時点で0件」としていた表下の注記を更新し、#36〜#39 の4件が該当する旨を明記した。
+* 「人間ゲート（暫定）行は現時点で0件」としていた表下の注記を更新し、#36〜#40 の5件が該当する旨を明記した。#36〜#39 は本台帳における最初の人間ゲート（暫定）行（GP-0003／WU-02 の再分類では該当0件だった）。
 
-**注記（行番号の重複について）**: #36〜#39 は本 PR 起案時点の base（`governance/gp-0003-enforcement-ledger-schema`）における最終行（#35）からの連番である。同じ base から並行して起案されている他の作業単位（WU-03・04・06〜09 等）も同じ番号帯を採番している可能性があり、マージ時に人間が行番号の重複を解消する必要がある（governance/proposals/gp-0006-test-quality-gates.md「未解決事項」参照）。**#40・#41 として改番したのは WU-03（governance/proposals/gp-0004-governance-health-metrics.md）であり、上記 [0.7.0] を参照。**
+**行番号の衝突とその解消（コンフリクト解消の実例）**: WU-04（PR #26）と WU-05（PR #24）はいずれも同じベース（`governance/gp-0003-enforcement-ledger-schema`）の最終行（#35）から独立に #36 を採番した。WU-05 が先に base へマージされたため、WU-04 の #36 は本コンフリクト解消時に #40 へ採番し直した。#36〜#39 も、同じ base から並行して起案されている他の作業単位（WU-03・07〜09 等）と同じ番号帯を採番している可能性があり、マージ時に人間が行番号の重複を解消する必要がある（governance/proposals/gp-0006-test-quality-gates.md「未解決事項」参照）。**WU-03（governance/proposals/gp-0004-governance-health-metrics.md）は当初 #40・#41 として改番したが、WU-04 の #40 確定後さらに #41・#42 へ改番した。詳細は上記 [0.7.0] を参照。**
 
 ### [0.5.0] - 2026-08-19（Proposed）
 
