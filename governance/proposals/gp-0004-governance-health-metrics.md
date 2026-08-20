@@ -136,7 +136,7 @@ baseline の更新（= 床の引き上げ）は、`task verify` の通常実行�
 初期シード値（32/42）は、本 WU が WU-05 の base merge を終え、かつ強制台帳へ #40・#41 を追加し終えた
 **後**の状態から実測した（数値を発明していない。IMP-05）。#40・#41 自身が機械強制のみの行であるため、
 この2行の追加は inclusive 分子を2ポイント押し上げる（WU-05 merge 直後・自分の追加前は 30/40=0.7500 →
-#40・#41 追加後 32/42=0.7619 で、非減少制約を自ら満たしたまま初期シードを記録した）。
+台帳 #40・#41 追加後 32/42=0.7619 で、非減少制約を自ら満たしたまま初期シードを記録した）。
 
 ### 3.3 waiver 連携規約
 
@@ -214,6 +214,7 @@ WU-02（0.4.0→0.5.0）・WU-05（0.5.0→0.6.0）と同じ性質（新規行�
 
 `task` 本体が未導入のため、`Taskfile.yml` が呼び出す個別スクリプトを直接実行した（内容は同一）。
 Node は `.mise.toml` が固定する v24 系（`~/.nvm/versions/node/v24.19.0/bin` を PATH 先頭に追加）を使用。
+以下は WU-05 の base merge（「3.5」）を終えた**後**の最終状態に対する実行結果。
 
 ```text
 == structure ==            ✓ structure
@@ -222,14 +223,14 @@ Node は `.mise.toml` が固定する v24 系（`~/.nvm/versions/node/v24.19.0/b
 == frontmatter ==          ✓ Front matter keys
 == prompts ==               ✓ Prompt asset lifecycle
 == enforcement-ledger ==
-advisory: constitution.md 中の（MUST）/（MUST NOT）出現数 95 件 ／ 台帳行数 38 件
-✓ Enforcement ledger schema (38 rows checked)
+advisory: constitution.md 中の（MUST）/（MUST NOT）出現数 95 件 ／ 台帳行数 42 件
+✓ Enforcement ledger schema (42 rows checked)
 == governance-metrics ==   （新設。本 WU）
-機械強制率: 32/38 = 0.8421（baseline: 32/38 = 0.8421, captured 2026-08-20）
-暫定人間ゲート残数: 0 件
+機械強制率: 32/42 = 0.7619（baseline: 32/42 = 0.7619, captured 2026-08-20）
+暫定人間ゲート残数: 4 件（WU-05 由来の #36〜#39）
 期限超過件数（観測。強制は check_enforcement_ledger.py が担う）: 0 件
 ✓ Governance health metrics（機械強制率は非減少）
-== markdown ==              markdownlint-cli2 v0.22.1 — Linting: 139 file(s) — Summary: 0 error(s)
+== markdown ==              markdownlint-cli2 v0.22.1 — Linting: 141 file(s) — Summary: 0 error(s)
 == adr-index ==             ✓ ADR index（adr/INDEX.md は最新）
 == adr-immutability ==      ✓ Accepted ADR immutability
 == pr-governance ==         ⚠ governance path changed — permission-impact ラベル要（PR で対応）
@@ -264,8 +265,8 @@ advisory: constitution.md 中の（MUST）/（MUST NOT）出現数 95 件 ／ �
 
 ## 7. 未解決事項
 
-TBD-HUMAN の文字どおりのプレースホルダを要する箇所は本 WU 自身の新規行では発生しなかった（新設した強制台帳
-#40・#41 はいずれも機械強制のみの行であり、人間ゲート（暫定）の必須項目＝失効期限／担当／移行先ゲートを
+TBD-HUMAN の文字どおりのプレースホルダを要する箇所は本 WU 自身の新規行では発生しなかった（本 WU が新設した
+台帳 #40・#41 はいずれも機械強制のみの行であり、人間ゲート（暫定）の必須項目＝失効期限／担当／移行先ゲートを
 要しないため。なお base merge で取り込んだ WU-05 の #36〜#39 は TBD-HUMAN を使用しているが、これは WU-05
 自身の判断であり本提案の範囲外）。一方、以下は本 WU における AI の設計判断であり、人間の確認・確定を要する。
 
