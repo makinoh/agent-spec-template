@@ -22,6 +22,12 @@ AIエージェントが起案する PR も本テンプレートを満たすこ�
 - 対応 ADR: `ADR-____`  （← `____` を実際の4桁番号に置換）
 - または ADR不要理由: （← 理由を1行で記載し、この案内文（`（←` 以降）は削除する）
 
+## ロールバック手順（Class A の場合は必須。development-process.md「7.」）
+
+<!-- 本変更が本番へ反映された後、問題発生時にどう復旧するかを記載する（playbooks/rollback.md 参照）。
+     Class A 以外は空欄可。CI は「非プレースホルダの記載があるか」のみを機械検証する。
+     記載内容の妥当性（復旧手順として十分か）は人間ゲート（不可避）としてレビュアが判断する。 -->
+
 ## 権限・統治への影響（該当時）
 
 - [ ] 本 PR は統治・強制機構（constitution / governance / standards / .github / AGENTS.md / CLAUDE.md / GEMINI.md / SKILLS.md / adr-rules / adr-template / adr-template-minimal）に触れる

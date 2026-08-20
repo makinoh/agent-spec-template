@@ -1,6 +1,6 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.10.0（Proposed / ドラフト）
+* Version: 0.11.0（Proposed / ドラフト）
 * Date: 2026-04-01
 * Last amended: 2026-08-20
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
@@ -62,25 +62,42 @@
 | **44** | 機械強制率（(構造的強制＋機械強制) の MUST/MUST NOT 件数 ÷ 全 MUST/MUST NOT 件数）は非減少でなければならない。低下する PR は失敗させる（7章 定期見直し／統治健全性メトリクス） | MUST | 機械強制（baseline スナップショットとの比較。分数の整数交差乗算で厳密比較） | — | 整備済み（本 WU で `scripts/checks/governance-metrics.sh` を実装。baseline は `metrics/governance-health-snapshot.json`。算出は台帳を機械的に走査し、複数手段併記行は構造的強制／機械強制のいずれかを含めば inclusive に算入する。カウント方法の根拠は `scripts/check_governance_metrics.py` docstring 参照） | — | — | — | verify:fast → scripts/checks/governance-metrics.sh（check_governance_metrics.py）／基準値: metrics/governance-health-snapshot.json |
 | **45** | #44 の低下が正当な場合、governance/waivers/ の**有効な**（target_check 一致・status=Active・失効期限が実日付かつ未経過の）waiver でのみ通過を許容し、無条件のバイパスを設けてはならない（7章 定期見直し／統治健全性メトリクス） | MUST NOT | 機械強制（waiver フロントマターの照合。TBD-HUMAN 等のプレースホルダは無効な失効期限として扱い waiver を無効化する） | — | 整備済み（本 WU で実装。waiver の記録項目は governance/waivers/README.md「機械可読な紐付け」に従う。現時点で該当 waiver は0件のため #44 は常に無条件では通過しない） | — | — | — | verify:fast → scripts/checks/governance-metrics.sh（check_governance_metrics.py）／governance/waivers/README.md |
 | **46** | Class A/B の PR は変更行数の上限を超えてはならない（development-process.md「5.」／3章 検証手段の選択。WU-08） | MUST NOT | 人間ゲート（暫定）＋機械強制（advisory 計測のみ。閾値未設定のため hard-fail はしない） | — | 整備中（変更行数の計測・Class A/B 分類・生成物/ロックファイル除外・上限比較ロジックは実装済みで `verify:pr` から実行されるが、上限の具体的数値が未確定〔`TBD-HUMAN`〕のため現状は advisory のみで hard-fail しない。整備済みと過大に主張しない） | TBD-HUMAN | TBD-HUMAN | `scripts/checks/diff-size.sh`（`scripts/check_diff_size.py`）に環境変数 `DIFF_SIZE_LIMIT_CLASS_A` / `DIFF_SIZE_LIMIT_CLASS_B`（整数）を設定し hard-fail 化する。設定先は `.github/workflows/verify.yml` の `verify:pr` ステージ env（`BASE_SHA`/`HEAD_SHA` と同様の配線）を想定 | verify:pr → scripts/checks/diff-size.sh（check_diff_size.py） |
-| **47** | 簡潔ビュー（`.specify/memory/constitution.md`）は正本（constitution.md）の改正に追従する（`.specify/memory/constitution.md`「Governance」／7章）。spec-kit の Constitution Check（`/speckit.plan`）が読む派生サマリのため、陳腐化すると古い基準でゲートが走る（GP-0010「WU09-01」） | SHOULD | 機械強制（バージョン番号の一致検査） | — | **整備済み（バージョン欄のみ）** — `* Version: X.Y.Z` の一致のみを検証する。「Last amended」・原則本文等、簡潔ビューの他の内容の同期は未整備（生成化は本 WU の対象外。同期補助として `scripts/sync_constitution_version.py` を用意したが、バージョン番号のみを書き換える） | — | — | — | verify:fast → scripts/checks/constitution-sync.sh |
+| **47** | Class A の PR は本文にロールバック手順欄の記載（非プレースホルダの実体）を含まなければならない（development-process.md「7.」。WU-10で新設） | MUST | 機械強制（PR 本文検査。ADR不要理由の抽出と同一技術：見出し以下の本文を取り出し、HTML コメントを除去し、残りの非空白を検査する） | — | 整備済み | — | — | — | verify:pr → scripts/checks/pr_governance.sh ＋ .github/pull_request_template.md「ロールバック手順」欄 |
+| **48** | ロールバック手順**の内容**が復旧手段として妥当であること（development-process.md「7.」／playbooks/rollback.md。WU-10で新設） | MUST | 人間ゲート（不可避） | (b) | 整備済み（恒久的な人間ゲート。#47 の存在検証とは別。本番反映に対する意思決定であり、暫定・ブートストラップではない） | — | — | — | PR レビュー（development-process.md「5.」承認者）＋ constitution.md「3. 基本原則」検証手段の選択 |
+| **49** | 簡潔ビュー（`.specify/memory/constitution.md`）は正本（constitution.md）の改正に追従する（`.specify/memory/constitution.md`「Governance」／7章）。spec-kit の Constitution Check（`/speckit.plan`）が読む派生サマリのため、陳腐化すると古い基準でゲートが走る（GP-0010「WU09-01」） | SHOULD | 機械強制（バージョン番号の一致検査） | — | **整備済み（バージョン欄のみ）** — `* Version: X.Y.Z` の一致のみを検証する。「Last amended」・原則本文等、簡潔ビューの他の内容の同期は未整備（生成化は本 WU の対象外。同期補助として `scripts/sync_constitution_version.py` を用意したが、バージョン番号のみを書き換える） | — | — | — | verify:fast → scripts/checks/constitution-sync.sh |
 
-> 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#13, #15b, #36〜#39, #42 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。#3〜#33 の再分類の結果、既存の「人間」を要する行（#1〜#35）はいずれも (a)/(b)/(c) のいずれかで恒久的に正当化される人間ゲート（不可避）と判定され、人間ゲート（暫定）に該当する行は0件だった（詳細は governance/proposals/gp-0003-enforcement-ledger-schema.md「5. 未解決事項」）。**#36〜#39（GP-0006／WU-05）が本台帳における最初の人間ゲート（暫定）行**、**#40（GP-0005／WU-04）が2組目**（SAST の実ツール検出部分）、続けて**#41・#42（GP-0008／WU-07）が3組目**として加わった（development-process.md「6.」の SHOULD→MUST 引き上げにともなう新規義務のうち、自己申告依存部分と Regulated 限定部分）。#43 は人間ゲート（不可避）(b) として登録した。#44〜#45（GP-0004／WU-03）は統治健全性メトリクス（機械強制率の非減少制約とその waiver 連携）であり、いずれも整備済み・機械強制のみの行のため人間ゲート（暫定）には該当しない。**#46（GP-0009／WU-08）は、上限値そのものが未確定（`TBD-HUMAN`）のまま先に計測・分類ロジックのみを実装した人間ゲート（暫定）の4組目である**。**#47（GP-0010／WU-09）** は簡潔ビュー（`.specify/memory/constitution.md`）のバージョン追従検証であり、#44・#45 と同様に整備済み・機械強制のみの行のため人間ゲート（暫定）には該当しない。人間ゲート（暫定）行は現時点で **#36〜#39・#40・#41・#42・#46 の8件**である。テスト品質（#36〜#39）・SAST 実ツール検出（#40）・AI 生成識別トレーラ（#42）・差分規模上限（#46）はいずれもこのリポジトリにコードスタックが存在しない、実ツール未配線、Regulated プロファイル未採用、または上限値未確定のため実効的な機械検証を実装できておらず、失効期限・担当は `TBD-HUMAN`（未確定）のまま登録した。PR #26（WU-04）・PR #27（WU-07）・PR #28（WU-08）・PR #29（WU-03）・本 PR（WU-09）はいずれも当初 #36／#40／#41／#34 を名乗っていたが、base への並行マージ順に応じて順次採番し直した（人間による行番号調整の実例）。詳細は governance/proposals/gp-0005-sast-gate.md・gp-0006-test-quality-gates.md・gp-0008-auditability-and-escape-analysis.md・gp-0004-governance-health-metrics.md・gp-0009-human-gate-diff-size-limit.md「7. 未解決事項」（特に OUT-03）・gp-0010-doc-churn-reduction.md それぞれを参照。
+> 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#13, #15b, #36〜#39, #42 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。#3〜#33 の再分類の結果、既存の「人間」を要する行（#1〜#35）はいずれも (a)/(b)/(c) のいずれかで恒久的に正当化される人間ゲート（不可避）と判定され、人間ゲート（暫定）に該当する行は0件だった（詳細は governance/proposals/gp-0003-enforcement-ledger-schema.md「5. 未解決事項」）。**#36〜#39（GP-0006／WU-05）が本台帳における最初の人間ゲート（暫定）行**、**#40（GP-0005／WU-04）が2組目**（SAST の実ツール検出部分）、続けて**#41・#42（GP-0008／WU-07）が3組目**として加わった（development-process.md「6.」の SHOULD→MUST 引き上げにともなう新規義務のうち、自己申告依存部分と Regulated 限定部分）。#43 は人間ゲート（不可避）(b) として登録した。#44〜#45（GP-0004／WU-03）は統治健全性メトリクス（機械強制率の非減少制約とその waiver 連携）であり、いずれも整備済み・機械強制のみの行のため人間ゲート（暫定）には該当しない。**#46（GP-0009／WU-08）は、上限値そのものが未確定（`TBD-HUMAN`）のまま先に計測・分類ロジックのみを実装した人間ゲート（暫定）の4組目である**。人間ゲート（暫定）行は現時点で **#36〜#39・#40・#41・#42・#46 の8件**である。**#47・#48（GP-0011／WU-10）はロールバック手順**であり、#47（記載の有無）は機械強制、#48（内容の妥当性）は人間ゲート（不可避）(b) 責任の引受として登録した——いずれも暫定・ブートストラップ扱いではなく、恒久的な割当である。**#49（GP-0010／WU-09）** は簡潔ビュー（`.specify/memory/constitution.md`）のバージョン追従検証であり、#44・#45 と同様に整備済み・機械強制のみの行のため人間ゲート（暫定）には該当しない。テスト品質（#36〜#39）・SAST 実ツール検出（#40）・AI 生成識別トレーラ（#42）・差分規模上限（#46）はいずれもこのリポジトリにコードスタックが存在しない、実ツール未配線、Regulated プロファイル未採用、または上限値未確定のため実効的な機械検証を実装できておらず、失効期限・担当は `TBD-HUMAN`（未確定）のまま登録した。PR #26（WU-04）・PR #27（WU-07）・PR #28（WU-08）・PR #29（WU-03）・本 PR（WU-09）はいずれも当初 #36／#40／#41／#34 を名乗っていたが、base への並行マージ順に応じて順次採番し直した（人間による行番号調整の実例）。**#47・#48 も同様に、起案時点（governance/proposals/gp-0011-incident-rollback-playbooks.md）では現行 6 列スキーマのまま #34・#35 を名乗っていたが、`governance/gp-0003-enforcement-ledger-schema`（WU-02）が先に 10 列スキーマへ拡張し、さらに WU-08 が #46 を確定済みであったため、本ブランチへのマージ時に #47・#48 へ改番した。**詳細は governance/proposals/gp-0005-sast-gate.md・gp-0006-test-quality-gates.md・gp-0008-auditability-and-escape-analysis.md・gp-0004-governance-health-metrics.md・gp-0009-human-gate-diff-size-limit.md「7. 未解決事項」（特に OUT-03）・gp-0011-incident-rollback-playbooks.md・gp-0010-doc-churn-reduction.md それぞれを参照。
 
 ---
 
 ## 改正履歴
 
-### [0.10.0] - 2026-08-20（Proposed）
+### [0.11.0] - 2026-08-20（Proposed）
 
 正本記録: governance/proposals/gp-0010-doc-churn-reduction.md（WU-09）
 
 **Added**
 
-* #47 を新設: 簡潔ビュー（`.specify/memory/constitution.md`）のバージョン欄が正本（constitution.md）に追従しているかの機械検証（GP-0010「WU09-01」）。本行の起票時点で、正本は `0.4.0`（GP-0002／WU-01）へ改正済みだったが簡潔ビューは `0.3.0` のまま乖離しており、これが実際の検出対象になった（生きた不整合。GP-0002「5. 未解決事項」Q-02 も参照）。`scripts/sync_constitution_version.py` によりバージョン番号のみを同期し（他の手書き内容は不変）、`scripts/checks/constitution-sync.sh` を `task verify:fast` に接続した。整備範囲は「バージョン番号の一致」のみであり、簡潔ビューの内容全体（原則本文・Last amended 等）の同期は未整備のまま（整備済みであるかのように扱わない。憲章「8. ブートストラップ規定」）。
+* #49 を新設: 簡潔ビュー（`.specify/memory/constitution.md`）のバージョン欄が正本（constitution.md）に追従しているかの機械検証（GP-0010「WU09-01」）。本行の起票時点で、正本は `0.4.0`（GP-0002／WU-01）へ改正済みだったが簡潔ビューは `0.3.0` のまま乖離しており、これが実際の検出対象になった（生きた不整合。GP-0002「5. 未解決事項」Q-02 も参照）。`scripts/sync_constitution_version.py` によりバージョン番号のみを同期し（他の手書き内容は不変）、`scripts/checks/constitution-sync.sh` を `task verify:fast` に接続した。整備範囲は「バージョン番号の一致」のみであり、簡潔ビューの内容全体（原則本文・Last amended 等）の同期は未整備のまま（整備済みであるかのように扱わない。憲章「8. ブートストラップ規定」）。
 
-**行番号について**: 本エントリはもともと #34 として起案したが（本 WU の起案時点の base は #33 までしか含んでいなかった）、並行して進んでいた他の作業単位（WU-02〜WU-08）が base へ先にマージされたことで base が #46 まで進んでいたため、`origin/governance/gp-0003-enforcement-ledger-schema` を本ブランチへマージした時点で #47 へ繰り下げた。あわせて、WU-02（[0.5.0] - 2026-08-19）が導入した新スキーマ（理由区分／失効期限／担当／移行先ゲート列）に合わせて行を記述し直した。#47 は完全な機械強制のみで人間ゲートを伴わないため、理由区分・失効期限・担当・移行先ゲートはいずれも「—」とした。
+**行番号について**: 本エントリはもともと #34 として起案したが（本 WU の起案時点の base は #33 までしか含んでいなかった）、並行して進んでいた他の作業単位（WU-02〜WU-10）が base へ先にマージされたことで base が #48 まで進んでいたため、`origin/governance/gp-0003-enforcement-ledger-schema` を本ブランチへマージした時点で #49 へ繰り下げた（当初の2段階目マージでは #47 と見込んでいたが、その後 WU-10 が #47・#48 を確定させたため、3段階目のマージでさらに #49 へ繰り下げた）。あわせて、WU-02（[0.5.0] - 2026-08-19）が導入した新スキーマ（理由区分／失効期限／担当／移行先ゲート列）に合わせて行を記述し直した。#49 は完全な機械強制のみで人間ゲートを伴わないため、理由区分・失効期限・担当・移行先ゲートはいずれも「—」とした。
 
-**増分の根拠**: 既存の義務の撤廃・反転はない。新規行1件（#47）の追加であり、憲章「7. 変更管理」バージョニング方針の MINOR 例示（機械検証ルールの追加）に該当する。台帳自身の改正履歴の先例（新規行追加＝MINOR）にも整合する。0.9.0 は WU-08（GP-0009）が既に確定した番号であるため、本エントリはその次の 0.10.0 とした。
+**増分の根拠**: 既存の義務の撤廃・反転はない。新規行1件（#49）の追加であり、憲章「7. 変更管理」バージョニング方針の MINOR 例示（機械検証ルールの追加）に該当する。台帳自身の改正履歴の先例（新規行追加＝MINOR）にも整合する。0.10.0 は WU-10（GP-0011）が既に確定した番号であるため、本エントリはその次の 0.11.0 とした。
+
+### [0.10.0] - 2026-08-20（Proposed）
+
+正本記録: governance/proposals/gp-0011-incident-rollback-playbooks.md（WU-10）
+
+**Added**
+
+* #47 を新設: Class A の PR は本文にロールバック手順欄（非プレースホルダの実体）を含まなければならない（development-process.md「7.」）。記載の**有無**を `scripts/checks/pr_governance.sh` が機械検証する（ADR不要理由の抽出と同一技術。`.github/pull_request_template.md`「ロールバック手順」欄）。
+* #48 を新設: ロールバック手順**の内容**が復旧手段として妥当であること。記載内容の意味的妥当性は原理的に機械検証できないため、恒久的な人間ゲート（不可避）(b) 責任の引受として登録した（暫定・ブートストラップ扱いにはしない）。
+* `scripts/checks/selftest.sh` に、#47 の陰性テスト（プレースホルダのみの PR_BODY を注入し、ゲートが検出することを確認）を1件追加した。
+* `playbooks/rollback.md` を新設し、ロールバックの前提・判断基準・手順・確認・事後（`playbooks/incident-response.md` への相互参照。内容の重複なし）を定義した。着手前の調査で `playbooks/incident-response.md` は既に妥当な雛形として存在していたことを確認しており、本 WU はそれを書き直さず、真に欠落していた2点（`playbooks/rollback.md` とロールバック手順欄）のみを埋めた（詳細は governance/proposals/gp-0011-incident-rollback-playbooks.md「0. 前提の訂正」）。
+
+**行番号について**: 本 WU の起案時点（governance/proposals/gp-0011-incident-rollback-playbooks.md）では、まだ現行 6 列スキーマ（強制手段／整備状況／検証箇所のみ）だった base 上で #34・#35 を名乗っていた。本ブランチへ `governance/gp-0003-enforcement-ledger-schema`（WU-02 以降。10 列スキーマへの拡張済み base）をマージした結果、base の最終行が #46（WU-08／GP-0009 が確定済み）であることが判明したため、マージ時に #47・#48 へ改番し、表記を新スキーマ（理由区分／失効期限／担当／移行先ゲート列）へ合わせて移行した。#47 は理由区分列を「—」（機械強制のみ・人間ゲートを伴わない）、#48 は「(b)」（責任の引受）とした。
+
+**増分の根拠**: 既存の義務の撤廃・反転はない。新規行2件（#47・#48）の追加と、それを裏づける新規機械検証ロジック（`pr_governance.sh`）・陰性テスト・Playbook 文書の追加であり、憲章「7. 変更管理」バージョニング方針の MINOR 例示（機械検証ルールの追加）に該当する（#44・#45（[0.8.0]）と同型の判断）。0.9.0 は WU-08（GP-0009）が既に確定した番号であるため、本エントリはその次の 0.10.0 とした。
 
 ### [0.9.0] - 2026-08-20（Proposed）
 
@@ -163,6 +180,7 @@
 
 * **#31〜#33 を新設**: 憲章「3. 基本原則」に新設された「検証手段の選択（Machine-First Verification）」が導入する3つの新規 MUST / MUST NOT を登録した（強制手段の選択順位・人間ゲートの目的限定・(a)(b)(c) 非該当ゲートの台帳登録義務）。いずれも現時点は人間レビューで担保する未整備行であり、整備済みであるかのように扱わない（憲章「8. ブートストラップ規定」）。
 * 用語の一部不整合について明記: 憲章「1.1」は強制手段の呼称を「人間ゲート（不可避）／人間ゲート（暫定）」へ改称したが、本表の凡例および #1〜#30 の既存行は旧称（「人間」／「ブートストラップ」）のままである。旧称から新称への一括移行・理由区分列と失効期限列の追加は、依存後続の作業単位で実施する。
+* **#34〜#35 を新設**（2026-08-20 追記。[gp-0011](proposals/gp-0011-incident-rollback-playbooks.md)）: development-process.md「7.」の空白（ロールバック/インシデント手順の詳細は整備までは人間判断）を埋めるにあたり新設した2つの MUST を登録した。#34（Class A PR のロールバック手順欄の**記載の有無**）は機械強制として整備済み（`scripts/checks/pr_governance.sh` を拡張。ADR不要理由の抽出と同一技術）。#35（記載**内容の妥当性**）は #31〜#33 とは異なり、整備待ちの未整備行ではなく、GP-0002 の分類 (b) 責任の引受に該当する**恒久的な**人間ゲート（不可避）として登録した（自動化への移行対象ではない）。#29 のケース数（selftest.sh）を 12→13 に更新（#34 の陰性テストを追加）。
 
 ### [0.3.0] - 2026-08-09（Accepted）
 

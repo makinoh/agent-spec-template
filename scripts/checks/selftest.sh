@@ -111,6 +111,16 @@ run_case "adr-index.sh: 索引が陳腐化" "python3" \
   "sed -i '0,/^| ADR-0005 /s//| ADR-0005 | STALE | proposed | project | 2026-01-01 | [x](x) |\n| SKIP /' adr/INDEX.md" \
   'bash scripts/checks/adr-index.sh'
 
+# pr_governance.sh: ロールバック手順欄の存在検証（development-process.md「7.」／WU-10／台帳 #34-35）。
+# PR_BODY を模した文字列は ANSI-C クォート（$'...'）で改行付きの複数行文字列として組み立て、
+# run_case の check（eval される）から参照できるようスクリプトのグローバル変数に置く。
+# ADR不要理由も併記し、本ケースが検証したい対象（ロールバック手順欄）以外で先に落ちないようにする。
+pr_body_rollback_placeholder=$'## 概要\n\ndummy\n\n## ADR不要理由: セルフテスト用ダミー理由\n\n## ロールバック手順（Class A の場合は必須。development-process.md「7.」）\n\n<!-- 本変更が本番へ反映された後、問題発生時にどう復旧するかを記載する -->\n\n## 完了条件チェック\n\ndummy'
+
+run_case "pr_governance.sh: class:A PR のロールバック手順欄が未記載（プレースホルダのみ）" "" \
+  'printf "dummy change\n" >> README.md && git add -A && git -c user.email=s@l -c user.name=s commit -qm dummy_rollback_case' \
+  'CI=true PR_LABELS="class:A" PR_BODY="$pr_body_rollback_placeholder" bash scripts/checks/pr_governance.sh'
+
 run_case "markdown.sh: Markdown Lint 違反" "markdownlint-cli2" \
   "printf '\n\`\`\`\nno language\n\`\`\`\n' >> glossary.md" \
   'bash scripts/checks/markdown.sh'

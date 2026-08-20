@@ -1,6 +1,6 @@
 # 開発プロセス（Development Process）
 
-* Version: 0.4.0（Proposed / ドラフト）
+* Version: 0.4.1（Proposed / ドラフト）
 * Date: 2026-04-01
 * Last amended: 2026-08-20
 * 上位規範: constitution.md（開発憲章）
@@ -145,7 +145,8 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 
 * 緊急承認者: 指名されたグループ（`@org/incident-commanders`、プレースホルダ）。
 * 手順: 緊急時は事前検証を事後検証へ切り替えてよい（MAY）が、人間（緊急承認者）の承認は免除されない（MUST NOT 免除）。適用の事実・理由・範囲・承認者を記録し、**72時間以内**に事後レビュー（スキップしたゲートの事後実行を含む）を完了する（MUST。憲章7章）。
-* ロールバック/インシデント手順の詳細は本書付録または `standards/` で管理する（整備までは人間判断）。
+* インシデント対応の手順（検知・初動・収束・事後）は [playbooks/incident-response.md](playbooks/incident-response.md) で、ロールバックの可否判断・実行手順は [playbooks/rollback.md](playbooks/rollback.md) で管理する。いずれも雛形であり、採用組織が自スタック・SLA に合わせて具体化する（MUST。具体化そのものは各採用組織の判断）。
+* Class A の PR は、本番反映後に問題が発生した場合の復旧手順（ロールバック手順）を PR 本文に記載しなければならない（MUST。`.github/pull_request_template.md`「ロールバック手順」欄）。記載の**有無**（非プレースホルダの実体を伴うか）は機械検証する（`task verify:pr` → `scripts/checks/pr_governance.sh`）。記載**内容の妥当性**（復旧手順として十分か）は機械検証できないため、恒久的な人間ゲート（不可避）(b) 責任の引受として、レビュアが判断する（constitution.md「3. 基本原則」検証手段の選択／governance/enforcement-ledger.md #34・#35）。
 
 ---
 
@@ -185,6 +186,15 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 ---
 
 ## 9. 改正履歴
+
+### [0.4.1] - 2026-08-20（Proposed）
+
+正本記録: [governance/proposals/gp-0011-incident-rollback-playbooks.md](governance/proposals/gp-0011-incident-rollback-playbooks.md)（WU-10）
+
+* 「7.」の「ロールバック/インシデント手順の詳細は…（整備までは人間判断）」を、実在する2文書（[playbooks/incident-response.md](playbooks/incident-response.md) / [playbooks/rollback.md](playbooks/rollback.md)）への参照へ置換し、「整備までは」の hedge を除去（両文書とも「雛形」であることは維持）。
+* 「7.」に、Class A PR のロールバック手順欄の記載要件（機械検証は有無のみ、内容の妥当性は人間ゲート（不可避）(b)）を追記。
+* **増分の根拠**: 既存の MUST/MUST NOT を撤廃・反転せず、空白だった参照先を実体で埋め、新規の記載要件を1件追加した追記的更新のため **PATCH**（「7. 変更管理」に相当する憲章のバージョニング方針に準拠。本書自体は同方針を準用する）。
+* **注（並行 WU との衝突・番号調整）**: 本エントリはもともと 0.3.1 として起案したが、base ブランチへ先にマージされた WU-08（0.4.0。[GP-0009](governance/proposals/gp-0009-human-gate-diff-size-limit.md)）が既にその番号帯を採番していたため、本コンフリクト解消時に 0.4.1 へ繰り下げた。
 
 ### [0.4.0] - 2026-08-20（Proposed / ドラフト）
 
