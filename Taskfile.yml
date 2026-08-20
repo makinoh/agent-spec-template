@@ -41,6 +41,7 @@ tasks:
       - task: check:prompts
       - task: check:markdown
       - task: check:enforcement-ledger
+      - task: check:governance-metrics
       - task: check:ui-fast
 
   verify:pr:
@@ -72,6 +73,9 @@ tasks:
   # 強制台帳のスキーマ整合性（憲章「3. 基本原則」検証手段の選択／「8.」ブートストラップ規定の機械化）。
   check:enforcement-ledger:
     cmds: ["bash scripts/checks/enforcement-ledger.sh"]
+  # 統治健全性メトリクス（憲章「7. 変更管理」定期見直し）。機械強制率の非減少制約。
+  check:governance-metrics:
+    cmds: ["bash scripts/checks/governance-metrics.sh"]
   check:links:
     cmds: ["bash scripts/checks/links.sh"]
   check:secrets:
