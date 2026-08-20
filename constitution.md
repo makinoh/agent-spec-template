@@ -1,6 +1,6 @@
 # 開発憲章（Constitution）
 
-* Version: 0.5.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
+* Version: 0.6.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
 * Date: 2026-04-01
 * Last amended: 2026-08-20
 * Status: Proposed
@@ -887,6 +887,7 @@ CI/CDの整備は優先的に行うべきです（SHOULD）。
 * ビルドおよび型チェック（該当する場合）に合格すること
 * 自動テストに合格すること
 * テストカバレッジが standards/testing-standards.md に定める最低基準を満たすこと
+* テスト品質（mutation score・spec 由来のテスト・認可の否定パステストを含む）が standards/testing-standards.md に定める基準を満たすこと
 * シークレットスキャンに合格すること（秘密情報のハードコードが無いこと）
 * 依存関係の脆弱性スキャンに合格すること（standards/security-standards.md に定める重大度基準以上の既知脆弱性が無いこと）
 
@@ -1170,7 +1171,7 @@ https://keepachangelog.com
 
 ---
 
-### [0.5.0] - 2026-08-20（Proposed）
+### [0.6.0] - 2026-08-20（Proposed）
 
 正本記録: governance/decisions/（本提案の確定時に作成。提案書: [governance/proposals/gp-0008-auditability-and-escape-analysis.md](governance/proposals/gp-0008-auditability-and-escape-analysis.md)）
 
@@ -1180,7 +1181,19 @@ https://keepachangelog.com
 
 **増分の根拠**: 既存の MUST / MUST NOT の**撤廃・反転はない**。「7. 変更管理」定期見直し（既存 SHOULD）に新しい入力源を追加する MUST を新設する後方互換な追加拘束であり、既存義務を弱めない。新たな原則・機械検証対象ルールの追加に該当するため **MINOR** と判定する（「7. 変更管理」バージョニング方針）。**この判定は提案であり、確定は人間に委ねる**。
 
-> **注（並行 WU との衝突可能性）**: 「7. 定期見直し」は、本 PR と並行して起票されている別作業単位（WU-03、監査ログ・DORA計測基盤）でも同一箇所へ計測指標を追加する変更が見込まれる。両者は同一段落付近を対象とするため、マージ時に人間による競合解消が必要になる可能性が高い。本 PR 側では調整を行わない（別 WU の担当）。
+> **注（並行 WU との衝突・番号調整）**: 本エントリはもともと 0.5.0 として起案したが、base ブランチへ並行マージされた WU-05（[GP-0006](governance/proposals/gp-0006-test-quality-gates.md)）が先に 0.5.0 を採番したため、`origin/governance/gp-0003-enforcement-ledger-schema` を本ブランチへマージした際に 0.6.0 へ繰り下げた。「7. 定期見直し」の編集箇所自体は WU-05（「8. 機械的に検証可能なルール」を編集）と重複しなかったため、本文の競合は発生していない。「7. 定期見直し」については本 WU 起案時点で並行起票中と見込んでいた別作業単位（WU-03、監査ログ・DORA計測基盤）との競合が、本マージ時点ではまだ base に到達していないため未確認である。マージ時に人間による最終確認を要する。
+
+### [0.5.0] - 2026-08-20（Proposed）
+
+正本記録: governance/decisions/（本提案の確定時に作成。提案書: governance/proposals/gp-0006-test-quality-gates.md）
+
+**Added**
+
+* 「8. 機械的に検証可能なルール」コード品質・セキュリティに、テスト品質（mutation score・spec由来テスト・認可否定パステスト）の基準充足を MUST 化するバレットを追加した。詳細（具体的な基準・初期値・設計）は standards/testing-standards.md「4.」（新設）に委譲する。
+
+**背景（増分の根拠となる論証）**: 憲章「6.」はテストの追加・修正を AI エージェントの自律行為として許可する一方、これまでテスト品質の唯一のゲートはカバレッジだった。同一エージェントが実装とテストの両方を書き、カバレッジのみで検証する構成は検証が自己言及に陥る。この論証は「10.1.7 UI 文書の役割分担」が Storybook についてすでに述べているものと同一の構造であり、本改訂はそれをユニットテスト一般へ一般化する。
+
+**増分の根拠**: 既存 MUST の撤廃・反転はなく、新規 MUST の追加のため MINOR（「7. 変更管理」バージョニング方針の MINOR 例示「第8章への MUST ルール追加」に該当）。**この判定は提案であり、確定は人間に委ねる**。
 
 ### [0.4.0] - 2026-08-19（Proposed）
 
