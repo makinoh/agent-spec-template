@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "metric": "governance-health.mechanized_rate",
+  "source": "governance/enforcement-ledger.md",
+  "counting_method": "inclusive: a ledger row counts toward the numerator if its 強制手段 field contains 構造的強制 or 機械強制, even when a 人間ゲート layer is combined via ＋. See scripts/check_governance_metrics.py module docstring for rationale.",
+  "baseline": {
+    "captured_date": "2026-08-20",
+    "captured_by": "scripts/check_governance_metrics.py --write-baseline",
+    "total_norms": 46,
+    "mechanized_norms": 34,
+    "mechanized_rate": 0.7391304347826086
+  }
+}

@@ -1,8 +1,8 @@
 # 開発憲章（Constitution）
 
-* Version: 0.4.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
+* Version: 0.8.0（Proposed / ドラフト。本増分は提案であり、governance/decisions/ での確定をもって発効する）
 * Date: 2026-04-01
-* Last amended: 2026-08-19
+* Last amended: 2026-08-20
 * Status: Proposed
 * Versioning: セマンティックバージョニング 2.0.0（`MAJOR.MINOR.PATCH`）に従う。  
   採番規則は「7. 変更管理」のバージョニング方針で定める。  
@@ -825,6 +825,10 @@ governance/
 
 見直しの結果「変更不要」であった場合も、見直しを実施した記録を残すべきです（SHOULD）。
 
+見直しの確認項目には、統治健全性メトリクス（機械強制率の推移、および人間ゲート（暫定）残数の推移）を含めるべきです（SHOULD）。機械強制率は、強制台帳（governance/enforcement-ledger.md）の各行のうち構造的強制または機械強制を強制手段に含む行の割合として算出します。これらの指標の算出方法・基準値は governance/enforcement-ledger.md および metrics/governance-health-snapshot.json を正本とします。機械強制率の低下は、governance/waivers/ の有効な waiver がない限り機械強制で防ぎます（「8. 機械的に検証可能なルール」強制台帳、該当行は複数WUの並行マージにより採番が変動するため governance/enforcement-ledger.md を正とする）。
+
+見直しの入力には、[governance/escape-analysis/](governance/escape-analysis/) が記録するエスケープ欠陥の分類（本番障害が既存ゲートで検出可能だったか、ゲート設定が不適切だったか、現行技術で機械検出不可能だったか）を含めなければなりません（MUST）。分類の蓄積は、機械強制整備の優先度、および人間ゲート（不可避）の正当性を継続的に再検証する根拠とします（development-process.md「6.」/governance/escape-analysis/README.md）。
+
 ---
 
 ## 8. 機械的に検証可能なルール
@@ -885,8 +889,10 @@ CI/CDの整備は優先的に行うべきです（SHOULD）。
 * ビルドおよび型チェック（該当する場合）に合格すること
 * 自動テストに合格すること
 * テストカバレッジが standards/testing-standards.md に定める最低基準を満たすこと
+* テスト品質（mutation score・spec 由来のテスト・認可の否定パステストを含む）が standards/testing-standards.md に定める基準を満たすこと
 * シークレットスキャンに合格すること（秘密情報のハードコードが無いこと）
 * 依存関係の脆弱性スキャンに合格すること（standards/security-standards.md に定める重大度基準以上の既知脆弱性が無いこと）
+* 第一者コードの静的解析（SAST: Static Application Security Testing）に合格すること（重大度基準は standards/security-standards.md に定める基準とし、依存関係の脆弱性スキャン（直前の項目）とは別項目として同標準に定義する。standards/coding-standards.md「1. 整形・静的解析」が定めるフォーマッタ／リンタ／型チェックとは検出対象が異なり、両者を混同しない）
 
 ---
 
@@ -1167,6 +1173,52 @@ https://keepachangelog.com
 本改正の正本記録は governance/decisions/ に置くべきです（SHOULD）。
 
 ---
+
+### [0.8.0] - 2026-08-20（Proposed）
+
+正本記録: governance/decisions/（本提案の確定時に作成。提案書: governance/proposals/gp-0004-governance-health-metrics.md）
+
+**Added**
+
+* 「7. 変更管理」定期見直しの確認項目に、統治健全性メトリクス（機械強制率の推移、人間ゲート（暫定）残数の推移）の確認を追加した。算出方法・基準値の正本を governance/enforcement-ledger.md および metrics/governance-health-snapshot.json とした。機械強制率の低下は governance/waivers/ の有効な waiver がない限り機械強制で防ぐ（強制台帳。scripts/checks/governance-metrics.sh）。「7. 定期見直し」の編集箇所は WU-07（エスケープ分析の入力追加）と同一段落群に隣接するが、それぞれ独立した追加段落であり本文の意味的競合は発生していない。
+
+**増分の根拠**: 既存の MUST / MUST NOT の**撤廃・反転はない**。「定期見直し」への確認項目追加は既存の SHOULD レベルの見直し活動を具体化する後方互換な追加であり、既存の義務を弱めない。憲章「7. 変更管理」バージョニング方針の MINOR 例示（「新たな原則の追加、第8章への MUST ルール追加、新たな standards の規定」）と同種の追加的拡張（本件は7章の既存節への確認項目追加および8章強制台帳への新規機械検証ルール追加）に該当するため **MINOR** と判定する。**この判定はAIによる提案であり、確定は人間承認者が行う**（憲章「7.」：AI は本書改正を単独で承認・反映してはならない MUST NOT）。
+
+> **注（並行 WU との衝突・番号調整）**: 本エントリはもともと 0.6.0、続いて 0.7.0 として起案したが、base ブランチへ先にマージされた WU-04（0.6.0。[GP-0005](governance/proposals/gp-0005-sast-gate.md)）・WU-07（0.7.0。[GP-0008](governance/proposals/gp-0008-auditability-and-escape-analysis.md)）が順に同番号を採番していたため、本コンフリクト解消時に 0.8.0 へ繰り下げた。台帳の行番号も #40・#41 → #41・#42 → #44・#45 と3回にわたり調整した（#40〜#43 は WU-04・WU-07 が確定済み）。
+
+### [0.7.0] - 2026-08-20（Proposed）
+
+正本記録: governance/decisions/（本提案の確定時に作成。提案書: [governance/proposals/gp-0008-auditability-and-escape-analysis.md](governance/proposals/gp-0008-auditability-and-escape-analysis.md)）
+
+**Added**
+
+* 「7. 変更管理」定期見直しの入力に、[governance/escape-analysis/](governance/escape-analysis/) が記録するエスケープ欠陥の3分類（既存ゲートで検出可能だったがゲート未整備／ゲート設定が不適切／現行技術で機械検出不可能）を追加することを MUST 化した。分類の蓄積を機械強制整備の優先度根拠、および人間ゲート（不可避）の正当性の継続的な再検証根拠として用いる。
+
+**増分の根拠**: 既存の MUST / MUST NOT の**撤廃・反転はない**。「7. 変更管理」定期見直し（既存 SHOULD）に新しい入力源を追加する MUST を新設する後方互換な追加拘束であり、既存義務を弱めない。新たな原則・機械検証対象ルールの追加に該当するため **MINOR** と判定する（「7. 変更管理」バージョニング方針）。**この判定は提案であり、確定は人間に委ねる**。
+
+> **注（並行 WU との衝突・番号調整）**: 本エントリはもともと 0.5.0、続いて 0.6.0 として起案したが、base ブランチへ並行マージされた WU-05（0.5.0。[GP-0006](governance/proposals/gp-0006-test-quality-gates.md)）と WU-04（0.6.0。[GP-0005](governance/proposals/gp-0005-sast-gate.md)）が先にその番号を採番したため、本コンフリクト解消時に 0.7.0 へ繰り下げた。「7. 定期見直し」の編集箇所自体は WU-04／WU-05（いずれも「8. 機械的に検証可能なルール」を編集）と重複しなかったため、本文の競合は発生していない。並行起票中の WU-03（統治健全性メトリクス）も同じ「7. 定期見直し」節を編集し、後続のコンフリクト解消（0.8.0）で統合された。
+
+### [0.6.0] - 2026-08-20（Proposed）
+
+正本記録: governance/decisions/（本提案の確定時に作成。提案書: governance/proposals/gp-0005-sast-gate.md）
+
+**Added**
+
+* 「8. 機械的に検証可能なルール」コード品質・セキュリティの MUST に「第一者コードの静的解析（SAST）に合格すること」を追加した。重大度基準の正本は standards/security-standards.md とし、依存関係の脆弱性スキャン（同章の既存項目）とは**別項目として**定義する。SAST 製品名は本書に記載せず、能力要件のみを規定する（ツール選定は ADR で行う）。
+
+**増分の根拠**: 既存の MUST / MUST NOT の**撤廃・反転はない**。新設した MUST（第一者コードの SAST 合格）は既存ルールに対する後方互換な追加拘束であり、既存の義務を弱めない。新たな機械検証対象ルールの追加に該当するため **MINOR** と判定する（「7. 変更管理」バージョニング方針）。現行は `0.y.z`（Status: Proposed の未批准期間）であり後方互換性は保証されないが、実質が追加的拡張であるため引き続き MINOR 系列を提案する。0.5.0 は本ブランチのマージ元（gp-0006 由来のテスト品質ゲート追加）が既に使用しているため、本エントリは 0.6.0 とする（PR #26 のコンフリクト解消時に採番を調整。憲章「7.」バージョニング方針）。**この判定は提案であり、確定は人間に委ねる**（本 WU の CON-05 / 7章「増分種別の判定が曖昧な場合は確定前にその理由を提示する」に従う）。
+
+### [0.5.0] - 2026-08-20（Proposed）
+
+正本記録: governance/decisions/（本提案の確定時に作成。提案書: governance/proposals/gp-0006-test-quality-gates.md）
+
+**Added**
+
+* 「8. 機械的に検証可能なルール」コード品質・セキュリティに、テスト品質（mutation score・spec由来テスト・認可否定パステスト）の基準充足を MUST 化するバレットを追加した。詳細（具体的な基準・初期値・設計）は standards/testing-standards.md「4.」（新設）に委譲する。
+
+**背景（増分の根拠となる論証）**: 憲章「6.」はテストの追加・修正を AI エージェントの自律行為として許可する一方、これまでテスト品質の唯一のゲートはカバレッジだった。同一エージェントが実装とテストの両方を書き、カバレッジのみで検証する構成は検証が自己言及に陥る。この論証は「10.1.7 UI 文書の役割分担」が Storybook についてすでに述べているものと同一の構造であり、本改訂はそれをユニットテスト一般へ一般化する。
+
+**増分の根拠**: 既存 MUST の撤廃・反転はなく、新規 MUST の追加のため MINOR（「7. 変更管理」バージョニング方針の MINOR 例示「第8章への MUST ルール追加」に該当）。**この判定は提案であり、確定は人間に委ねる**。
 
 ### [0.4.0] - 2026-08-19（Proposed）
 
