@@ -1,6 +1,6 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.9.0（Proposed / ドラフト）
+* Version: 0.10.0（Proposed / ドラフト）
 * Date: 2026-04-01
 * Last amended: 2026-08-20
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
@@ -61,25 +61,38 @@
 | **43** | 本番障害の事後レビュー時、各エスケープ欠陥を3分類（ゲート未整備／ゲート設定不適切／機械検出不可能）で記録し、憲章「7.」定期見直しの入力に加える（governance/escape-analysis/README.md。WU07-03/04/05） | MUST | 人間ゲート（不可避） | (b) | 整備済み（`governance/escape-analysis/README.md` が記録項目・3分類・定期見直しへの接続を規定。実際の記録はまだ0件＝本テンプレートに本番運用・本番障害の実例がないため。分類の判定は事後レビュー担当者による意味的判断であり、原理的に機械検証できない） | — | — | — | governance/escape-analysis/README.md ＋ constitution.md「7. 変更管理」定期見直し |
 | **44** | 機械強制率（(構造的強制＋機械強制) の MUST/MUST NOT 件数 ÷ 全 MUST/MUST NOT 件数）は非減少でなければならない。低下する PR は失敗させる（7章 定期見直し／統治健全性メトリクス） | MUST | 機械強制（baseline スナップショットとの比較。分数の整数交差乗算で厳密比較） | — | 整備済み（本 WU で `scripts/checks/governance-metrics.sh` を実装。baseline は `metrics/governance-health-snapshot.json`。算出は台帳を機械的に走査し、複数手段併記行は構造的強制／機械強制のいずれかを含めば inclusive に算入する。カウント方法の根拠は `scripts/check_governance_metrics.py` docstring 参照） | — | — | — | verify:fast → scripts/checks/governance-metrics.sh（check_governance_metrics.py）／基準値: metrics/governance-health-snapshot.json |
 | **45** | #44 の低下が正当な場合、governance/waivers/ の**有効な**（target_check 一致・status=Active・失効期限が実日付かつ未経過の）waiver でのみ通過を許容し、無条件のバイパスを設けてはならない（7章 定期見直し／統治健全性メトリクス） | MUST NOT | 機械強制（waiver フロントマターの照合。TBD-HUMAN 等のプレースホルダは無効な失効期限として扱い waiver を無効化する） | — | 整備済み（本 WU で実装。waiver の記録項目は governance/waivers/README.md「機械可読な紐付け」に従う。現時点で該当 waiver は0件のため #44 は常に無条件では通過しない） | — | — | — | verify:fast → scripts/checks/governance-metrics.sh（check_governance_metrics.py）／governance/waivers/README.md |
-| **46** | 簡潔ビュー（`.specify/memory/constitution.md`）は正本（constitution.md）の改正に追従する（`.specify/memory/constitution.md`「Governance」／7章）。spec-kit の Constitution Check（`/speckit.plan`）が読む派生サマリのため、陳腐化すると古い基準でゲートが走る（GP-0010「WU09-01」） | SHOULD | 機械強制（バージョン番号の一致検査） | — | **整備済み（バージョン欄のみ）** — `* Version: X.Y.Z` の一致のみを検証する。「Last amended」・原則本文等、簡潔ビューの他の内容の同期は未整備（生成化は本 WU の対象外。同期補助として `scripts/sync_constitution_version.py` を用意したが、バージョン番号のみを書き換える） | — | — | — | verify:fast → scripts/checks/constitution-sync.sh |
+| **46** | Class A/B の PR は変更行数の上限を超えてはならない（development-process.md「5.」／3章 検証手段の選択。WU-08） | MUST NOT | 人間ゲート（暫定）＋機械強制（advisory 計測のみ。閾値未設定のため hard-fail はしない） | — | 整備中（変更行数の計測・Class A/B 分類・生成物/ロックファイル除外・上限比較ロジックは実装済みで `verify:pr` から実行されるが、上限の具体的数値が未確定〔`TBD-HUMAN`〕のため現状は advisory のみで hard-fail しない。整備済みと過大に主張しない） | TBD-HUMAN | TBD-HUMAN | `scripts/checks/diff-size.sh`（`scripts/check_diff_size.py`）に環境変数 `DIFF_SIZE_LIMIT_CLASS_A` / `DIFF_SIZE_LIMIT_CLASS_B`（整数）を設定し hard-fail 化する。設定先は `.github/workflows/verify.yml` の `verify:pr` ステージ env（`BASE_SHA`/`HEAD_SHA` と同様の配線）を想定 | verify:pr → scripts/checks/diff-size.sh（check_diff_size.py） |
+| **47** | 簡潔ビュー（`.specify/memory/constitution.md`）は正本（constitution.md）の改正に追従する（`.specify/memory/constitution.md`「Governance」／7章）。spec-kit の Constitution Check（`/speckit.plan`）が読む派生サマリのため、陳腐化すると古い基準でゲートが走る（GP-0010「WU09-01」） | SHOULD | 機械強制（バージョン番号の一致検査） | — | **整備済み（バージョン欄のみ）** — `* Version: X.Y.Z` の一致のみを検証する。「Last amended」・原則本文等、簡潔ビューの他の内容の同期は未整備（生成化は本 WU の対象外。同期補助として `scripts/sync_constitution_version.py` を用意したが、バージョン番号のみを書き換える） | — | — | — | verify:fast → scripts/checks/constitution-sync.sh |
 
-> 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#13, #15b, #36〜#39, #42 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。#3〜#33 の再分類の結果、既存の「人間」を要する行（#1〜#35）はいずれも (a)/(b)/(c) のいずれかで恒久的に正当化される人間ゲート（不可避）と判定され、人間ゲート（暫定）に該当する行は0件だった（詳細は governance/proposals/gp-0003-enforcement-ledger-schema.md「5. 未解決事項」）。**#36〜#39（GP-0006／WU-05）が本台帳における最初の人間ゲート（暫定）行**、**#40（GP-0005／WU-04）が2組目**（SAST の実ツール検出部分）、続けて**#41・#42（GP-0008／WU-07）が3組目**として加わった（development-process.md「6.」の SHOULD→MUST 引き上げにともなう新規義務のうち、自己申告依存部分と Regulated 限定部分）。#43 は人間ゲート（不可避）(b) として登録した。人間ゲート（暫定）行は現時点で **#36〜#39・#40・#41・#42 の7件**である。テスト品質（#36〜#39）・SAST 実ツール検出（#40）・AI 生成識別トレーラ（#42）はいずれもこのリポジトリにコードスタックが存在しない、実ツール未配線、または Regulated プロファイル未採用のため実効的な機械検証を実装できておらず、失効期限・担当は `TBD-HUMAN`（未確定）のまま登録した。#44〜#45（GP-0004／WU-03）は統治健全性メトリクス（機械強制率の非減少制約とその waiver 連携）であり、いずれも整備済み・機械強制のみの行のため人間ゲート（暫定）には該当しない。**#46（GP-0010／WU-09）** は簡潔ビュー（`.specify/memory/constitution.md`）のバージョン追従検証であり、#44・#45 と同様に整備済み・機械強制のみの行のため人間ゲート（暫定）には該当しない。PR #26（WU-04）・PR #27（WU-07）・PR #29（WU-03）・本 PR（WU-09）はいずれも当初 #36／#40／#41／#34 を名乗っていたが、base への並行マージ順に応じて順次採番し直した（人間による行番号調整の実例）。詳細は governance/proposals/gp-0005-sast-gate.md・gp-0006-test-quality-gates.md・gp-0008-auditability-and-escape-analysis.md・gp-0004-governance-health-metrics.md・gp-0010-doc-churn-reduction.md それぞれを参照。
+> 上表は代表的な規範の割当である。**網羅性は定期見直しで確認し**、追加・変更があれば本表を更新（または再生成）する。「未整備」項目（#13, #15b, #36〜#39, #42 等）はリポジトリ/組織設定の整備を優先する（憲章8章ブートストラップ規定）。#3〜#33 の再分類の結果、既存の「人間」を要する行（#1〜#35）はいずれも (a)/(b)/(c) のいずれかで恒久的に正当化される人間ゲート（不可避）と判定され、人間ゲート（暫定）に該当する行は0件だった（詳細は governance/proposals/gp-0003-enforcement-ledger-schema.md「5. 未解決事項」）。**#36〜#39（GP-0006／WU-05）が本台帳における最初の人間ゲート（暫定）行**、**#40（GP-0005／WU-04）が2組目**（SAST の実ツール検出部分）、続けて**#41・#42（GP-0008／WU-07）が3組目**として加わった（development-process.md「6.」の SHOULD→MUST 引き上げにともなう新規義務のうち、自己申告依存部分と Regulated 限定部分）。#43 は人間ゲート（不可避）(b) として登録した。#44〜#45（GP-0004／WU-03）は統治健全性メトリクス（機械強制率の非減少制約とその waiver 連携）であり、いずれも整備済み・機械強制のみの行のため人間ゲート（暫定）には該当しない。**#46（GP-0009／WU-08）は、上限値そのものが未確定（`TBD-HUMAN`）のまま先に計測・分類ロジックのみを実装した人間ゲート（暫定）の4組目である**。**#47（GP-0010／WU-09）** は簡潔ビュー（`.specify/memory/constitution.md`）のバージョン追従検証であり、#44・#45 と同様に整備済み・機械強制のみの行のため人間ゲート（暫定）には該当しない。人間ゲート（暫定）行は現時点で **#36〜#39・#40・#41・#42・#46 の8件**である。テスト品質（#36〜#39）・SAST 実ツール検出（#40）・AI 生成識別トレーラ（#42）・差分規模上限（#46）はいずれもこのリポジトリにコードスタックが存在しない、実ツール未配線、Regulated プロファイル未採用、または上限値未確定のため実効的な機械検証を実装できておらず、失効期限・担当は `TBD-HUMAN`（未確定）のまま登録した。PR #26（WU-04）・PR #27（WU-07）・PR #28（WU-08）・PR #29（WU-03）・本 PR（WU-09）はいずれも当初 #36／#40／#41／#34 を名乗っていたが、base への並行マージ順に応じて順次採番し直した（人間による行番号調整の実例）。詳細は governance/proposals/gp-0005-sast-gate.md・gp-0006-test-quality-gates.md・gp-0008-auditability-and-escape-analysis.md・gp-0004-governance-health-metrics.md・gp-0009-human-gate-diff-size-limit.md「7. 未解決事項」（特に OUT-03）・gp-0010-doc-churn-reduction.md それぞれを参照。
 
 ---
 
 ## 改正履歴
 
-### [0.9.0] - 2026-08-20（Proposed）
+### [0.10.0] - 2026-08-20（Proposed）
 
 正本記録: governance/proposals/gp-0010-doc-churn-reduction.md（WU-09）
 
 **Added**
 
-* #46 を新設: 簡潔ビュー（`.specify/memory/constitution.md`）のバージョン欄が正本（constitution.md）に追従しているかの機械検証（GP-0010「WU09-01」）。本行の起票時点で、正本は `0.4.0`（GP-0002／WU-01）へ改正済みだったが簡潔ビューは `0.3.0` のまま乖離しており、これが実際の検出対象になった（生きた不整合。GP-0002「5. 未解決事項」Q-02 も参照）。`scripts/sync_constitution_version.py` によりバージョン番号のみを同期し（他の手書き内容は不変）、`scripts/checks/constitution-sync.sh` を `task verify:fast` に接続した。整備範囲は「バージョン番号の一致」のみであり、簡潔ビューの内容全体（原則本文・Last amended 等）の同期は未整備のまま（整備済みであるかのように扱わない。憲章「8. ブートストラップ規定」）。
+* #47 を新設: 簡潔ビュー（`.specify/memory/constitution.md`）のバージョン欄が正本（constitution.md）に追従しているかの機械検証（GP-0010「WU09-01」）。本行の起票時点で、正本は `0.4.0`（GP-0002／WU-01）へ改正済みだったが簡潔ビューは `0.3.0` のまま乖離しており、これが実際の検出対象になった（生きた不整合。GP-0002「5. 未解決事項」Q-02 も参照）。`scripts/sync_constitution_version.py` によりバージョン番号のみを同期し（他の手書き内容は不変）、`scripts/checks/constitution-sync.sh` を `task verify:fast` に接続した。整備範囲は「バージョン番号の一致」のみであり、簡潔ビューの内容全体（原則本文・Last amended 等）の同期は未整備のまま（整備済みであるかのように扱わない。憲章「8. ブートストラップ規定」）。
 
-**行番号について**: 本エントリはもともと #34 として起案したが（本 WU の起案時点の base は #33 までしか含んでいなかった）、並行して進んでいた他の作業単位（WU-02〜WU-08）が base へ先にマージされたことで base が #45 まで進んでいたため、`origin/governance/gp-0003-enforcement-ledger-schema` を本ブランチへマージした時点で #46 へ繰り下げた。あわせて、WU-02（[0.5.0] - 2026-08-19）が導入した新スキーマ（理由区分／失効期限／担当／移行先ゲート列）に合わせて行を記述し直した。#46 は完全な機械強制のみで人間ゲートを伴わないため、理由区分・失効期限・担当・移行先ゲートはいずれも「—」とした。
+**行番号について**: 本エントリはもともと #34 として起案したが（本 WU の起案時点の base は #33 までしか含んでいなかった）、並行して進んでいた他の作業単位（WU-02〜WU-08）が base へ先にマージされたことで base が #46 まで進んでいたため、`origin/governance/gp-0003-enforcement-ledger-schema` を本ブランチへマージした時点で #47 へ繰り下げた。あわせて、WU-02（[0.5.0] - 2026-08-19）が導入した新スキーマ（理由区分／失効期限／担当／移行先ゲート列）に合わせて行を記述し直した。#47 は完全な機械強制のみで人間ゲートを伴わないため、理由区分・失効期限・担当・移行先ゲートはいずれも「—」とした。
 
-**増分の根拠**: 既存の義務の撤廃・反転はない。新規行1件（#46）の追加であり、憲章「7. 変更管理」バージョニング方針の MINOR 例示（機械検証ルールの追加）に該当する。台帳自身の改正履歴の先例（新規行追加＝MINOR）にも整合する。
+**増分の根拠**: 既存の義務の撤廃・反転はない。新規行1件（#47）の追加であり、憲章「7. 変更管理」バージョニング方針の MINOR 例示（機械検証ルールの追加）に該当する。台帳自身の改正履歴の先例（新規行追加＝MINOR）にも整合する。0.9.0 は WU-08（GP-0009）が既に確定した番号であるため、本エントリはその次の 0.10.0 とした。
+
+### [0.9.0] - 2026-08-20（Proposed）
+
+正本記録: governance/proposals/gp-0009-human-gate-diff-size-limit.md（WU-08）
+
+**Added**
+
+* **#46 を新設**: 「Class A/B の PR は変更行数の上限を超えてはならない（MUST NOT）」（development-process.md「5.」新設・WU-08）を人間ゲート（暫定）として登録。失効期限・担当は `TBD-HUMAN`（上限値の具体的な数値を AI が発明することを避けるためのプレースホルダ。development-process.md「1.」検証手段の選択の趣旨）。移行先ゲートは `scripts/checks/diff-size.sh`（`scripts/check_diff_size.py`）に閾値環境変数を設定することで hard-fail 化する具体的な移行手段を明記した。
+* `scripts/check_diff_size.py` ＋ `scripts/checks/diff-size.sh` を新設し、`verify:pr` に配線（`pr_governance.sh` と同じ `BASE_SHA`/`HEAD_SHA` を再利用。新規 env var は追加していない）。閾値が未設定の現状は advisory 出力のみで hard-fail しない。
+* `scripts/checks/selftest.sh` に、閾値を一時的に設定した場合の hard-fail 検出を確認する陰性テストを1件追加。
+
+**注記（行番号について）**: 本 WU-08 は当初 #40、続いて #41、#44 を採番していたが、base への並行マージ順（WU-04／SAST が #40、WU-07／AI生成識別ほかが #41〜#43、WU-03／統治健全性メトリクスが #44〜#45 を確定）に応じて、本コンフリクト解消時に #46 へ改番した。あわせて、台帳のバージョンヘッダが WU-03 のマージ時に更新漏れ（changelog は [0.8.0] を記載済みだが `* Version:` 行が 0.7.0 のまま）だったことに気づいたため、本コンフリクト解消時に 0.9.0 へ是正した。
 
 ### [0.8.0] - 2026-08-20（Proposed）
 
@@ -106,7 +119,7 @@
 * #42 を新設: `governance/escape-analysis/` の新設にともなう、エスケープ欠陥の3分類記録義務と憲章「7.」定期見直しへの接続。人間ゲート（不可避）(b) として登録した。
 * 本 WU により、**人間ゲート（暫定）行が新たに2件（#40・#41）加わった**（既存の #36〜#39 は WU-05／GP-0006 が新設。合計6件）。当初 WU-02（[0.5.0]）時点では暫定該当は0件だったが、以降の2つの WU（WU-05・WU-07）がそれぞれ暫定該当を持つ新規 MUST を追加したことで、「機械化待ちの一時措置」が実例として蓄積し始めている。
 
-**注記（行番号の再採番）**: 本エントリの行番号はもともと #36〜#38 として起案したが、`origin/governance/gp-0003-enforcement-ledger-schema` を本ブランチへマージした時点で、WU-05（[GP-0006](proposals/gp-0006-test-quality-gates.md)）が先に #36〜#39 を採番済みであることが判明したため、マージ後に #40〜#42 へ繰り下げた。並行起票中だった WU-03（governance-health-metrics）は、本エントリのさらに後に #44〜#45 として採番し直された（上記 [0.8.0] を参照）。
+**注記（行番号の再採番）**: 本エントリの行番号はもともと #36〜#38 として起案したが、`origin/governance/gp-0003-enforcement-ledger-schema` を本ブランチへマージした時点で、WU-05（[GP-0006](proposals/gp-0006-test-quality-gates.md)）が先に #36〜#39 を採番済みであることが判明したため、マージ後に #40〜#42 へ繰り下げた。並行起票中だった WU-03（governance-health-metrics）は #44〜#45 として、WU-08（human-gate-diff-size-limit）は #46 として、いずれも本エントリのさらに後に採番し直された（上記 [0.9.0]・[0.8.0] を参照）。
 
 ### [0.6.0] - 2026-08-20（Proposed）
 
