@@ -6,6 +6,32 @@ set -eu
 . scripts/lib/common.sh
 say "PR governance (ADR reference / permission-impact)"
 
+# --- AI 生成識別: 既知の AI エージェント・マシンアカウントが PR 作成者なら ai-generated ラベルを要求 ---
+# 根拠: development-process.md「6. 監査証跡の記録方式」（WU07-01）。6章は既に「AI は専用マシンアカウントで
+# 行為する（MUST。憲章「権限・統治への変更」）」を定めており、マシンアカウントが実在すれば PR 作成者から
+# AI 起案かどうかを機械判定できる。これは自己申告（ai-generated ラベル／Assisted-by: トレーラの手動付与）
+# への依存を減らすための実装であり、下の permission-impact チェックと同一パターンを踏む。
+#
+# 現状の注意（誠実な開示。強制台帳 #13・#40）: 本リポジトリには実在の専用マシンアカウントがまだ発行されて
+# いない。agents/README.md「1.」の `@bot/*` は採用時に置換される意図的なプレースホルダである。したがって
+# 本チェックは「メカニズムとして正しく動作する」が「本リポジトリでは実行機会がない（未行使）」。
+# 許容パターンは agents/README.md「1.」の名簿（claude/codex/gemini/openhands/takt）の命名に由来する。
+# dependabot[bot] 等の依存自動更新ボットは対象外とする（「AI が起案・生成した変更」の定義に該当せず、
+# ADR-0006 のカーブアウトとは無関係の別理由による除外）。実アカウント発行後は本許容リストを実名へ更新する。
+#
+# diff の有無に関係なく判定する（PR 作成者の属性はファイル差分と独立のため、下の「diff なしは skip」より前に置く）。
+ai_bot_author_pattern='^(claude|codex|gemini|openhands|takt)([-_](code|cli|agent|bot))*(\[bot\])?$'
+if printf '%s' "${PR_AUTHOR:-}" | grep -Eiq "$ai_bot_author_pattern"; then
+  if echo "${PR_LABELS:-}" | grep -q "ai-generated"; then
+    :
+  elif [ "${CI:-}" = "true" ]; then
+    err "PR author '${PR_AUTHOR:-}' matches a known AI-agent machine identity: PR requires the 'ai-generated' label (development-process.md「6.」MUST)"
+    exit 1
+  else
+    warn "PR author '${PR_AUTHOR:-}' looks like a known AI-agent machine identity — ensure the PR has the 'ai-generated' label"
+  fi
+fi
+
 base="${BASE_SHA:-origin/main}"; head="${HEAD_SHA:-HEAD}"
 changed="$(git diff --name-only "$base" "$head" 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null || true)"
 [ -n "$changed" ] || { warn "no diff detected — skipping"; ok "PR governance"; exit 0; }
@@ -71,4 +97,26 @@ elif echo "$changed" | grep -Eq "$ab"; then
     warn "Class A/B path changed — PR body must reference ADR-#### or give a real 'ADR不要理由:'（プレースホルダ不可）"
   fi
 fi
+
+# --- ロールバック手順（development-process.md「7.」／governance/enforcement-ledger.md #34-35） ---
+# Class A の PR は「## ロールバック手順」セクションに非プレースホルダの実体を記載しなければならない（MUST）。
+# 本チェックは「記載の有無」のみを機械検証する（ADR不要理由の抽出と同じ技術：見出し以下の本文を取り出し、
+# HTML コメントを除去し、残りが空であればプレースホルダ扱い）。記載**内容の妥当性**は機械検証できないため
+# 人間ゲート（不可避）(b) 責任の引受として、レビュアが判断する（機械検証の対象外。台帳 #35）。
+if echo "${PR_LABELS:-}" | grep -q "class:A"; then
+  rollback_body="$(printf '%s\n' "${PR_BODY:-}" | awk '/^##[[:space:]]*ロールバック手順/{f=1;next} /^##[[:space:]]/{f=0} f')"
+  rollback_stripped="$(printf '%s' "$rollback_body" | sed -E 's/<!--.*-->//g')"
+  if printf '%s' "$rollback_stripped" | grep -Eq '[^[:space:]]'; then
+    rollback_ok=1
+  else
+    rollback_ok=0
+  fi
+  if [ "$rollback_ok" = 1 ]; then :
+  elif [ "${CI:-}" = "true" ]; then
+    err "class:A PR must include non-placeholder content under '## ロールバック手順' in the body（development-process.md「7.」）"; exit 1
+  else
+    warn "class:A PR — body should include non-placeholder content under '## ロールバック手順'（development-process.md「7.」。プレースホルダ不可）"
+  fi
+fi
+
 ok "PR governance"

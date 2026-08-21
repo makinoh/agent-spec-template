@@ -7,7 +7,8 @@
 
 ```text
 playbooks/
-├─ incident-response.md   インシデント対応・ロールバック
+├─ incident-response.md   インシデント対応（検知・初動・収束・事後）
+├─ rollback.md            ロールバック可否判断・実行手順
 ├─ release.md             リリース手順（承認・Break-glass を含む）
 ├─ migration.md           データ／スキーマ移行
 └─ code-review.md         レビュー観点と手順

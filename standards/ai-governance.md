@@ -1,6 +1,6 @@
 # AIガバナンス標準（AI Governance Standard）
 
-* Version: 0.1.0（Proposed / ドラフト）
+* Version: 0.2.0（Proposed / ドラフト）
 * Date: 2026-04-01
 * 上位規範: constitution.md（開発憲章）
 
@@ -51,6 +51,7 @@ AI による Class D（統治文書を除く）の自己反映（自己マージ
 * AI は人間の認証情報・アカウントで行為してはなりません（MUST NOT）。識別可能な専用マシンアカウントで行為します（MUST）。
 * AI は自らが関与した権限拡大・統治機構の変更を承認・自己マージしてはなりません（MUST NOT）。作成者と承認者は分離します（MUST）。
 * AI は、提案が自身の権限・自律範囲、または統治・強制機構に影響する場合、その旨を明示的に開示しなければなりません（MUST）。開示は自己申告のみに依存させず、統治パスへの変更検出による `permission-impact` ラベル自動付与で補完します（SHOULD。development-process.md「6.」）。
+* AI が起案・生成した変更は `ai-generated` ラベル／コミットトレーラで識別しなければなりません（**MUST**）。開示は自己申告のみに依存させず、既知の AI エージェント・マシンアカウントが PR 作成者の場合はラベル自動付与を機械検証します。正確な記録方式・機械検証の実装状況・未行使であることの開示は development-process.md「6.」を正本とします（本書では重複記載しません）。
 
 ---
 
@@ -89,4 +90,11 @@ AIエージェントが利用するツール（MCP サーバ・CLI・スクリ�
 
 ## 8. 改正履歴
 
-（初版ドラフトのため履歴なし）
+### [0.2.0] - 2026-08-20（Proposed）
+
+正本記録: [governance/proposals/gp-0008-auditability-and-escape-analysis.md](../governance/proposals/gp-0008-auditability-and-escape-analysis.md)（WU-07）
+
+* 「4.」に、AI 生成識別（`ai-generated` ラベル／トレーラ）を MUST とする条を追加。正確な記録方式・機械検証の実装状況は development-process.md「6.」を正本とし、本書は重複させない旨を明記した（WU07-01）。
+* **増分の根拠**: 新規 MUST 条の追加（既存 SSoT への誘導のみで内容の重複はなし）のため MINOR。
+
+（それ以前は初版ドラフトのため履歴なし）

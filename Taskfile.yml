@@ -26,12 +26,13 @@ tasks:
       - task: check:links
       - task: check:secrets
       - task: check:deps
+      - task: check:sast
       - task: check:build
       - task: check:ui
       - task: check:selftest
 
   verify:fast:
-    desc: "FAST checks for pre-commit (structure / ADR / front matter / prompts / markdown / UI)"
+    desc: "FAST checks for pre-commit (structure / ADR / front matter / prompts / markdown / enforcement ledger / UI / constitution sync)"
     cmds:
       - task: check:structure
       - task: check:adr
@@ -39,7 +40,10 @@ tasks:
       - task: check:frontmatter
       - task: check:prompts
       - task: check:markdown
+      - task: check:enforcement-ledger
+      - task: check:governance-metrics
       - task: check:ui-fast
+      - task: check:constitution-sync
 
   verify:pr:
     desc: "PR-context governance (run by CI on pull_request)"
@@ -47,10 +51,14 @@ tasks:
       - task: check:pr-governance
       - task: check:adr-immutability
       - task: check:adoption
+      - task: check:diff-size
 
   # --- individual checks: each maps to ONE script (the single source of truth) ---
   check:structure:
     cmds: ["bash scripts/checks/structure.sh"]
+  # 簡潔ビュー（.specify/memory/constitution.md）のバージョンが正本（constitution.md）に追従しているか（WU09-01/GP-0010）。
+  check:constitution-sync:
+    cmds: ["bash scripts/checks/constitution-sync.sh"]
   check:adr:
     cmds: ["bash scripts/checks/adr.sh"]
   check:adr-content:
@@ -67,16 +75,28 @@ tasks:
     cmds: ["bash scripts/checks/markdown.sh"]
   check:adr-index:
     cmds: ["bash scripts/checks/adr-index.sh"]
+  # 強制台帳のスキーマ整合性（憲章「3. 基本原則」検証手段の選択／「8.」ブートストラップ規定の機械化）。
+  check:enforcement-ledger:
+    cmds: ["bash scripts/checks/enforcement-ledger.sh"]
+  # 統治健全性メトリクス（憲章「7. 変更管理」定期見直し）。機械強制率の非減少制約。
+  check:governance-metrics:
+    cmds: ["bash scripts/checks/governance-metrics.sh"]
   check:links:
     cmds: ["bash scripts/checks/links.sh"]
   check:secrets:
     cmds: ["bash scripts/checks/secrets.sh"]
   check:deps:
     cmds: ["bash scripts/checks/deps.sh"]
+  # 第一者コードの静的解析（SAST）。休眠/活性化のスタック検出とゲート配線（constitution.md「8.」／WU-04）。
+  check:sast:
+    cmds: ["bash scripts/checks/sast.sh"]
   check:build:
     cmds: ["bash scripts/checks/build.sh"]
   check:pr-governance:
     cmds: ["bash scripts/checks/pr_governance.sh"]
+  # 差分規模の計測（development-process.md「5.」新設 MUST NOT／WU-08）。上限未確定のため advisory。
+  check:diff-size:
+    cmds: ["bash scripts/checks/diff-size.sh"]
   # ゲート自己診断（陰性テスト）。違反を注入して各ゲートが落ちることを確認する。
   # オフライン・決定論的なため verify に含める（憲章「8. ブートストラップ規定」）。
   check:selftest:
@@ -95,10 +115,11 @@ tasks:
 
   # --- helpers ---
   fix:
-    desc: "Auto-fix (markdownlint --fix, regenerate ADR index)"
+    desc: "Auto-fix (markdownlint --fix, regenerate ADR index, sync constitution concise-view version)"
     cmds:
       - "bash -c 'command -v markdownlint-cli2 >/dev/null 2>&1 && markdownlint-cli2 --fix \"**/*.md\" || npx --yes markdownlint-cli2 --fix \"**/*.md\"'"
       - "bash -c 'command -v python3 >/dev/null 2>&1 && python3 scripts/generate_adr_index.py || python scripts/generate_adr_index.py'"
+      - "bash -c 'command -v python3 >/dev/null 2>&1 && python3 scripts/sync_constitution_version.py || python scripts/sync_constitution_version.py'"
   setup:
     desc: "Install the pinned toolchain (mise / .mise.toml)"
     cmds: ["bash scripts/setup.sh"]

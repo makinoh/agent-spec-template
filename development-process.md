@@ -1,8 +1,8 @@
 # 開発プロセス（Development Process）
 
-* Version: 0.2.1（Proposed / ドラフト）
+* Version: 0.4.1（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-07
+* Last amended: 2026-08-20
 * 上位規範: constitution.md（開発憲章）
 
 本書は、constitution.md が下位文書へ委譲する運用詳細の正本（SSoT）です。本書が未整備の事項は「未定義」として扱われ、AIエージェントは自律判断せず人間に諮らなければなりません（憲章「8. ブートストラップ規定」）。本書は憲章に従属し、矛盾する場合は憲章が優先します（MUST）。
@@ -113,15 +113,31 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 
 却下された改正提案も `governance/decisions/` に記録する（憲章7章）。
 
+### 差分規模の上限（人間ゲートの実質化）
+
+承認は「作成者以外の人間 1 名以上」（本節冒頭の表）で定義されていますが、AI 駆動で PR の生成量が増えると、レビュアが実質的に精査できない規模の差分に対しても形式的な承認だけが行われ、人間ゲートが形骸化するおそれがあります。対策は承認者を増やすことではなく、**人間ゲートが機能する条件（レビュー可能な差分規模）を機械的に強制すること**です（constitution.md「3. 基本原則」検証手段の選択）。
+
+* Class A および Class B に分類される PR は、変更行数が上限を超えてはなりません（MUST NOT）。上限を超える場合は、変更を分割するか、[governance/waivers/](governance/waivers/README.md) に登録された時限的な適用除外を要します。
+* 変更行数は、追加行数＋削除行数の合計から、生成物・ロックファイル等のレビュー対象外の差分（`adr/INDEX.md`、`src/styles/tokens.css` 等。除外リストの正本は `scripts/check_diff_size.py`）を除いて算定します。除外リストの追加・変更自体は `scripts/**` に該当するため Class A として扱います（本書「1.」対象パス表）。
+* **上限の具体的な数値は本書で確定していません（`TBD-HUMAN`）。** 数値を人間の判断なしに AI エージェントが発明してはなりません（MUST NOT。憲章「10.1.3 推測の禁止」と同趣旨）。数値が確定するまでの間、本ルールは `governance/enforcement-ledger.md` に人間ゲート（暫定）として登録し、`scripts/checks/diff-size.sh`（`scripts/check_diff_size.py`）を advisory（助言のみ・非ブロッキング）で `verify:pr` に配線して実測値を可視化します。人間が上限値を確定し `DIFF_SIZE_LIMIT_CLASS_A` / `DIFF_SIZE_LIMIT_CLASS_B` を設定した時点で、同一スクリプトがそのまま hard-fail ゲートへ移行します（新たな配線の追加は不要）。
+* 正本記録: [governance/proposals/gp-0009-human-gate-diff-size-limit.md](governance/proposals/gp-0009-human-gate-diff-size-limit.md)（GP-0009）。
+
 ---
 
 ## 6. 監査証跡の記録方式（憲章「監査証跡」の委譲先）
 
-* **AI 生成の識別**: AI が起案・生成した変更は、コミットトレーラ（例: `Assisted-by: <agent-id>` / `Co-Authored-By:`）と PR ラベル `ai-generated` で識別する（SHOULD）。
+* **AI 生成の識別**: AI が起案・生成した変更は、コミットトレーラ（例: `Assisted-by: <agent-id>` / `Co-Authored-By:`）と PR ラベル `ai-generated` で識別しなければなりません（**MUST**。WU07-01。旧 SHOULD から引き上げ）。自己申告への依存を減らすため、次の二経路で担保します。
+
+  1. **PR 作成者が既知の AI エージェント・マシンアカウントである場合**: `ai-generated` ラベルの付与を機械検証します（`scripts/checks/pr_governance.sh`。強制台帳 #40）。開示を自己申告のみに依存させません（本章「権限・統治への変更」に整合。standards/ai-governance.md「4.」）。
+     **現状の注意**: 本テンプレートには実在の専用マシンアカウントがまだ発行されていません（`agents/README.md`「1.」の `@bot/*` は採用時に置換される意図的なプレースホルダ。強制台帳 #13）。したがって本メカニズムは**正しく実装されているが、本リポジトリでは実行機会がない（未行使）**状態です。「整備済み」を「本リポジトリで実際に機能している」の意味だと誤読しないでください。
+  2. **PR 作成者が人間アカウントである場合**（AI が支援したが人間が committer である現状の大半のケースを含む）: 機械検証できる著者情報の手がかりがないため、自己申告（トレーラ・ラベルの手動付与）と PR レビュー時の人間確認に依存します（人間ゲート（暫定）。強制台帳 #40。失効期限・担当・移行先ゲートは同台帳の当該行を参照）。専用マシンアカウントの発行（強制台帳 #13 の解消）によって、この経路も機械検証可能な範囲へ段階的に移行します。
+
+* **AI 識別トレーラの内容**: コミットトレーラ（`Assisted-by:` 等）には、使用したモデルの識別子とバージョンを含めるべきです（**SHOULD**）。**Regulated プロファイル（「8. 段階導入プロファイル」）採用時は MUST** とします（WU07-02）。トレーラの記載内容（識別子・バージョンの正確性）を機械検証することは、自己申告の真正性という意味的判断を要し、本書の対象外とします。機械化の可否・実装は強制台帳 #41 で追跡します。
 * **変更クラス**: PR ラベル `class:A|B|C|D` を付与する。
 * **権限影響**: 統治・強制機構に触れる PR は `permission-impact` ラベルを付与し CODEOWNERS 承認を得る（MUST。憲章6章）。
 * **マシンアイデンティティ**: AI は人間の認証情報で行為してはならない（MUST NOT）。専用のマシンアカウントで行為する（MUST）。
 * **承認記録**: 承認は PR レビュー記録として保持し、後から追跡可能にする（SHOULD）。
+* **エスケープ欠陥の分類記録**: 本番障害の事後レビュー時の欠陥分類・記録方式は [governance/escape-analysis/README.md](governance/escape-analysis/README.md) を正本とします（WU07-03〜05。強制台帳 #42）。
 
 ---
 
@@ -129,7 +145,8 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 
 * 緊急承認者: 指名されたグループ（`@org/incident-commanders`、プレースホルダ）。
 * 手順: 緊急時は事前検証を事後検証へ切り替えてよい（MAY）が、人間（緊急承認者）の承認は免除されない（MUST NOT 免除）。適用の事実・理由・範囲・承認者を記録し、**72時間以内**に事後レビュー（スキップしたゲートの事後実行を含む）を完了する（MUST。憲章7章）。
-* ロールバック/インシデント手順の詳細は本書付録または `standards/` で管理する（整備までは人間判断）。
+* インシデント対応の手順（検知・初動・収束・事後）は [playbooks/incident-response.md](playbooks/incident-response.md) で、ロールバックの可否判断・実行手順は [playbooks/rollback.md](playbooks/rollback.md) で管理する。いずれも雛形であり、採用組織が自スタック・SLA に合わせて具体化する（MUST。具体化そのものは各採用組織の判断）。
+* Class A の PR は、本番反映後に問題が発生した場合の復旧手順（ロールバック手順）を PR 本文に記載しなければならない（MUST。`.github/pull_request_template.md`「ロールバック手順」欄）。記載の**有無**（非プレースホルダの実体を伴うか）は機械検証する（`task verify:pr` → `scripts/checks/pr_governance.sh`）。記載**内容の妥当性**（復旧手順として十分か）は機械検証できないため、恒久的な人間ゲート（不可避）(b) 責任の引受として、レビュアが判断する（constitution.md「3. 基本原則」検証手段の選択／governance/enforcement-ledger.md #34・#35）。
 
 ---
 
@@ -169,6 +186,29 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 ---
 
 ## 9. 改正履歴
+
+### [0.4.1] - 2026-08-20（Proposed）
+
+正本記録: [governance/proposals/gp-0011-incident-rollback-playbooks.md](governance/proposals/gp-0011-incident-rollback-playbooks.md)（WU-10）
+
+* 「7.」の「ロールバック/インシデント手順の詳細は…（整備までは人間判断）」を、実在する2文書（[playbooks/incident-response.md](playbooks/incident-response.md) / [playbooks/rollback.md](playbooks/rollback.md)）への参照へ置換し、「整備までは」の hedge を除去（両文書とも「雛形」であることは維持）。
+* 「7.」に、Class A PR のロールバック手順欄の記載要件（機械検証は有無のみ、内容の妥当性は人間ゲート（不可避）(b)）を追記。
+* **増分の根拠**: 既存の MUST/MUST NOT を撤廃・反転せず、空白だった参照先を実体で埋め、新規の記載要件を1件追加した追記的更新のため **PATCH**（「7. 変更管理」に相当する憲章のバージョニング方針に準拠。本書自体は同方針を準用する）。
+* **注（並行 WU との衝突・番号調整）**: 本エントリはもともと 0.3.1 として起案したが、base ブランチへ先にマージされた WU-08（0.4.0。[GP-0009](governance/proposals/gp-0009-human-gate-diff-size-limit.md)）が既にその番号帯を採番していたため、本コンフリクト解消時に 0.4.1 へ繰り下げた。
+
+### [0.4.0] - 2026-08-20（Proposed / ドラフト）
+
+* 「5.」に**差分規模の上限（人間ゲートの実質化）**を新設。Class A/B の PR は変更行数の上限を超えてはならない（MUST NOT）とし、超過時は分割または `governance/waivers/` の適用除外を要求。上限の具体的数値は未確定（`TBD-HUMAN`）であり、確定までは `scripts/checks/diff-size.sh` を advisory（助言のみ）で `verify:pr` に配線して実測値を可視化する。
+* 正本記録: [governance/proposals/gp-0009-human-gate-diff-size-limit.md](governance/proposals/gp-0009-human-gate-diff-size-limit.md)（GP-0009）。
+* **注（並行 WU との衝突・番号調整）**: 本エントリはもともと 0.3.0 として起案したが、base ブランチへ先にマージされた WU-07（0.3.0。[GP-0008](governance/proposals/gp-0008-auditability-and-escape-analysis.md)）が同番号を採番していたため、本コンフリクト解消時に 0.4.0 へ繰り下げた。
+
+### [0.3.0] - 2026-08-20（Proposed）
+
+正本記録: [governance/proposals/gp-0008-auditability-and-escape-analysis.md](governance/proposals/gp-0008-auditability-and-escape-analysis.md)（WU-07）
+
+* 「6.」の「AI 生成の識別」を **SHOULD → MUST** に引き上げ、既知の AI エージェント・マシンアカウントが PR 作成者の場合の `ai-generated` ラベル自動要求（機械強制。`scripts/checks/pr_governance.sh`）と、人間アカウント作成者の場合の自己申告依存（人間ゲート（暫定））の二経路を明記した（WU07-01）。実在の専用マシンアカウントは本テンプレートに未発行であり、機械強制経路は「正しく実装されているが未行使」であることを明記した（強制台帳 #13・#40）。
+* 「6.」に AI 識別トレーラの内容規定（モデル識別子・バージョンの記載）を新設。Regulated プロファイル限定で MUST、他プロファイルは SHOULD とした（WU07-02。強制台帳 #41）。
+* **増分の根拠**: 既存の SHOULD を MUST へ引き上げる変更であり義務を強める後方互換な拡張、かつ新規 MUST（トレーラ内容規定）の追加であるため **MINOR**（「7. 変更管理」に相当する憲章のバージョニング方針に準拠。本書自体は同方針を準用する）。
 
 ### [0.2.1] - 2026-08-07（Accepted / 2026-08-08 承認）
 
