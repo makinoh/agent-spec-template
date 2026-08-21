@@ -44,6 +44,7 @@ tasks:
       - task: check:governance-metrics
       - task: check:ui-fast
       - task: check:constitution-sync
+      - task: check:ratification-sync
 
   verify:pr:
     desc: "PR-context governance (run by CI on pull_request)"
@@ -59,6 +60,9 @@ tasks:
   # 簡潔ビュー（.specify/memory/constitution.md）のバージョンが正本（constitution.md）に追従しているか（WU09-01/GP-0010）。
   check:constitution-sync:
     cmds: ["bash scripts/checks/constitution-sync.sh"]
+  # constitution.md のバージョンが governance/decisions/ の批准を追い越していないか（advisory。外部レビュー指摘）。
+  check:ratification-sync:
+    cmds: ["bash scripts/checks/ratification-sync.sh"]
   check:adr:
     cmds: ["bash scripts/checks/adr.sh"]
   check:adr-content:

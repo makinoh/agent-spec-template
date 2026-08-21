@@ -103,9 +103,17 @@ fi
 # 本チェックは「記載の有無」のみを機械検証する（ADR不要理由の抽出と同じ技術：見出し以下の本文を取り出し、
 # HTML コメントを除去し、残りが空であればプレースホルダ扱い）。記載**内容の妥当性**は機械検証できないため
 # 人間ゲート（不可避）(b) 責任の引受として、レビュアが判断する（機械検証の対象外。台帳 #35）。
-if echo "${PR_LABELS:-}" | grep -q "class:A"; then
+#
+# トリガ条件は「class:A ラベル」だけでなく「統治パスの変更（$gov）」も OR で含める。ラベル単独に
+# 依存すると、Class A に該当する変更でもラベルの付け忘れ・未付与だけで本チェックが丸ごと発火しない
+# fail-open になる（permission-impact チェックはパス由来のため fail-close。非対称だった。外部レビュー指摘）。
+if echo "${PR_LABELS:-}" | grep -q "class:A" || echo "$changed" | grep -Eq "$gov"; then
   rollback_body="$(printf '%s\n' "${PR_BODY:-}" | awk '/^##[[:space:]]*ロールバック手順/{f=1;next} /^##[[:space:]]/{f=0} f')"
-  rollback_stripped="$(printf '%s' "$rollback_body" | sed -E 's/<!--.*-->//g')"
+  # HTML コメントは複数行にまたがりうる（.github/pull_request_template.md の案内文が3行）。
+  # sed の `<!--.*-->` は行単位でしか照合しないため、開始行と終了行が異なるコメントを除去できず
+  # 未編集テンプレートがそのまま「実体あり」と誤判定されていた（外部レビュー指摘・再現確認済み）。
+  # 複数行対応のため Python の re.DOTALL で除去する。
+  rollback_stripped="$(printf '%s' "$rollback_body" | py -c "import re,sys; sys.stdout.write(re.sub(r'<!--.*?-->', '', sys.stdin.read(), flags=re.S))")"
   if printf '%s' "$rollback_stripped" | grep -Eq '[^[:space:]]'; then
     rollback_ok=1
   else
