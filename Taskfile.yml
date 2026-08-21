@@ -87,6 +87,9 @@ tasks:
     cmds: ["bash scripts/checks/secrets.sh"]
   check:deps:
     cmds: ["bash scripts/checks/deps.sh"]
+  # 第一者コードの静的解析（SAST）。休眠/活性化のスタック検出とゲート配線（constitution.md「8.」／WU-04）。
+  check:sast:
+    cmds: ["bash scripts/checks/sast.sh"]
   check:build:
     cmds: ["bash scripts/checks/build.sh"]
   check:pr-governance:
