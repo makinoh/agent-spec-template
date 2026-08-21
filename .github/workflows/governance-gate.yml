@@ -1,0 +1,76 @@
+name: governance-gate
+
+# PR-context governance checks (ADR reference / permission-impact / ai-generated /
+# ロールバック手順 — scripts/checks/pr_governance.sh 他、Taskfile.yml の verify:pr 一式), run
+# from the BASE ref's own copy of scripts/ + Taskfile.yml — never from the PR's own tree.
+#
+# なぜ別ワークフローか（外部レビュー指摘・2026-08-21）:
+#   verify.yml は `pull_request` トリガで actions/checkout した PR の内容（= PR 自身が改変した
+#   scripts/checks/*.sh を含む）に対して task verify:pr を実行していた。つまり
+#   「pr_governance.sh の先頭に exit 0 を足す」PR は、その改変版によって自分自身を検査され、
+#   permission-impact ラベル要求も CODEOWNERS 要求も同一 PR 内で無効化できた（自己参照問題）。
+#
+# 対策: 本ワークフローは pull_request_target で起動し、**base ref のみ**を checkout する
+# （PR の head は一切 checkout・実行しない）。PR の差分ファイル一覧は、PR head コミットを
+# refs/pull/<N>/head 経由で fetch してオブジェクトとして取得するにとどめ（実行しない）、
+# git diff で比較するためだけに使う。これにより「検査ロジックそのもの」は PR から改変できない
+# 信頼された base 側のコードで固定される。
+#
+# 安全上の注意（pull_request_target を使う際の定石）:
+#   - actions/checkout の ref は必ず base.sha のみ。PR head を checkout してはならない
+#     （= PR 由来のコードを、昇格した権限を持つコンテキストで実行しない）。
+#   - PR のメタデータ（body/author/labels）と diff のファイル一覧はデータとしてのみ扱い、
+#     eval・source 等でコードとして解釈しない（既存の pr_governance.sh の実装と同じ前提）。
+#
+# 本ワークフローの verify:pr は「必須ステータスチェック」として登録することを想定する
+# （ADOPTION.md「ステップ3」。verify.yml 側の PR-triggered task verify:pr は本ワークフローへ
+# 一本化し、重複・どちらが正か曖昧になることを避けるため撤去した）。
+
+on:
+  pull_request_target:
+    branches: [main, "release/*"]
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+# 注: ブランチ保護の読み取り（scripts/checks/adoption.sh / 強制台帳 #22）には
+# リポジトリ管理者権限が要るが、GITHUB_TOKEN には付与できない
+# （`administration` は permissions: に指定可能なスコープではない）。
+# CI で当該チェックを実効化したい場合は、管理者読み取り権限を持つ PAT を
+# シークレット ADMIN_READ_TOKEN に設定する（任意。未設定なら確認不能として警告する）。
+
+concurrency:
+  group: governance-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  governance:
+    name: governance-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout base ref ONLY (never the PR head — see header comment)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+
+      - name: Install pinned toolchain (mise → task / node / markdownlint)
+        uses: jdx/mise-action@v4
+        with:
+          version: 2026.8.3
+
+      - name: Fetch PR head commit as an object only (not checked out, not executed)
+        run: git fetch --no-tags --depth=1 origin "refs/pull/${{ github.event.pull_request.number }}/head"
+
+      - name: task verify:pr (base-ref logic; PR supplies only metadata + diff, never code)
+        run: task verify:pr
+        env:
+          # adoption.sh が gh CLI を使うために必要。ADMIN_READ_TOKEN があれば優先（strings は
+          # verify.yml と同じ意味。ブランチ保護チェックの実効化は強制台帳 #22 を参照）。
+          GITHUB_TOKEN: ${{ secrets.ADMIN_READ_TOKEN || secrets.GITHUB_TOKEN }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}

@@ -61,7 +61,7 @@ run_case() {
 
 # ---------- 陽性対照: 無傷の複製がすべて通ること ----------
 # ここが落ちる場合はハーネスの故障であり、陰性テストの結果は信用できない。
-for c in structure adr adr-content frontmatter prompts enforcement-ledger sast pr_governance governance-metrics constitution-sync; do
+for c in structure adr adr-content frontmatter prompts enforcement-ledger sast pr_governance governance-metrics constitution-sync ratification-sync; do
   set +e; bash "scripts/checks/$c.sh" >/dev/null 2>&1; rc=$?; set -e
   [ "$rc" -eq 0 ] || { err "陽性対照の失敗: scripts/checks/$c.sh が無傷の複製で落ちた（ハーネス故障）"; exit 1; }
 done
@@ -103,6 +103,20 @@ run_case "constitution-sync.sh: 簡潔ビューのバージョンが正本から
   "sed -i 's/^\* Version: [0-9.]*/* Version: 0.0.1/' .specify/memory/constitution.md" \
   'bash scripts/checks/constitution-sync.sh'
 
+# ratification-sync.sh は advisory（exit 0 のまま警告を出す設計。scripts/check_ratification.py）ため、
+# 他のケースと違い「exit != 0 で検出」ではなく「警告文言が出力に含まれるか」で判定する。
+name="ratification-sync.sh: constitution.md が governance/decisions/ の批准を追い越した場合に警告する"
+restore
+sed -i 's/^\* Version: [0-9.]*/* Version: 9.9.9/' constitution.md >/dev/null 2>&1 || true
+set +e; out="$(bash scripts/checks/ratification-sync.sh 2>&1)"; rc=$?; set -e
+restore
+if [ "$rc" -eq 0 ] && printf '%s' "$out" | grep -q "Ratification lag"; then
+  printf '    [検出] %s\n' "$name"; pass=$((pass + 1))
+else
+  err "見逃し: $name — advisory のはずが exit=$rc、または警告文言 'Ratification lag' が出力に含まれない"
+  fail=$((fail + 1))
+fi
+
 run_case "structure.sh: 必須文書の欠落" "" \
   'rm -f README.md' \
   'bash scripts/checks/structure.sh'
@@ -111,13 +125,15 @@ run_case "adr-index.sh: 索引が陳腐化" "python3" \
   "sed -i '0,/^| ADR-0005 /s//| ADR-0005 | STALE | proposed | project | 2026-01-01 | [x](x) |\n| SKIP /' adr/INDEX.md" \
   'bash scripts/checks/adr-index.sh'
 
-# pr_governance.sh: ロールバック手順欄の存在検証（development-process.md「7.」／WU-10／台帳 #34-35）。
-# PR_BODY を模した文字列は ANSI-C クォート（$'...'）で改行付きの複数行文字列として組み立て、
-# run_case の check（eval される）から参照できるようスクリプトのグローバル変数に置く。
-# ADR不要理由も併記し、本ケースが検証したい対象（ロールバック手順欄）以外で先に落ちないようにする。
-pr_body_rollback_placeholder=$'## 概要\n\ndummy\n\n## ADR不要理由: セルフテスト用ダミー理由\n\n## ロールバック手順（Class A の場合は必須。development-process.md「7.」）\n\n<!-- 本変更が本番へ反映された後、問題発生時にどう復旧するかを記載する -->\n\n## 完了条件チェック\n\ndummy'
+# pr_governance.sh: ロールバック手順欄の存在検証（development-process.md「7.」／WU-10／台帳 #34-35・#47-48）。
+# フィクスチャは合成文字列ではなく .github/pull_request_template.md の**実物**から見出し以下を
+# そのまま抽出して組み立てる（pr_governance.sh 本体と同じ awk 抽出）。合成の1行コメントで代用すると、
+# 実物が複数行 HTML コメントであることに起因する fail-open（外部レビュー指摘・2026-08-21 再現確認）を
+# 見逃す。実物同期にすることで、テンプレートの案内文が今後変わっても陰性テストが追従する。
+pr_body_rollback_placeholder="$(printf '## ADR不要理由: セルフテスト用ダミー理由\n\n%s\n\n## 完了条件チェック\n\ndummy' \
+  "$(awk '/^##[[:space:]]*ロールバック手順/{print; f=1; next} /^##[[:space:]]/{f=0} f' .github/pull_request_template.md)")"
 
-run_case "pr_governance.sh: class:A PR のロールバック手順欄が未記載（プレースホルダのみ）" "" \
+run_case "pr_governance.sh: class:A PR のロールバック手順欄が未記載（テンプレート実物・未編集のプレースホルダのみ）" "" \
   'printf "dummy change\n" >> README.md && git add -A && git -c user.email=s@l -c user.name=s commit -qm dummy_rollback_case' \
   'CI=true PR_LABELS="class:A" PR_BODY="$pr_body_rollback_placeholder" bash scripts/checks/pr_governance.sh'
 

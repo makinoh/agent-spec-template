@@ -38,7 +38,10 @@ jobs:
       - name: Install pinned toolchain (mise)
         uses: jdx/mise-action@v4
         with:
-          version: 2026.6.6
+          # verify.yml / governance-gate.yml と同じ版に揃える（外部レビュー指摘・2026-08-21。
+          # 従来 2026.6.6 のまま据え置かれ、verify.yml 側の資産欠落対応〔2026.8.3 への更新〕に
+          # 追従していなかった）。
+          version: 2026.8.3
 
       - name: task audit:deps
         run: task audit:deps | tee "$GITHUB_STEP_SUMMARY"

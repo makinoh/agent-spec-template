@@ -3,6 +3,14 @@ name: verify
 # Single quality gate. CI runs the SAME entry point as Developers and AI agents: `task verify`.
 # All check logic lives in scripts/ + Taskfile.yml (single source of truth) — NOT in this file.
 # Register the "verify" job as a Required Status Check on protected branches (main, release/*).
+#
+# PR-context governance（task verify:pr）はここでは実行しない。理由: `pull_request` トリガは
+# PR head を checkout するため、PR 自身が scripts/checks/*.sh を改変すれば「改変後のロジックで
+# 自分自身が検査される」自己参照問題が生じる（外部レビュー指摘・2026-08-21。実際に
+# pr_governance.sh へ exit 0 を足すだけで permission-impact 要求ごと無効化できることを確認した）。
+# base ref のコードだけで検査する governance-gate.yml（pull_request_target）に一本化した。
+# こちらは required status check の対象から外し、governance-gate 側を登録する
+# （ADOPTION.md「ステップ3」）。
 
 on:
   push:
@@ -13,11 +21,6 @@ on:
 permissions:
   contents: read
   pull-requests: read
-# 注: ブランチ保護の読み取り（scripts/checks/adoption.sh / 強制台帳 #22）には
-# リポジトリ管理者権限が要るが、GITHUB_TOKEN には付与できない
-# （`administration` は permissions: に指定可能なスコープではない）。
-# CI で当該チェックを実効化したい場合は、管理者読み取り権限を持つ PAT を
-# シークレット ADMIN_READ_TOKEN に設定する（任意。未設定なら確認不能として警告する）。
 
 concurrency:
   group: verify-${{ github.ref }}
@@ -44,18 +47,3 @@ jobs:
         run: task verify
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: task verify:pr (governance — pull_request only)
-        if: github.event_name == 'pull_request'
-        run: task verify:pr
-        env:
-          # adoption.sh が gh CLI を使うために必要（未指定だと未認証で失敗する）。
-          # ADMIN_READ_TOKEN（管理者読み取り権限を持つ PAT）が設定されていればそれを優先し、
-          # ブランチ保護チェックが実効化される。未設定なら GITHUB_TOKEN にフォールバックし、
-          # 保護は読めないため adoption.sh が「確認不能」として警告する（強制台帳 #22）。
-          GITHUB_TOKEN: ${{ secrets.ADMIN_READ_TOKEN || secrets.GITHUB_TOKEN }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
