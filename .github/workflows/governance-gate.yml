@@ -74,3 +74,7 @@ jobs:
           PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          # 差分規模の上限（development-process.md「5.」／governance/enforcement-ledger.md #46）。
+          # 人間が確定した値（2026-08-22。外部レビューの推奨値をそのまま採用）。
+          DIFF_SIZE_LIMIT_CLASS_A: 200
+          DIFF_SIZE_LIMIT_CLASS_B: 400

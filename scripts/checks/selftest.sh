@@ -61,7 +61,7 @@ run_case() {
 
 # ---------- 陽性対照: 無傷の複製がすべて通ること ----------
 # ここが落ちる場合はハーネスの故障であり、陰性テストの結果は信用できない。
-for c in structure adr adr-content frontmatter prompts enforcement-ledger sast pr_governance governance-metrics constitution-sync ratification-sync; do
+for c in structure adr adr-content frontmatter prompts enforcement-ledger sast arch-boundaries pr_governance governance-metrics constitution-sync ratification-sync; do
   set +e; bash "scripts/checks/$c.sh" >/dev/null 2>&1; rc=$?; set -e
   [ "$rc" -eq 0 ] || { err "陽性対照の失敗: scripts/checks/$c.sh が無傷の複製で落ちた（ハーネス故障）"; exit 1; }
 done
@@ -125,17 +125,36 @@ run_case "adr-index.sh: 索引が陳腐化" "python3" \
   "sed -i '0,/^| ADR-0005 /s//| ADR-0005 | STALE | proposed | project | 2026-01-01 | [x](x) |\n| SKIP /' adr/INDEX.md" \
   'bash scripts/checks/adr-index.sh'
 
-# pr_governance.sh: ロールバック手順欄の存在検証（development-process.md「7.」／WU-10／台帳 #34-35・#47-48）。
+# pr_governance.sh: ロールバック手順欄・可逆性欄の存在検証
+# （development-process.md「7.」「5.」／WU-10／台帳 #34-35・#47-48・#52-53）。
 # フィクスチャは合成文字列ではなく .github/pull_request_template.md の**実物**から見出し以下を
 # そのまま抽出して組み立てる（pr_governance.sh 本体と同じ awk 抽出）。合成の1行コメントで代用すると、
 # 実物が複数行 HTML コメントであることに起因する fail-open（外部レビュー指摘・2026-08-21 再現確認）を
 # 見逃す。実物同期にすることで、テンプレートの案内文が今後変わっても陰性テストが追従する。
-pr_body_rollback_placeholder="$(printf '## ADR不要理由: セルフテスト用ダミー理由\n\n%s\n\n## 完了条件チェック\n\ndummy' \
-  "$(awk '/^##[[:space:]]*ロールバック手順/{print; f=1; next} /^##[[:space:]]/{f=0} f' .github/pull_request_template.md)")"
+# 各フィクスチャは対象外の欄（もう一方）を埋めておき、検証対象の欄だけが未記載であることに
+# 失敗を切り分ける（isolate）。
+extract_section() {
+  awk -v re="$1" '$0 ~ ("^##[[:space:]]*" re) {print; f=1; next} /^##[[:space:]]/{f=0} f' .github/pull_request_template.md
+}
+rollback_section_raw="$(extract_section "ロールバック手順")"
+reversibility_section_raw="$(extract_section "可逆性")"
+rollback_section_filled="$(printf '%s' "$rollback_section_raw" | head -1)
+実際のロールバック内容: revert via git revert."
+reversibility_section_filled="$(printf '%s' "$reversibility_section_raw" | head -1)
+feature flag: rollout_x_enabled で制御。"
+
+pr_body_rollback_placeholder="$(printf '## ADR不要理由: セルフテスト用ダミー理由\n\n%s\n\n%s\n\n## 完了条件チェック\n\ndummy' \
+  "$rollback_section_raw" "$reversibility_section_filled")"
+pr_body_reversibility_placeholder="$(printf '## ADR不要理由: セルフテスト用ダミー理由\n\n%s\n\n%s\n\n## 完了条件チェック\n\ndummy' \
+  "$rollback_section_filled" "$reversibility_section_raw")"
 
 run_case "pr_governance.sh: class:A PR のロールバック手順欄が未記載（テンプレート実物・未編集のプレースホルダのみ）" "" \
   'printf "dummy change\n" >> README.md && git add -A && git -c user.email=s@l -c user.name=s commit -qm dummy_rollback_case' \
   'CI=true PR_LABELS="class:A" PR_BODY="$pr_body_rollback_placeholder" bash scripts/checks/pr_governance.sh'
+
+run_case "pr_governance.sh: class:A PR の可逆性欄が未記載（テンプレート実物・未編集のプレースホルダのみ。外部レビュー指摘）" "" \
+  'printf "dummy change\n" >> README.md && git add -A && git -c user.email=s@l -c user.name=s commit -qm dummy_reversibility_case' \
+  'CI=true PR_LABELS="class:A" PR_BODY="$pr_body_reversibility_placeholder" bash scripts/checks/pr_governance.sh'
 
 run_case "markdown.sh: Markdown Lint 違反" "markdownlint-cli2" \
   "printf '\n\`\`\`\nno language\n\`\`\`\n' >> glossary.md" \
@@ -188,6 +207,46 @@ if [ "$rc_tool_ok" -eq 0 ]; then
   pass=$((pass + 1))
 else
   err "見逃し: sast.sh が SAST_CMD 成功時に誤って失敗した（exit=$rc_tool_ok）"
+  fail=$((fail + 1))
+fi
+
+# ---------- arch-boundaries.sh: 休眠・活性化の両方向を確認する（sast.sh と同一パターン。外部レビュー指摘） ----------
+restore
+set +e; out_dormant="$(bash scripts/checks/arch-boundaries.sh 2>&1)"; rc_dormant=$?; set -e
+if [ "$rc_dormant" -eq 0 ] && printf '%s' "$out_dormant" | grep -q "dormant"; then
+  printf '    [検出] arch-boundaries.sh: 休眠時（manifest 無し）に exit 0 かつ休眠メッセージを出す\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: arch-boundaries.sh が休眠時に正しく振る舞わなかった（exit=$rc_dormant）"
+  fail=$((fail + 1))
+fi
+
+restore
+printf '{"name":"selftest","private":true}\n' > package.json
+set +e; out_active="$(bash scripts/checks/arch-boundaries.sh 2>&1)"; rc_active=$?; set -e
+if [ "$rc_active" -eq 0 ] && printf '%s' "$out_active" | grep -q "no architecture boundary tool is wired" \
+   && ! printf '%s' "$out_active" | grep -q "dormant"; then
+  printf '    [検出] arch-boundaries.sh: 活性化時（package.json 検出）は休眠メッセージを出さず、未配線を正直に警告して exit 0\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: arch-boundaries.sh が活性化を検出できなかった（exit=$rc_active）"
+  fail=$((fail + 1))
+fi
+restore
+
+run_case "arch-boundaries.sh: ARCH_BOUNDARY_CMD が設定され失敗を報告した場合は exit 0 にしない（合否伝播の確認）" "" \
+  'printf "{\"name\":\"selftest\",\"private\":true}\n" > package.json' \
+  'ARCH_BOUNDARY_CMD=false bash scripts/checks/arch-boundaries.sh'
+
+restore
+printf '{"name":"selftest","private":true}\n' > package.json
+set +e; ARCH_BOUNDARY_CMD=true bash scripts/checks/arch-boundaries.sh >/dev/null 2>&1; rc_arch_tool_ok=$?; set -e
+restore
+if [ "$rc_arch_tool_ok" -eq 0 ]; then
+  printf '    [検出] arch-boundaries.sh: ARCH_BOUNDARY_CMD が成功を報告した場合は exit 0（過検知しない）\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: arch-boundaries.sh が ARCH_BOUNDARY_CMD 成功時に誤って失敗した（exit=$rc_arch_tool_ok）"
   fail=$((fail + 1))
 fi
 

@@ -27,6 +27,7 @@ tasks:
       - task: check:secrets
       - task: check:deps
       - task: check:sast
+      - task: check:arch-boundaries
       - task: check:build
       - task: check:ui
       - task: check:selftest
@@ -94,6 +95,9 @@ tasks:
   # 第一者コードの静的解析（SAST）。休眠/活性化のスタック検出とゲート配線（constitution.md「8.」／WU-04）。
   check:sast:
     cmds: ["bash scripts/checks/sast.sh"]
+  # アーキテクチャ境界・循環依存の検証。休眠/活性化のスタック検出とゲート配線（外部レビュー指摘）。
+  check:arch-boundaries:
+    cmds: ["bash scripts/checks/arch-boundaries.sh"]
   check:build:
     cmds: ["bash scripts/checks/build.sh"]
   check:pr-governance:
