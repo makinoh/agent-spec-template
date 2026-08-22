@@ -1,8 +1,8 @@
 # ADOPTION.md — 採用セットアップ手順
 
-* Version: 0.2.0（Proposed / ドラフト）
+* Version: 0.3.0（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-21
+* Last amended: 2026-08-22
 * 上位規範: constitution.md（開発憲章）
 
 本書は、本テンプレートを実プロジェクトへ採用する際の手順書です。統治文書は完成していても、
@@ -76,7 +76,8 @@
 | ゲート | 現状 | 配線が必要な設定 | 強制台帳 |
 | --- | --- | --- | --- |
 | SAST（第一者コード静的解析） | スタック検出・配線ロジックのみ実装。実ツール未配線 | ADR でツールを選定し、環境変数 `SAST_CMD`（または実行可能な `scripts/dev/sast-tool.sh`）を CI に設定 | #40 |
-| 差分規模の上限（人間ゲートの実質化） | 計測・Class 分類は実装済み。上限値は未確定のため advisory のみ | 上限値を人間が決定し、`.github/workflows/governance-gate.yml` の env に `DIFF_SIZE_LIMIT_CLASS_A` / `DIFF_SIZE_LIMIT_CLASS_B`（整数）を設定 | #46 |
+| アーキテクチャ境界（循環依存の検出） | スタック検出・配線ロジックのみ実装。実ツール未配線 | `architecture/boundaries.md` のレイヤ構成を実体化した上で、採用スタックに応じたツール（import-linter / dependency-cruiser / ArchUnit / go-arch-lint 等）を選定し、環境変数 `ARCH_BOUNDARY_CMD`（または実行可能な `scripts/dev/arch-boundary-tool.sh`）を CI に設定 | #52 |
+| 差分規模の上限（人間ゲートの実質化） | **本テンプレート自身は Class A=200行／Class B=400行で hard-fail 済み**（`governance-gate.yml`）。採用組織はこの値をそのまま使うか、自組織のレビュー体制に合わせて上書きする | 値を変更する場合は `.github/workflows/governance-gate.yml` の env `DIFF_SIZE_LIMIT_CLASS_A` / `DIFF_SIZE_LIMIT_CLASS_B`（整数）を編集する | #46 |
 | ブランチ保護の点検（adoption.sh） | `GITHUB_TOKEN` では管理者読み取り権限が無く「確認不能」warn のまま | 管理者読み取り権限を持つ PAT をシークレット `ADMIN_READ_TOKEN` に設定（`.github/workflows/verify.yml` と `governance-gate.yml` の両方が参照） | #22 |
 | 統治健全性メトリクス（機械強制率の非減少） | 実装済み・稼働中。基準値は `metrics/governance-health-snapshot.json` | 採用後の初回セットアップで `python3 scripts/check_governance_metrics.py --write-baseline` を実行し、自組織の初期状態を基準値として記録し直す（本テンプレート同梱の基準値のままだと自組織の追加変更を正しく評価できない） | #44/#45 |
 | 機械強制率低下の正当な例外（waiver） | 実装済み・稼働中。現時点で該当 waiver は 0 件 | 正当な理由で機械強制率が一時的に下がる場合は [governance/waivers/README.md](governance/waivers/README.md)「機械可読な紐付け」に従って waiver を発行する（無期限は禁止） | #44/#45 |
@@ -95,6 +96,10 @@
 ---
 
 ## 改正履歴
+
+### [0.3.0] - 2026-08-22
+
+* 外部レビュー指摘（「AI統制能力」と「レビューが安く済むシステムを設計する能力」）への対応。ステップ8にアーキテクチャ境界ゲート（`ARCH_BOUNDARY_CMD`）の配線手順を追加。差分規模の上限を、本テンプレート自身が Class A=200行／Class B=400行で hard-fail 済みであることを反映。
 
 ### [0.2.0] - 2026-08-21
 

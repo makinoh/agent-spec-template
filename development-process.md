@@ -1,8 +1,8 @@
 # 開発プロセス（Development Process）
 
-* Version: 0.4.1（Proposed / ドラフト）
+* Version: 0.5.0（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-20
+* Last amended: 2026-08-22
 * 上位規範: constitution.md（開発憲章）
 
 本書は、constitution.md が下位文書へ委譲する運用詳細の正本（SSoT）です。本書が未整備の事項は「未定義」として扱われ、AIエージェントは自律判断せず人間に諮らなければなりません（憲章「8. ブートストラップ規定」）。本書は憲章に従属し、矛盾する場合は憲章が優先します（MUST）。
@@ -119,8 +119,8 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 
 * Class A および Class B に分類される PR は、変更行数が上限を超えてはなりません（MUST NOT）。上限を超える場合は、変更を分割するか、[governance/waivers/](governance/waivers/README.md) に登録された時限的な適用除外を要します。
 * 変更行数は、追加行数＋削除行数の合計から、生成物・ロックファイル等のレビュー対象外の差分（`adr/INDEX.md`、`src/styles/tokens.css` 等。除外リストの正本は `scripts/check_diff_size.py`）を除いて算定します。除外リストの追加・変更自体は `scripts/**` に該当するため Class A として扱います（本書「1.」対象パス表）。
-* **上限の具体的な数値は本書で確定していません（`TBD-HUMAN`）。** 数値を人間の判断なしに AI エージェントが発明してはなりません（MUST NOT。憲章「10.1.3 推測の禁止」と同趣旨）。数値が確定するまでの間、本ルールは `governance/enforcement-ledger.md` に人間ゲート（暫定）として登録し、`scripts/checks/diff-size.sh`（`scripts/check_diff_size.py`）を advisory（助言のみ・非ブロッキング）で `verify:pr` に配線して実測値を可視化します。人間が上限値を確定し `DIFF_SIZE_LIMIT_CLASS_A` / `DIFF_SIZE_LIMIT_CLASS_B` を設定した時点で、同一スクリプトがそのまま hard-fail ゲートへ移行します（新たな配線の追加は不要）。
-* 正本記録: [governance/proposals/gp-0009-human-gate-diff-size-limit.md](governance/proposals/gp-0009-human-gate-diff-size-limit.md)（GP-0009）。
+* **上限は人間が確定しました（2026-08-22）**: Class A = **200行**、Class B = **400行**（変更行数＝追加＋削除の合計）。`.github/workflows/governance-gate.yml` の `DIFF_SIZE_LIMIT_CLASS_A` / `DIFF_SIZE_LIMIT_CLASS_B` に設定済みで、`scripts/checks/diff-size.sh`（`scripts/check_diff_size.py`）が同一スクリプトのまま advisory から hard-fail ゲートへ移行しています（新たな配線の追加は不要だった。数値のみが人間判断の対象だった設計どおり）。数値の根拠は複数の実証研究（コードレビューの実効性は概ね200〜400行を境に急落するという知見）に基づく（外部レビュー指摘への対応）。
+* 正本記録: [governance/proposals/gp-0009-human-gate-diff-size-limit.md](governance/proposals/gp-0009-human-gate-diff-size-limit.md)（GP-0009）。上限値の確定自体は本書「9. 改正履歴」に記録する。
 
 ---
 
@@ -147,6 +147,7 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 * 手順: 緊急時は事前検証を事後検証へ切り替えてよい（MAY）が、人間（緊急承認者）の承認は免除されない（MUST NOT 免除）。適用の事実・理由・範囲・承認者を記録し、**72時間以内**に事後レビュー（スキップしたゲートの事後実行を含む）を完了する（MUST。憲章7章）。
 * インシデント対応の手順（検知・初動・収束・事後）は [playbooks/incident-response.md](playbooks/incident-response.md) で、ロールバックの可否判断・実行手順は [playbooks/rollback.md](playbooks/rollback.md) で管理する。いずれも雛形であり、採用組織が自スタック・SLA に合わせて具体化する（MUST。具体化そのものは各採用組織の判断）。
 * Class A の PR は、本番反映後に問題が発生した場合の復旧手順（ロールバック手順）を PR 本文に記載しなければならない（MUST。`.github/pull_request_template.md`「ロールバック手順」欄）。記載の**有無**（非プレースホルダの実体を伴うか）は機械検証する（`task verify:pr` → `scripts/checks/pr_governance.sh`）。記載**内容の妥当性**（復旧手順として十分か）は機械検証できないため、恒久的な人間ゲート（不可避）(b) 責任の引受として、レビュアが判断する（constitution.md「3. 基本原則」検証手段の選択／governance/enforcement-ledger.md #34・#35）。
+* Class A の PR は、変更そのものを「間違いだった場合に安く戻せる」設計にしているか（フィーチャーフラグの有無、DB migration を含む場合の down 定義の有無、段階的リリースの適用有無）を PR 本文に記載しなければならない（MUST。`.github/pull_request_template.md`「可逆性」欄。architecture/principles.md「5. 可逆性・観測性を既定に」の実質化）。ロールバック手順（本番反映**後**の復旧手順）とは別の関心事であり、こちらは変更**そのもの**の設計を対象とする。記載の有無は機械検証し（`scripts/checks/pr_governance.sh`。ロールバック手順欄と同一技術）、内容の妥当性は同じく人間ゲート（不可避）(b) とする（governance/enforcement-ledger.md #52・#53。外部レビュー指摘: 可逆性がレビューコストを最も下げる手段のひとつであるにもかかわらず、従来 SHOULD の宣言（playbooks/rollback.md）にとどまり、機械検証もPRテンプレートの必須欄も無かった）。
 
 ---
 
@@ -186,6 +187,14 @@ ADR の要否（憲章5章）／承認の要否（6章 承認マトリクス）�
 ---
 
 ## 9. 改正履歴
+
+### [0.5.0] - 2026-08-22（Proposed）
+
+正本記録: 外部レビュー（2026-08-22付）「AI統制能力」と「レビューが安く済むシステムを設計する能力」の指摘への対応
+
+* 「7.」に、Class A PR の可逆性欄（フィーチャーフラグ／migration の down 定義／段階公開の記載要件。機械検証は有無のみ、内容の妥当性は人間ゲート（不可避）(b)）を追記。ロールバック手順（事後の復旧）とは別に、変更そのものの可逆な設計を要求する。
+* 「差分規模の上限」の上限値を人間が確定（Class A=200行／Class B=400行）。従来 advisory だった `scripts/checks/diff-size.sh` を hard-fail ゲートへ移行した（値の投入のみ。配線変更は不要）。
+* **増分の根拠**: 既存の MUST/MUST NOT を撤廃・反転せず、新規の記載要件を1件追加し（可逆性欄）、既存 MUST NOT（差分規模の上限）の未確定パラメータを確定した後方互換な拡張のため **MINOR**（「7. 変更管理」バージョニング方針の MINOR 例示「第8章相当のルール追加」に準じる。本書自体は同方針を準用する）。
 
 ### [0.4.1] - 2026-08-20（Proposed）
 

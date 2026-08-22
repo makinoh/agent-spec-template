@@ -28,6 +28,16 @@ AIエージェントが起案する PR も本テンプレートを満たすこ�
      Class A 以外は空欄可。CI は「非プレースホルダの記載があるか」のみを機械検証する。
      記載内容の妥当性（復旧手順として十分か）は人間ゲート（不可避）としてレビュアが判断する。 -->
 
+## 可逆性（Class A の場合は必須。development-process.md「5.」／architecture/principles.md「5.」）
+
+<!-- 本変更を「間違いだった場合に安く戻せる」設計にしているか記載する。該当する項目を記載し、
+     該当しない場合も「該当なし: 理由」を1行で書く（空欄不可）。
+       - フィーチャーフラグの有無（ある場合はフラグ名、無い場合はその理由）
+       - DB migration を含む場合、down migration（巻き戻し）の定義の有無
+       - 段階的リリース（カナリア／percentage rollout 等）の適用有無
+     CI は「非プレースホルダの記載があるか」のみを機械検証する（ロールバック手順欄と同一技術）。
+     記載内容の妥当性（可逆な設計として十分か）は人間ゲート（不可避）としてレビュアが判断する。 -->
+
 ## 権限・統治への影響（該当時）
 
 - [ ] 本 PR は統治・強制機構（constitution / governance / standards / .github / AGENTS.md / CLAUDE.md / GEMINI.md / SKILLS.md / adr-rules / adr-template / adr-template-minimal）に触れる

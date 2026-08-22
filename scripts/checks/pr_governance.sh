@@ -6,6 +6,21 @@ set -eu
 . scripts/lib/common.sh
 say "PR governance (ADR reference / permission-impact)"
 
+# section_has_content <見出し正規表現>: PR_BODY のうち、指定した "## 見出し" 行から次の
+# "## " 見出しまでの本文を取り出し、HTML コメントを除去した残りが非空白かどうかを判定する。
+# 見出しの存在ではなく実体（非プレースホルダ）の存在を検査する共通の技術（ADR不要理由の
+# 抽出・ロールバック手順チェックと同一。可逆性チェックでも使うため関数化した）。
+# HTML コメントは複数行にまたがりうる（.github/pull_request_template.md の案内文は3行）。
+# sed の `<!--.*-->` は行単位でしか照合しないため、開始行と終了行が異なるコメントを除去できず
+# 未編集テンプレートがそのまま「実体あり」と誤判定されていた（外部レビュー指摘・再現確認済み）。
+# 複数行対応のため Python の re.DOTALL で除去する。
+section_has_content() {
+  heading_re="$1"
+  body="$(printf '%s\n' "${PR_BODY:-}" | awk -v re="$heading_re" '$0 ~ ("^##[[:space:]]*" re) {f=1; next} /^##[[:space:]]/{f=0} f')"
+  stripped="$(printf '%s' "$body" | py -c "import re,sys; sys.stdout.write(re.sub(r'<!--.*?-->', '', sys.stdin.read(), flags=re.S))")"
+  printf '%s' "$stripped" | grep -Eq '[^[:space:]]'
+}
+
 # --- AI 生成識別: 既知の AI エージェント・マシンアカウントが PR 作成者なら ai-generated ラベルを要求 ---
 # 根拠: development-process.md「6. 監査証跡の記録方式」（WU07-01）。6章は既に「AI は専用マシンアカウントで
 # 行為する（MUST。憲章「権限・統治への変更」）」を定めており、マシンアカウントが実在すれば PR 作成者から
@@ -108,22 +123,29 @@ fi
 # 依存すると、Class A に該当する変更でもラベルの付け忘れ・未付与だけで本チェックが丸ごと発火しない
 # fail-open になる（permission-impact チェックはパス由来のため fail-close。非対称だった。外部レビュー指摘）。
 if echo "${PR_LABELS:-}" | grep -q "class:A" || echo "$changed" | grep -Eq "$gov"; then
-  rollback_body="$(printf '%s\n' "${PR_BODY:-}" | awk '/^##[[:space:]]*ロールバック手順/{f=1;next} /^##[[:space:]]/{f=0} f')"
-  # HTML コメントは複数行にまたがりうる（.github/pull_request_template.md の案内文が3行）。
-  # sed の `<!--.*-->` は行単位でしか照合しないため、開始行と終了行が異なるコメントを除去できず
-  # 未編集テンプレートがそのまま「実体あり」と誤判定されていた（外部レビュー指摘・再現確認済み）。
-  # 複数行対応のため Python の re.DOTALL で除去する。
-  rollback_stripped="$(printf '%s' "$rollback_body" | py -c "import re,sys; sys.stdout.write(re.sub(r'<!--.*?-->', '', sys.stdin.read(), flags=re.S))")"
-  if printf '%s' "$rollback_stripped" | grep -Eq '[^[:space:]]'; then
-    rollback_ok=1
-  else
-    rollback_ok=0
-  fi
-  if [ "$rollback_ok" = 1 ]; then :
+  if section_has_content "ロールバック手順"; then :
   elif [ "${CI:-}" = "true" ]; then
     err "class:A PR must include non-placeholder content under '## ロールバック手順' in the body（development-process.md「7.」）"; exit 1
   else
     warn "class:A PR — body should include non-placeholder content under '## ロールバック手順'（development-process.md「7.」。プレースホルダ不可）"
+  fi
+fi
+
+# --- 可逆性（フィーチャーフラグ／migration の down 定義／段階公開。development-process.md「5.」／ ---
+# --- architecture/principles.md「5.」／governance/enforcement-ledger.md #52） ---
+# 「レビューコストを下げる」の柱のひとつは可逆性（間違いが安く戻せれば要求される厳密度が下がる）。
+# これまでロールバック手順（本番反映後の復旧手順）は機械検証されていたが、変更そのものを可逆に
+# 「設計」しているか（フィーチャーフラグ・段階公開・migration の down 定義）は playbooks/rollback.md
+# の SHOULD 1行にとどまり、機械検証も PR テンプレートの必須欄も無かった（外部レビュー指摘）。
+# ロールバック手順と同じ技術で「記載の有無」のみを検証する。記載内容の妥当性（設計として十分か）
+# は機械検証できないため人間ゲート（不可避）(b) 責任の引受のまま（台帳 #53）。該当なしの場合も
+# 「該当なし: 理由」を記載すればよい（ADR不要理由・ロールバック手順と同型のプレースホルダ判定）。
+if echo "${PR_LABELS:-}" | grep -q "class:A" || echo "$changed" | grep -Eq "$gov"; then
+  if section_has_content "可逆性"; then :
+  elif [ "${CI:-}" = "true" ]; then
+    err "class:A PR must include non-placeholder content under '## 可逆性' in the body（development-process.md「5.」／architecture/principles.md「5.」）"; exit 1
+  else
+    warn "class:A PR — body should include non-placeholder content under '## 可逆性'（development-process.md「5.」。該当なしの場合も理由を記載。プレースホルダ不可）"
   fi
 fi
 
