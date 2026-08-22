@@ -1,25 +1,28 @@
 # スコープ（Scope）
 
-* Version: 0.1.0（Proposed / ドラフト）
+* Version: 0.1.1（Proposed / ドラフト）
 * Date: 2026-04-01
+* Last amended: 2026-08-22
 * 上位規範: constitution.md（開発憲章）
 * 位置づけ: 基本方針文書（「何を」）。ADR より上位（constitution.md「2. 文書管理階層」）
 
 > 本書はプロジェクトの**スコープ（対象範囲）**の正本（SSoT）です。個別機能の詳細は specs/ に展開する。
 
+> **参照ID規約**: 「1.」「2.」の各項目には `SCOPE-IN-N` / `SCOPE-OUT-N` の参照IDを付す。vision.md の `VISION-N` 規約（vision.md 冒頭注記）と同様の運用とする（SHOULD）。機械検証は未整備。
+
 ---
 
 ## 1. スコープ内（In Scope）
 
-- [提供する主要機能・対象領域を列挙。各項目は specs/<feature>/ に展開される単位を意識する]
-- [記入]
+- **SCOPE-IN-1**: [提供する主要機能・対象領域を列挙。各項目は specs/<feature>/ に展開される単位を意識する]
+- **SCOPE-IN-2**: [記入]
 
 ## 2. スコープ外（Out of Scope）
 
 > 明示的に「やらない」ことを記す。スコープクリープ防止のため重要。
 
-- [記入]
-- [記入]
+- **SCOPE-OUT-1**: [記入]
+- **SCOPE-OUT-2**: [記入]
 
 ## 3. 対象環境・対象ユーザ
 
@@ -48,4 +51,6 @@
 
 ## 改正履歴
 
-（初版ドラフトのため履歴なし）
+### [0.1.1] - 2026-08-22（Proposed）
+
+* 「1.」「2.」に参照ID規約（`SCOPE-IN-N` / `SCOPE-OUT-N`）を追加（vision.md と同様。機械検証は範囲外・SHOULD）。
