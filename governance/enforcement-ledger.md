@@ -1,8 +1,8 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.13.0（Proposed / ドラフト）
+* Version: 0.14.0（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-20
+* Last amended: 2026-08-24
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
 
 本書は、憲章の各 MUST / MUST NOT に **強制手段**（構造的強制／機械強制／人間ゲート（不可避）／人間ゲート（暫定））と **整備状況** を割り当てる台帳の正本（SSoT）です。
@@ -61,7 +61,7 @@
 | **43** | 本番障害の事後レビュー時、各エスケープ欠陥を3分類（ゲート未整備／ゲート設定不適切／機械検出不可能）で記録し、憲章「7.」定期見直しの入力に加える（governance/escape-analysis/README.md。WU07-03/04/05） | MUST | 人間ゲート（不可避） | (b) | 整備済み（`governance/escape-analysis/README.md` が記録項目・3分類・定期見直しへの接続を規定。実際の記録はまだ0件＝本テンプレートに本番運用・本番障害の実例がないため。分類の判定は事後レビュー担当者による意味的判断であり、原理的に機械検証できない） | — | — | — | governance/escape-analysis/README.md ＋ constitution.md「7. 変更管理」定期見直し |
 | **44** | 機械強制率（(構造的強制＋機械強制) の MUST/MUST NOT 件数 ÷ 全 MUST/MUST NOT 件数）は非減少でなければならない。低下する PR は失敗させる（7章 定期見直し／統治健全性メトリクス） | MUST | 機械強制（baseline スナップショットとの比較。分数の整数交差乗算で厳密比較） | — | 整備済み（本 WU で `scripts/checks/governance-metrics.sh` を実装。baseline は `metrics/governance-health-snapshot.json`。算出は台帳を機械的に走査し、複数手段併記行は構造的強制／機械強制のいずれかを含めば inclusive に算入する。カウント方法の根拠は `scripts/check_governance_metrics.py` docstring 参照） | — | — | — | verify:fast → scripts/checks/governance-metrics.sh（check_governance_metrics.py）／基準値: metrics/governance-health-snapshot.json |
 | **45** | #44 の低下が正当な場合、governance/waivers/ の**有効な**（target_check 一致・status=Active・失効期限が実日付かつ未経過の）waiver でのみ通過を許容し、無条件のバイパスを設けてはならない（7章 定期見直し／統治健全性メトリクス） | MUST NOT | 機械強制（waiver フロントマターの照合。TBD-HUMAN 等のプレースホルダは無効な失効期限として扱い waiver を無効化する） | — | 整備済み（本 WU で実装。waiver の記録項目は governance/waivers/README.md「機械可読な紐付け」に従う。現時点で該当 waiver は0件のため #44 は常に無条件では通過しない） | — | — | — | verify:fast → scripts/checks/governance-metrics.sh（check_governance_metrics.py）／governance/waivers/README.md |
-| **46** | Class A/B の PR は変更行数の上限を超えてはならない（development-process.md「5.」／3章 検証手段の選択。WU-08） | MUST NOT | 機械強制（Class A=200行／Class B=400行。`DIFF_SIZE_LIMIT_CLASS_A`/`_CLASS_B` を governance-gate.yml に設定し hard-fail 化済み） | — | **整備済み（2026-08-22 に人間が上限値を確定。外部レビュー指摘への対応）** — 変更行数の計測・Class A/B 分類・生成物/ロックファイル除外・上限比較ロジックは実装済みで、`verify:pr`（governance-gate.yml）から実行される。数値の投入のみで advisory から hard-fail へ移行した（配線変更は不要だった。設計どおり）。上限を超える場合は変更を分割するか、[governance/waivers/](waivers/README.md) の時限的な適用除外を要する | — | — | — | verify:pr（governance-gate.yml） → scripts/checks/diff-size.sh（check_diff_size.py） |
+| **46** | Class A/B の PR は変更行数の上限を超えてはならない（development-process.md「5.」／3章 検証手段の選択。WU-08） | MUST NOT | 機械強制（Class A=200行／Class B=400行。`DIFF_SIZE_LIMIT_CLASS_A`/`_CLASS_B` を governance-gate.yml に設定し hard-fail 化済み） | — | **整備済み（2026-08-22 に人間が上限値を確定。外部レビュー指摘への対応）** — 変更行数の計測・Class A/B 分類・生成物/ロックファイル除外・上限比較ロジックは実装済みで、`verify:pr`（governance-gate.yml）から実行される。数値の投入のみで advisory から hard-fail へ移行した（配線変更は不要だった。設計どおり）。上限を超える場合は変更を分割するか、[governance/waivers/](waivers/README.md) の時限的な適用除外を要する。**2026-08-24 追記**: この「適用除外」は従来 statement のみで実装が無く（`check_diff_size.py` は waiver を読んでいなかった）、案内された逃げ道が存在しないまま hard-fail していた。#45 と同一の gate-linked waiver 規約（`target_check` 一致・status=Active・expires が実日付かつ未経過）を、共通ローダ `scripts/waivers.py` 経由で本ゲートにも適用し是正した。対象ゲート識別子は Class ごとに分離する（`diff-size.class-a` / `diff-size.class-b`） | — | — | — | verify:pr（governance-gate.yml） → scripts/checks/diff-size.sh（check_diff_size.py）／照合は scripts/waivers.py・規約は governance/waivers/README.md「機械可読な紐付け」 |
 | **47** | Class A の PR は本文にロールバック手順欄の記載（非プレースホルダの実体）を含まなければならない（development-process.md「7.」。WU-10で新設） | MUST | 機械強制（PR 本文検査。ADR不要理由の抽出と同一技術：見出し以下の本文を取り出し、HTML コメントを除去し、残りの非空白を検査する） | — | 整備済み（**2026-08-21 に2件のバグを是正**（外部レビュー指摘）: (1) HTML コメント除去が行単位の sed（`<!--.*-->`）で、`.github/pull_request_template.md` 実物の3行にまたがる案内コメントを除去できず、未編集テンプレートが「実体あり」と誤判定されていた。Python の `re.DOTALL` による複数行対応の除去へ修正。selftest.sh のフィクスチャも合成の1行コメントでは検出できなかったため、実物から抽出する方式へ変更した。(2) 発火条件が `class:A` ラベルの有無**のみ**に依存しており、ラベルを付け忘れると本チェック自体が丸ごと発火しない fail-open だった（permission-impact 側はパス由来で fail-close であり非対称）。統治パス変更（`$gov`）を OR 条件に追加し是正した） | — | — | — | verify:pr（governance-gate.yml） → scripts/checks/pr_governance.sh ＋ .github/pull_request_template.md「ロールバック手順」欄 |
 | **48** | ロールバック手順**の内容**が復旧手段として妥当であること（development-process.md「7.」／playbooks/rollback.md。WU-10で新設） | MUST | 人間ゲート（不可避） | (b) | 整備済み（恒久的な人間ゲート。#47 の存在検証とは別。本番反映に対する意思決定であり、暫定・ブートストラップではない） | — | — | — | PR レビュー（development-process.md「5.」承認者）＋ constitution.md「3. 基本原則」検証手段の選択 |
 | **49** | 簡潔ビュー（`.specify/memory/constitution.md`）は正本（constitution.md）の改正に追従する（`.specify/memory/constitution.md`「Governance」／7章）。spec-kit の Constitution Check（`/speckit.plan`）が読む派生サマリのため、陳腐化すると古い基準でゲートが走る（GP-0010「WU09-01」） | SHOULD | 機械強制（バージョン番号の一致検査） | — | **整備済み（バージョン欄のみ）** — `* Version: X.Y.Z` の一致のみを検証する。「Last amended」・原則本文等、簡潔ビューの他の内容の同期は未整備（生成化は本 WU の対象外。同期補助として `scripts/sync_constitution_version.py` を用意したが、バージョン番号のみを書き換える） | — | — | — | verify:fast → scripts/checks/constitution-sync.sh |
@@ -76,6 +76,29 @@
 ---
 
 ## 改正履歴
+
+### [0.14.0] - 2026-08-24（Proposed）
+
+正本記録: 既存プロジェクトへの導入（brownfield）経路の新設（[ADOPTION-EXISTING.md](../ADOPTION-EXISTING.md)）
+
+**Fixed（統治文書と実装の乖離。#46 の記述を更新）**
+
+* `scripts/check_diff_size.py` が **waiver を一切読んでいなかった**。development-process.md「5.」・本台帳 #46・
+  当該スクリプト自身のエラーメッセージはいずれも「上限を超える場合は変更を分割するか、governance/waivers/ に
+  登録された時限的な適用除外を要する」と案内していたが、その適用除外は実装上存在せず、Class A の 200行超は
+  分割以外に合法的な通過手段が無かった。**統治文書が案内する手段が実際には機能しない状態**（憲章「8. ブートストラップ規定」が
+  禁じる「整備済みに見えて機能していない」状態）であり、#45 で既に確立していた gate-linked waiver 規約を適用して是正した。
+  この乖離は既存リポジトリへの導入で最初に顕在化する（統治文書一式の導入 PR は不可分な数千行の Class A 変更であり、
+  逃げ道が無ければ採用者は上限引き上げかゲート撤去に流れる＝憲章「6.」MUST NOT を誘発する設計上の欠陥だった）。
+* 照合ロジックを `scripts/waivers.py` へ集約した（`check_governance_metrics.py` と共有。規約の解釈が
+  2箇所へ分岐する前に共通化する。SSoT）。対象ゲート識別子は Class ごとに分離し（`diff-size.class-a` /
+  `diff-size.class-b`）、Class B 向けの waiver が Class A の超過を通過させないようにした。
+* `scripts/checks/selftest.sh` に陰性テスト3件（失効 waiver／`expires: TBD-HUMAN`／Class 違いの waiver では
+  通過しない）と陽性確認1件（有効な waiver では通過する＝案内された逃げ道が実在する）を追加した。
+
+**増分の根拠**: 既存の義務の**撤廃・反転はない**。新規行の追加もない（台帳の行数・機械強制率は不変）。
+実装が欠けていた既存 MUST NOT（#46）の適用除外経路を、既に確立済みの規約（#45）に沿って実装した修正であり、
+憲章「7. 変更管理」バージョニング方針の MINOR（後方互換な追加・実質的拡張）に該当する。
 
 ### [0.13.0] - 2026-08-22（Proposed）
 

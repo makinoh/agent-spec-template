@@ -27,6 +27,23 @@ Taskfile.yml / .github/workflows/verify.yml では設定していない（＝現
   - 生成物・ロックファイル等、レビュー対象外の差分は除外する（WU08-02）。除外リストの変更は
     Class A として扱う（scripts/** は development-process.md「1.」表により既定で Class A）。
 
+waiver 連携（外部レビュー指摘・2026-08-24。文書と実装の乖離の是正）:
+  development-process.md「5.」と強制台帳 #46、および本スクリプト自身のエラーメッセージは、
+  上限超過時の合法的な通過手段として「変更を分割するか、governance/waivers/ に登録された
+  時限的な適用除外を要する」と案内していた。しかし本スクリプトは waiver を一切読んでおらず、
+  案内された逃げ道は実装上存在しなかった（統治文書が「整備済み」と述べる手段が実際には
+  機能しない状態＝憲章「8. ブートストラップ規定」が禁じる状態）。
+  この乖離は既存リポジトリへの導入（brownfield）で最初に顕在化する: テンプレート一式を
+  既存リポジトリへ重ねる導入 PR は、それ自体が数千行規模の Class A 変更になり、分割しても
+  「統治文書一式」という不可分な単位を Class A 200行に収めることはできない。逃げ道が
+  無ければ、採用者は上限を引き上げるか governance-gate.yml を外すしかなく、いずれも
+  「自らの変更で失敗したゲートを回避目的で弱める」（憲章「6.」MUST NOT）に該当してしまう。
+  そこで governance/waivers/README.md「機械可読な紐付け」の既存規約（check_governance_metrics.py
+  が先行実装）を、共通ローダ scripts/waivers.py 経由で本チェックにも適用する。
+  対象ゲート識別子は Class ごとに分ける（Class B 向けの waiver が Class A を素通しさせない）:
+      diff-size.class-a  /  diff-size.class-b
+  waiver は期限必須（無期限禁止）で、`expires` にプレースホルダを書いたものは常に無効。
+
 使い方:
     python scripts/check_diff_size.py
     BASE_SHA=<sha> HEAD_SHA=<sha> python scripts/check_diff_size.py
@@ -34,6 +51,7 @@ Taskfile.yml / .github/workflows/verify.yml では設定していない（＝現
 """
 from __future__ import annotations
 
+import datetime
 import os
 import re
 import subprocess
@@ -41,6 +59,14 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+SCRIPTS = ROOT / "scripts"
+
+sys.path.insert(0, str(SCRIPTS))
+from waivers import find_active_waiver  # noqa: E402  (gate-linked waiver の照合は scripts/waivers.py が正本)
+
+# gate-linked waiver の対象ゲート識別子（governance/waivers/README.md「機械可読な紐付け」に登録）。
+# Class ごとに分けることで、Class B 向けに発行した waiver が Class A の超過まで通過させることを防ぐ。
+TARGET_CHECK_ID = {"A": "diff-size.class-a", "B": "diff-size.class-b"}
 
 # --- パス分類（scripts/checks/pr_governance.sh の $gov / $ab を概念的に移植。独自発明ではない） ---
 # GOV_RE: 統治・強制機構の中核（development-process.md「1.」対象パス表の Class A 行の近似）。
@@ -185,36 +211,47 @@ def main() -> int:
     limit_a = parse_limit("DIFF_SIZE_LIMIT_CLASS_A")
     limit_b = parse_limit("DIFF_SIZE_LIMIT_CLASS_B")
 
-    failed: list[str] = []
-    if limit_a is not None:
-        print(f"diff-size: Class A 上限 = {limit_a} 行（設定済み・強制）", file=sys.stderr)
-        if totals["A"] > limit_a:
-            failed.append(f"Class A 変更行数 {totals['A']} が上限 {limit_a} を超過")
-    else:
-        print(
-            "diff-size: Class A 上限は未設定（TBD-HUMAN）— advisory のみ、hard-fail しない",
-            file=sys.stderr,
-        )
+    today = datetime.date.today().isoformat()
+    failed: list[tuple[str, str]] = []  # (class, 説明)
+    waived: list[str] = []
 
-    if limit_b is not None:
-        print(f"diff-size: Class B 上限 = {limit_b} 行（設定済み・強制）", file=sys.stderr)
-        if totals["B"] > limit_b:
-            failed.append(f"Class B 変更行数 {totals['B']} が上限 {limit_b} を超過")
-    else:
-        print(
-            "diff-size: Class B 上限は未設定（TBD-HUMAN）— advisory のみ、hard-fail しない",
-            file=sys.stderr,
-        )
+    for cls, limit in (("A", limit_a), ("B", limit_b)):
+        if limit is None:
+            print(
+                f"diff-size: Class {cls} 上限は未設定（TBD-HUMAN）— advisory のみ、hard-fail しない",
+                file=sys.stderr,
+            )
+            continue
+        print(f"diff-size: Class {cls} 上限 = {limit} 行（設定済み・強制）", file=sys.stderr)
+        if totals[cls] <= limit:
+            continue
+        over = f"Class {cls} 変更行数 {totals[cls]} が上限 {limit} を超過"
+        # 有効な waiver（target_check 一致・status=Active・expires が実日付かつ未経過）のみ通過を許す。
+        # 無条件のバイパスは設けない（governance/waivers/README.md「有効期限は必須・無期限禁止」）。
+        waiver = find_active_waiver(TARGET_CHECK_ID[cls], today)
+        if waiver:
+            waived.append(f"{over} — governance/waivers/{waiver} により時限的に許容")
+        else:
+            failed.append((cls, over))
+
+    for w in waived:
+        print(f"⚠ {w}", file=sys.stderr)
 
     if failed:
-        for f in failed:
+        for cls, msg in failed:
             print(
-                f"✗ {f}。分割するか governance/waivers/ に適用除外を登録してください"
-                "（development-process.md「1.」／governance/waivers/README.md）。",
+                f"✗ {msg}。変更を分割するか、governance/waivers/ に "
+                f"target_check={TARGET_CHECK_ID[cls]} の"
+                "有効な適用除外（status: Active ＋ expires が未経過の実日付）を登録してください"
+                "（development-process.md「5.」／governance/waivers/README.md「機械可読な紐付け」）。",
                 file=sys.stderr,
             )
         print(f"✗ diff-size limit exceeded: {len(failed)} 件", file=sys.stderr)
         return 1
+
+    if waived:
+        print("✓ diff-size (上限超過を有効な waiver により許容。期限内に解消すること)")
+        return 0
 
     print("✓ diff-size (advisory unless DIFF_SIZE_LIMIT_CLASS_A/B configured)")
     return 0

@@ -40,6 +40,45 @@
 | `target_check` | 対象ゲートの識別子（ゲート側スクリプトのコメント・docstring に記載される固定文字列。例: `governance-metrics.mechanized-rate`） |
 | `expires` | `YYYY-MM-DD`（実日付）。上表の「有効期限」と同一実体とする |
 
+### 登録済みの `target_check` 識別子
+
+`target_check` は「どのゲートに対する適用除外か」を機械的に紐付ける固定文字列です。誤記した waiver は
+**どのゲートからも認識されません**（無効）。新しいゲートに waiver 連携を追加する場合、識別子を本表へ登録します（MUST）。
+
+| `target_check` | 対象ゲート | 意味 |
+| --- | --- | --- |
+| `governance-metrics.mechanized-rate` | [scripts/checks/governance-metrics.sh](../../scripts/checks/governance-metrics.sh) | 機械強制率が baseline を下回ることを時限的に許容する（強制台帳 #44/#45） |
+| `diff-size.class-a` | [scripts/checks/diff-size.sh](../../scripts/checks/diff-size.sh) | Class A の変更行数上限の超過を時限的に許容する（強制台帳 #46） |
+| `diff-size.class-b` | 同上 | Class B の変更行数上限の超過を時限的に許容する（強制台帳 #46） |
+
+差分規模の上限は Class ごとに識別子を分けています。Class B 向けに発行した waiver が Class A の超過まで
+通過させることを防ぐためです（統治文書の変更ほど厳しい上限が課される設計を、waiver の取り違えで崩さない）。
+
+照合ロジックの実体は [scripts/waivers.py](../../scripts/waivers.py) に集約されています（複数ゲートで
+規約の解釈が分岐することを防ぐ。SSoT）。
+
+### 記述例
+
+```markdown
+---
+id: WV-0001
+target_check: diff-size.class-a
+status: Active
+expires: 2026-12-31
+---
+
+# WV-0001: 既存リポジトリへの初期導入 PR の差分規模
+
+| 項目 | 内容 |
+| --- | --- |
+| 対象規範 | development-process.md「5.」差分規模の上限（Class A = 200行） |
+| 理由・代替統制 | 統治文書一式の初期導入は不可分な単位であり分割できない。代替統制として…… |
+| 範囲 | 導入 PR 1件のみ（#123） |
+| 承認者・承認日 | （作成者以外）／YYYY-MM-DD |
+| 有効期限 | 2026-12-31 |
+| 関連 | ADOPTION-EXISTING.md、RISK-XXXX |
+```
+
 `status` が `Active` かつ `expires` が本日以降の実日付である waiver のみを、ゲート側は「有効」として扱います。
 `expires` にプレースホルダ（例: `TBD-HUMAN`）や空欄・「—」を記載した waiver は、対象ゲートから常に「無効」と
 みなされ、低下・逸脱の通過には使用できません（無条件のバイパスを防ぐ設計。強制台帳の理由区分・失効期限欄で
