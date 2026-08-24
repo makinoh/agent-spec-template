@@ -357,6 +357,37 @@ else
   skipped=$((skipped + 1))
 fi
 
+# ---------- deps.sh のライセンスゲート（台帳 #55。休眠/活性化とツール解決） ----------
+# ライセンス検査は本テンプレートに一行も存在しなかった（外部レビュー指摘）。#40・#52 と同型に、
+# 「実ポリシーは未配線でも、活性化検出とツール解決は正しく動く」ことをここで担保する。
+# trivy は不要（LICENSE_SCAN_CMD 経路のみを検査する。非 CI では need() が warn して継続する）。
+restore
+printf '{"name":"selftest","private":true}\n' > package.json
+set +e; out_lic_gap="$(bash scripts/checks/deps.sh 2>&1)"; rc_lic_gap=$?; set -e
+restore
+if [ "$rc_lic_gap" -eq 0 ] && printf '%s' "$out_lic_gap" | grep -q "no license policy is wired yet"; then
+  printf '    [検出] deps.sh: 依存マニフェスト検出時にライセンス未配線を警告して exit 0（黙って緑にしない）\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: deps.sh のライセンス未配線警告が出ない（exit=$rc_lic_gap）— 整備済みに見えて何も検査しない状態"
+  fail=$((fail + 1))
+fi
+
+run_case "deps.sh: 配線されたライセンススキャナの失敗を握り潰さない" "" \
+  'printf "{\"name\":\"selftest\",\"private\":true}\n" > package.json' \
+  'LICENSE_SCAN_CMD="exit 3" bash scripts/checks/deps.sh'
+
+restore
+printf '{"name":"selftest","private":true}\n' > package.json
+set +e; LICENSE_SCAN_CMD="true" bash scripts/checks/deps.sh >/dev/null 2>&1; rc_lic_ok=$?; set -e
+restore
+if [ "$rc_lic_ok" -eq 0 ]; then
+  printf '    [検出] deps.sh: ライセンススキャナ成功時に過検知しない（陽性対照）\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: deps.sh がライセンススキャナ成功時に落ちた（exit=$rc_lic_ok）— 偽陽性はゲート不信の原因になる"
+  fail=$((fail + 1))
+fi
 # 対象外の明示（黙って落とさない）
 warn "対象外: links.sh（lychee・ネットワーク依存）／deps.sh（trivy・脆弱性DB依存）／視覚回帰（ブラウザ必須）"
 
