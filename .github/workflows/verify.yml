@@ -17,6 +17,20 @@ on:
     branches: [main, "release/*"]
   pull_request:
     branches: [main, "release/*"]
+    # 既定の activity types は [opened, synchronize, reopened] で `edited` を含まない。
+    # ベースブランチの付け替えは `edited` として発火するため、既定のままだと stacked PR
+    # （上流 PR のマージ後、GitHub が下流 PR のベースを main へ自動で付け替える）で
+    # verify が一度も起動しない。governance-gate.yml は `edited` を列挙していて起動するため、
+    # 「governance-gate だけが緑」の PR が生まれる。verify を必須ステータスチェックに
+    # 登録していればマージがブロックされて詰まり、登録漏れがあれば verify を通さずに
+    # マージできてしまう（fail-open。強制台帳 #22 の休眠と重なると実害になる）。
+    #
+    # 差分規模の上限（Class A=200行／development-process.md「5.」）は PR の分割を促し、
+    # 分割は stacked PR を生み、stacked PR は必ずベース付け替えを経由する。つまり本
+    # テンプレート自身の設計がこの経路を常用させるため、既定の types では不足する。
+    # governance-gate.yml と同じ types に揃える（labeled/unlabeled はラベルを見ない
+    # verify には不要なため含めない）。
+    types: [opened, synchronize, reopened, edited]
 
 permissions:
   contents: read
