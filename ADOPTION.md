@@ -1,13 +1,28 @@
 # ADOPTION.md — 採用セットアップ手順
 
-* Version: 0.3.0（Proposed / ドラフト）
+* Version: 0.4.0（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-22
+* Last amended: 2026-08-24
 * 上位規範: constitution.md（開発憲章）
 
 本書は、本テンプレートを実プロジェクトへ採用する際の手順書です。統治文書は完成していても、
 **ブランチ保護・必須チェック・チーム・マシンアカウントはリポジトリ／組織側の設定**であり、本手順で結線して初めて強制が効きます
 （強制台帳 governance/enforcement-ledger.md の「未整備」項目を解消します）。
+
+---
+
+## 導入経路を選ぶ（最初に確認する）
+
+| 経路 | 状況 | 読む順序 |
+| --- | --- | --- |
+| **新規（greenfield）** | 「Use this template」で新しいリポジトリを作り、これからコードを足す | 本書のステップ 0〜9 |
+| **既存（brownfield）** | すでにリリース済み・稼働中のプロジェクトへ後から重ねる | **[ADOPTION-EXISTING.md](ADOPTION-EXISTING.md) を先に読む** → 本書のステップ 0〜9 |
+
+既存リポジトリへの導入では前提が変わります。本テンプレートのゲートは「コードがまだ無いリポジトリに
+これからコードを足す」ことを前提としているため、既存リポジトリにそのまま適用すると
+**初日に品質ゲートが全面的に赤になり**、導入 PR 自体が Class A の差分規模上限（200行）を超えます。
+その状態でゲートを外す・上限を引き上げるのは憲章「6.」の MUST NOT に該当します。
+統治下に置かれた段階適用の手順は [ADOPTION-EXISTING.md](ADOPTION-EXISTING.md) を正本とします。
 
 ---
 
@@ -78,6 +93,8 @@
 | SAST（第一者コード静的解析） | スタック検出・配線ロジックのみ実装。実ツール未配線 | ADR でツールを選定し、環境変数 `SAST_CMD`（または実行可能な `scripts/dev/sast-tool.sh`）を CI に設定 | #40 |
 | アーキテクチャ境界（循環依存の検出） | スタック検出・配線ロジックのみ実装。実ツール未配線 | `architecture/boundaries.md` のレイヤ構成を実体化した上で、採用スタックに応じたツール（import-linter / dependency-cruiser / ArchUnit / go-arch-lint 等）を選定し、環境変数 `ARCH_BOUNDARY_CMD`（または実行可能な `scripts/dev/arch-boundary-tool.sh`）を CI に設定 | #52 |
 | 差分規模の上限（人間ゲートの実質化） | **本テンプレート自身は Class A=200行／Class B=400行で hard-fail 済み**（`governance-gate.yml`）。採用組織はこの値をそのまま使うか、自組織のレビュー体制に合わせて上書きする | 値を変更する場合は `.github/workflows/governance-gate.yml` の env `DIFF_SIZE_LIMIT_CLASS_A` / `DIFF_SIZE_LIMIT_CLASS_B`（整数）を編集する | #46 |
+| ビルド・テストの入口（`build.sh`） | リポジトリ直下でのスタック自動検出（`npm ci` / `pytest` 等）。新規採用向けの既定 | 既存の入口（Makefile / monorepo / tox 等）を持つ場合は環境変数 `BUILD_CMD`（または実行可能な `scripts/dev/build-tool.sh`）を設定する。終了コードはそのまま伝播する（緩和ではない） | #15b |
+| 秘密情報スキャンの baseline（`secrets.sh`） | 全 git 履歴を走査（既定）。既存リポジトリでは過去の混入を必ず検出する | 既存リポジトリでは `.gitleaks-baseline.json` を作成し、**記録された資格情報をすべてローテーション**した上で `governance/exceptions/` に登録する（[ADOPTION-EXISTING.md](ADOPTION-EXISTING.md)「3.1」） | #1 |
 | ブランチ保護の点検（adoption.sh） | `GITHUB_TOKEN` では管理者読み取り権限が無く「確認不能」warn のまま | 管理者読み取り権限を持つ PAT をシークレット `ADMIN_READ_TOKEN` に設定（`.github/workflows/verify.yml` と `governance-gate.yml` の両方が参照） | #22 |
 | 統治健全性メトリクス（機械強制率の非減少） | 実装済み・稼働中。基準値は `metrics/governance-health-snapshot.json` | 採用後の初回セットアップで `python3 scripts/check_governance_metrics.py --write-baseline` を実行し、自組織の初期状態を基準値として記録し直す（本テンプレート同梱の基準値のままだと自組織の追加変更を正しく評価できない） | #44/#45 |
 | 機械強制率低下の正当な例外（waiver） | 実装済み・稼働中。現時点で該当 waiver は 0 件 | 正当な理由で機械強制率が一時的に下がる場合は [governance/waivers/README.md](governance/waivers/README.md)「機械可読な紐付け」に従って waiver を発行する（無期限は禁止） | #44/#45 |
@@ -96,6 +113,14 @@
 ---
 
 ## 改正履歴
+
+### [0.4.0] - 2026-08-24
+
+* 冒頭に「導入経路を選ぶ」を新設し、既存プロジェクトへの導入（brownfield）を
+  [ADOPTION-EXISTING.md](ADOPTION-EXISTING.md) へ分岐した。従来、本書は「Use this template で
+  新規リポジトリを作る」経路のみを前提としており、既存リポジトリで初日に全ゲートが赤になること・
+  導入 PR 自体が差分規模上限を超えることへの手順がどこにも無かった。
+* ステップ8に `BUILD_CMD`（ビルド・テストの入口の差し替え）と gitleaks baseline の行を追加した。
 
 ### [0.3.0] - 2026-08-22
 

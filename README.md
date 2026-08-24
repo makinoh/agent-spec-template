@@ -6,7 +6,10 @@
 
 *このリポジトリは「開発の進め方」の雛形であり、実行されるアプリのコードは含みません（あなたのコードを足して使います）。各統治文書は個別にバージョン管理されており、現在いずれも `Proposed / ドラフト` 段階です。*
 
-> **🚀 すぐ使う**: GitHub の **「Use this template」** ボタンで複製 → [ADOPTION.md](ADOPTION.md) で初期設定 → 下の「[クイックスタート](#クイックスタート)」で最初の機能を作成。
+> **🚀 新規に始める**: GitHub の **「Use this template」** ボタンで複製 → [ADOPTION.md](ADOPTION.md) で初期設定 → 下の「[クイックスタート](#クイックスタート)」で最初の機能を作成。
+>
+> **🔧 既存プロジェクトに導入する**: すでにリリース済み・稼働中のリポジトリへ後から重ねる場合は、
+> **[ADOPTION-EXISTING.md](ADOPTION-EXISTING.md) を先に読んでください**（初日に全ゲートが赤になる問題と、その段階適用手順）。
 
 > **📖 学習用ドキュメント**: 入門者・初学者向けの公式ドキュメントサイトを [docs/](docs/index.md) に用意しています（MkDocs Material 製）。
 > コンセプト・チュートリアル・FAQ・用語集まで、AI駆動開発が初めてでもゼロから学べます。
@@ -182,7 +185,8 @@ metrics/                 計測（DORA・AI 有効性）
 ### 設定・運用
 
 ```text
-ADOPTION.md              採用時のセットアップ手順
+ADOPTION.md              採用時のセットアップ手順（新規プロジェクト）
+ADOPTION-EXISTING.md     既存プロジェクトへの導入手順（brownfield）
 .github/                 CI（品質ゲート）と CODEOWNERS（必須レビュア）
 adr-rules.md / adr-template*.md   ADRの書式ルールと雛形
 glossary.md              用語集
@@ -192,7 +196,8 @@ glossary.md              用語集
 
 ## クイックスタート
 
-このテンプレートを**自分のプロジェクトに採用する**手順です。
+このテンプレートを**自分のプロジェクトに採用する**手順です（**新規プロジェクト**の場合）。
+すでにリリース済み・稼働中のプロジェクトへ導入する場合は [ADOPTION-EXISTING.md](ADOPTION-EXISTING.md) を参照してください。
 
 1. このリポジトリを複製する（GitHub の **Use this template**、またはクローン）
 2. spec-kit を導入する（`/speckit.*` コマンドを使えるAIエージェント環境）
@@ -282,6 +287,12 @@ A. **Architecture Decision Record＝「なぜこの設計にしたか」を1フ�
 **Q. GitHub は必須ですか?**  
 A. CI は GitHub Actions を前提にしていますが、考え方は他のCIにも移植できます。設定手順は [ADOPTION.md](ADOPTION.md)。
 
+**Q. すでに動いている既存プロジェクトにも導入できますか?**  
+A. できます。ただし手順が変わります。本テンプレートのゲートは「コードがまだ無いリポジトリにこれからコードを足す」前提のため、既存リポジトリにそのまま適用すると**初日に品質ゲートが全面的に赤になります**（過去の秘密情報が git 履歴から検出される、既存ドキュメントが lint に落ちる、導入 PR 自体が差分規模上限を超える 等）。ここでゲートを外すのは憲章違反です。統治下に置かれた段階適用の手順を [ADOPTION-EXISTING.md](ADOPTION-EXISTING.md) にまとめています。
+
+**Q. 既存システムの設計判断は、全部 ADR に書き起こすのですか?**  
+A. いいえ。網羅は目的ではありません。**これから変更する領域**に限って「as-built ADR」として記録します。当時の承認記録を捏造しないための書き方も [ADOPTION-EXISTING.md](ADOPTION-EXISTING.md)「4.」に定めています。
+
 **Q. `specs/001`・`002` は本物の機能ですか?**  
 A. いいえ。GDPR のエクスポート／削除を題材にした**サンプル**です。書き方の手本として残し、実プロジェクトでは置き換えます。
 
@@ -294,7 +305,7 @@ A. いいえ。GDPR のエクスポート／削除を題材にした**サンプ�
 - [AGENTS.md](AGENTS.md) — AIエージェント実行指示の入口
 - [constitution.md](constitution.md) — 開発憲章（最上位ルール） / 簡潔版: [.specify/memory/constitution.md](.specify/memory/constitution.md)
 - [development-process.md](development-process.md) — 変更クラス・承認・開発フロー・段階導入
-- [ADOPTION.md](ADOPTION.md) — 採用セットアップ手順
+- [ADOPTION.md](ADOPTION.md) — 採用セットアップ手順（新規）／[ADOPTION-EXISTING.md](ADOPTION-EXISTING.md) — 既存プロジェクトへの導入
 - [adr-rules.md](adr-rules.md) — ADR の書き方 / 雛形: [adr-template.md](adr-template.md)・[adr-template-minimal.md](adr-template-minimal.md)
 - [standards/](standards/) — セキュリティ・テスト等の技術標準
 
@@ -322,7 +333,8 @@ A. いいえ。GDPR のエクスポート／削除を題材にした**サンプ�
 | [glossary.md](glossary.md) | 用語集（ドメイン用語） |
 | [governance/](governance/) | ルール改正の記録・強制台帳・例外/適用除外/リスク台帳 |
 | [metrics/](metrics/) | 計測（DORA・AI 有効性指標） |
-| [ADOPTION.md](ADOPTION.md) | 採用セットアップ手順 |
+| [ADOPTION.md](ADOPTION.md) | 採用セットアップ手順（新規プロジェクト） |
+| [ADOPTION-EXISTING.md](ADOPTION-EXISTING.md) | 既存プロジェクトへの導入手順（brownfield・段階適用） |
 | [.specify/templates/](.specify/templates/) | spec / plan / tasks のテンプレート |
 | [specs/](specs/) | 機能単位の spec / plan / tasks |
 
@@ -340,7 +352,7 @@ A. いいえ。GDPR のエクスポート／削除を題材にした**サンプ�
 
 - 貢献方法: [CONTRIBUTING.md](CONTRIBUTING.md)
 - 脆弱性の報告: [SECURITY.md](SECURITY.md)（公開 Issue にしない）
-- テンプレート採用時の初期設定: [ADOPTION.md](ADOPTION.md)
+- テンプレート採用時の初期設定: [ADOPTION.md](ADOPTION.md)（既存プロジェクトへの導入は [ADOPTION-EXISTING.md](ADOPTION-EXISTING.md)）
 
 ---
 
