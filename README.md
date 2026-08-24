@@ -32,6 +32,23 @@
 
 > ルールの全文は [constitution.md](constitution.md)（長め）。急ぐなら簡潔版 [.specify/memory/constitution.md](.specify/memory/constitution.md) を。
 
+### 引き受ける分量（採用判断の材料）
+
+導入すると**統治文書そのものがレビュー対象資産になります**。正本一式の実測は次のとおりです（2026-08-24 時点）。
+
+| 文書 | 分量 | 誰が読むか |
+| --- | --- | --- |
+| [constitution.md](constitution.md) | 約 97 KB | Class A 承認者は「4. 変更分類」「6. AIエージェント統治」「8.」を（全文通読は不要） |
+| [governance/enforcement-ledger.md](governance/enforcement-ledger.md) | 約 95 KB | 該当行のみ。ゲートの実態（整備済み／整備中／未整備）の正本 |
+| [development-process.md](development-process.md) | 約 33 KB | 全員（「1.」対象パス表と「5.」承認者は必読） |
+| このREADME ＋ [AGENTS.md](AGENTS.md) | 約 37 KB | 全員 |
+| [.specify/memory/constitution.md](.specify/memory/constitution.md)（簡潔版） | 約 11 KB | 日常のゲート判定はこれで足ります |
+| **合計（正本一式）** | **約 27 万バイト（日本語で約 13 万字＝文庫本 1 冊強）** | |
+
+上の表の「5分で把握する」4 点＋簡潔版だけなら約 80 KB で、日常運用はこれで回ります。残りは**参照する**ための文書であり、通読を前提としていません。とはいえ統治文書の変更自体が Class A（人間承認＋CODEOWNERS＋ロールバック手順＋可逆性記載）であるため、**統治を改善するたびに最も重い手続きが発生する**ことは織り込んでください。
+
+人の準備（承認者に求める力量・前提知識）は [ADOPTION.md](ADOPTION.md)「ステップ 0.5」と [development-process.md](development-process.md)「5.1」を参照してください。**本テンプレートはトレーニング教材・習熟度評価を提供しません。**
+
 ---
 
 ## このプロジェクトが解決する問題

@@ -43,6 +43,20 @@
 
 ---
 
+## ステップ 0.5. ロール別の前提知識を確定する（人の準備。2026-08-24 新設）
+
+ステップ 1 以降はすべて**設定作業**です。設定が完了しても、**それを読んで判断する人間の準備が整っていなければ人間ゲートは形骸化します**。本テンプレートは差分規模上限（Class A=200行／Class B=400行）で「レビュー可能な粒度」を機械的に強制しますが、その差分を読む判断力は供給しません（[development-process.md](development-process.md)「5.1 力量要件が空欄であることの意味」）。従来この節は存在せず、採用チェックリストは設定作業のみを扱っていました（外部レビュー指摘）。
+
+- [ ] [development-process.md](development-process.md)「5. 承認者・定足数」の**力量要件列**（`TBD-HUMAN`）を自組織の水準で確定する。最低限 Class A / Class B について確定する（MUST）
+- [ ] 承認者が「統治文書のどこを読めば判断できるか」を把握していることを確認する。目安の読解順は [README.md](README.md)「5分で把握する」→ [AGENTS.md](AGENTS.md) →[development-process.md](development-process.md)「1.」対象パス表 → [.specify/memory/constitution.md](.specify/memory/constitution.md)（簡潔ビュー）
+- [ ] **統治文書の総分量を採用判断に織り込む**: 正本一式（constitution.md / enforcement-ledger.md / development-process.md / README.md / AGENTS.md）は約 27 万バイト（日本語で約 13 万字）あります。全員が全文を読む必要はありませんが、**Class A の承認者は constitution.md「4. 変更分類」「6. AIエージェント統治と自律境界」「8.」と強制台帳の該当行を読める状態**である必要があります
+- [ ] AI 起案の PR をレビューする担当者が、**体裁の整った成果物と内容の妥当性は別である**ことを理解している（[SKILLS.md](SKILLS.md) 冒頭の適用範囲注記、[development-process.md](development-process.md)「5.1」）
+- [ ] 単一メンテナ構成（作成者≠承認者が成立しない）の場合、[governance/risk-register/](governance/risk-register/) にリスクを記録するか、外部レビュアを承認者に加える（MUST。いずれも行わずに「承認済み」と記録しない）
+
+> **本テンプレートが提供しないもの**: トレーニング教材・習熟度評価・オンボーディングカリキュラムは含まれていません。本節はその欠落を開示し、採用組織側で用意すべき項目を列挙するに留まります。「導入すれば AI 開発の品質が上がる」ことを期待して採用すると、この部分で期待外れになります。
+
+---
+
 ## ステップ 1. 基本方針を埋める（Day-0）
 
 - [ ] [charter.md](charter.md)（目的）・[vision.md](vision.md)・[scope.md](scope.md) のプレースホルダを記入
