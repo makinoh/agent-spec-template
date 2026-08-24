@@ -1,6 +1,6 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.14.0（Proposed / ドラフト）
+* Version: 0.15.0（Proposed / ドラフト）
 * Date: 2026-04-01
 * Last amended: 2026-08-24
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
@@ -76,6 +76,31 @@
 ---
 
 ## 改正履歴
+
+### [0.15.0] - 2026-08-24（Proposed）
+
+正本記録: 既存プロジェクトへの導入（brownfield）経路の整備。手順書は後続 PR で `ADOPTION-EXISTING.md` として追加する（本エントリ時点では未追加のためリンクしない）
+
+**Changed（台帳の行・強制手段・整備状況の変更なし。既存ゲートの適用範囲の明確化）**
+
+* `scripts/checks/adoption.sh`（#22）に、ADOPTION.md「ステップ9」（テンプレート由来の統治履歴・サンプルの相続）と
+  保護対象ブランチ名の不一致の検出を追加した。いずれも従来まったく機械点検が無く文書に書いてあるだけだった。
+  既定ブランチが `main` でない既存リポジトリでは CI が一度も起動せず**沈黙して**強制が働かない（fail-open）ため、
+  赤くならないぶん最も気づきにくく、検出価値が高い。
+* `.github/workflows/verify.yml` の `pull_request` トリガに `types: [opened, synchronize, reopened, edited]` を
+  明示した（#19 関連）。既定の activity types は `edited` を含まないため、ベースブランチの付け替え
+  （stacked PR で上流マージ後に GitHub が自動で行う）では `verify` が**一度も起動しなかった**。
+  `governance-gate.yml` は `edited` を列挙しており起動するため、「governance-gate だけが緑」の PR が生まれる。
+  必須チェックの登録漏れ（#22 の休眠）と重なると `verify` を通さずマージできる（fail-open）。
+  差分規模の上限（#46）が PR 分割＝stacked PR を促す以上、本テンプレートはこの経路を常用させるため、
+  「整備済みに見えて機能していない」状態だった（#50 と同種の構造的欠陥）。本 PR スタックの #38 で実地に発生した。
+* `scripts/checks/build.sh`（#15b 関連）に `BUILD_CMD` / `scripts/dev/build-tool.sh` による入口の差し替えを、
+  `scripts/checks/secrets.sh`（#1 関連）に gitleaks の `--baseline-path` 連携を追加した。いずれも既定動作は
+  変更せず、**終了コードはそのまま伝播**するため強制は弱まらない（緩和ではない）。baseline 適用中は件数とともに
+  警告を出し続ける（黙って緑にしない。憲章「8. ブートストラップ規定」）。
+
+**増分の根拠**: 既存の義務の**撤廃・反転はない**。台帳行の追加も無く（行数・機械強制率は不変）、既存ゲートの
+適用範囲の明確化にとどまるため、憲章「7. 変更管理」バージョニング方針の MINOR に該当する。
 
 ### [0.14.0] - 2026-08-24（Proposed）
 
