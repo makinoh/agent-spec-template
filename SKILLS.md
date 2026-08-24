@@ -27,6 +27,7 @@
 | [adr-draft](skills/adr-draft/SKILL.md) | ADR ドラフト（Proposed）の起票 | B（起案のみ） |
 | [review-and-verify](skills/review-and-verify/SKILL.md) | 変更の自己レビュー・DoD 検査 | C |
 | [migrate](skills/migrate/SKILL.md) | 大規模変換・移行（worktree 隔離） | B/C |
+| [adopt-existing](skills/adopt-existing/SKILL.md) | 既存リポジトリへの本テンプレート導入（brownfield） | A（起案のみ） |
 
 ---
 
@@ -39,4 +40,7 @@
 
 ## 4. 改正履歴
 
-（初版ドラフトのため履歴なし）
+### [0.2.0] - 2026-08-24
+
+* `adopt-existing`（既存リポジトリへの導入）を標準スキルへ追加。手順の正本は
+  [ADOPTION-EXISTING.md](ADOPTION-EXISTING.md) とし、本カタログには索引のみを置く（SSoT）。

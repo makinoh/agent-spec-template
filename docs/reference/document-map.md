@@ -78,7 +78,8 @@ flowchart TD
 
 | 文書 | 役割 | 変更クラス |
 | --- | --- | --- |
-| `ADOPTION.md` | 採用時のセットアップ手順 | A |
+| `ADOPTION.md` | 採用時のセットアップ手順（新規プロジェクト） | A |
+| `ADOPTION-EXISTING.md` | 既存プロジェクトへの導入手順（brownfield・段階適用） | A |
 | `.github/` | CI（品質ゲート）・CODEOWNERS・PR テンプレート | A |
 | `Taskfile.yml` | 品質ゲートの統一入口 | A |
 | `scripts/checks/` | 各チェックの実体 | A |
