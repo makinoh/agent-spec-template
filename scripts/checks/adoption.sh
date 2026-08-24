@@ -3,6 +3,15 @@
 # 統治文書は完成していても、CODEOWNERS の実体化・ブランチ保護・必須チェック登録は
 # リポジトリ/組織側の設定であり、これらが未了だと強制が「休眠」する（強制台帳 #12/#13/#19）。
 # 本チェックは助言（warn）であり、verify を失敗させない。CI/pull_request で実行する。
+#
+# 4) 以降は既存リポジトリへの導入（brownfield。ADOPTION-EXISTING.md）で頻出する配線漏れを扱う。
+#    ADOPTION.md「ステップ9」（テンプレート自身の統治履歴の初期化）と「保護対象ブランチ名」は
+#    従来まったく機械点検が無く、文書に書いてあるだけだった。監査証跡を主眼のひとつとする
+#    テンプレートで、他組織の承認記録が自組織の記録に混入したまま残ることは避けたい。
+#
+#    注: 本テンプレート自身のリポジトリでは 4) は既定で検出される（サンプルと自身の統治履歴を
+#    意図的に保持しているため）。これは `@org/*` / `@bot/*` プレースホルダの warn と同じ扱いで、
+#    採用者向けの正しい通知として残す（強制台帳 #22 / GD-0001「5.」）。
 set -eu
 . scripts/lib/common.sh
 say "Adoption wiring (CODEOWNERS / branch protection)"
@@ -51,6 +60,45 @@ if have gh; then
   fi
 else
   warn "gh が見つからないためブランチ保護を確認できません（ローカルでは任意。CI では gh 同梱）"
+  warns=1
+fi
+
+# 4) テンプレート由来の統治履歴・サンプル成果物の相続（ADOPTION.md「ステップ9」）
+#    これらは本テンプレートの保守者による意思決定記録・記入例であり、採用組織の監査証跡ではない。
+#    複製したまま残すと、他組織の承認記録が自組織の記録として監査に提示されてしまう。
+inherited=""
+for p in \
+  "governance/decisions/gd-0001-adoption-profile-lite.md" \
+  "governance/decisions/gd-0002-constitution-0-2-0-approval.md" \
+  "governance/decisions/gd-0003-constitution-0-2-1.md" \
+  "governance/decisions/gd-0004-framework-neutral-ui-governance.md" \
+  "governance/risk-register/risk-0001-single-maintainer-separation-of-duties.md" \
+  "specs/001-user-profile-export" \
+  "specs/002-account-deletion"
+do
+  [ -e "$p" ] && inherited="$inherited $p"
+done
+# gp-*（テンプレート自身の改正提案）は件数のみ数える（個別列挙は冗長になるため）
+gp_count="$(find governance/proposals -maxdepth 1 -name 'gp-0*.md' 2>/dev/null | wc -l | tr -d ' ')"
+if [ -n "$inherited" ] || [ "${gp_count:-0}" -gt 0 ]; then
+  warn "テンプレート由来の統治履歴・サンプルが残存（ADOPTION.md「ステップ9」で削除または「自組織の決定ではない」旨を明示）:"
+  [ -n "$inherited" ] && warn "  ${inherited# }"
+  [ "${gp_count:-0}" -gt 0 ] && warn "  governance/proposals/gp-*.md ${gp_count} 件"
+  warn "  → 本テンプレート自身のリポジトリでは意図どおり検出されます（採用時のみ対応が必要）"
+  warns=1
+fi
+
+# 5) 保護対象ブランチ名の不一致（既存リポジトリへの導入で最頻出の配線漏れ）
+#    development-process.md「4.」は保護対象ブランチを main / release/* と定めており、
+#    .github/workflows/*.yml のトリガと scripts の BASE_SHA 既定値（origin/main）もこれに揃えている。
+#    既定ブランチが master / develop 等である既存リポジトリでは、CI が一度も起動しない・
+#    差分の基点が解決できない、といった形で**沈黙して**強制が働かなくなる（fail-open）。
+default_branch="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||' || true)"
+if [ -n "$default_branch" ] && [ "$default_branch" != "main" ]; then
+  warn "既定ブランチが 'main' ではありません（検出: '$default_branch'）。次を実リポジトリのブランチ名へ揃えてください:"
+  warn "  .github/workflows/verify.yml / governance-gate.yml の on: branches、development-process.md「4.」、"
+  warn "  scripts/checks/pr_governance.sh と scripts/check_diff_size.py の BASE_SHA 既定値（origin/main）"
+  warn "  （ADOPTION-EXISTING.md「前提の読み替え」）"
   warns=1
 fi
 
