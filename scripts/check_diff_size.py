@@ -69,20 +69,23 @@ from waivers import find_active_waiver  # noqa: E402  (gate-linked waiver の照
 TARGET_CHECK_ID = {"A": "diff-size.class-a", "B": "diff-size.class-b"}
 
 # --- パス分類（scripts/checks/pr_governance.sh の $gov / $ab を概念的に移植。独自発明ではない） ---
-# GOV_RE: 統治・強制機構の中核（development-process.md「1.」対象パス表の Class A 行の近似）。
-# AB_RE : Class A ∪ B の近似（同表の Class A 行 + architecture/・adr/ を追加）。
-# 既知の限界: 両者とも development-process.md「1.」の全項目（CODEX.md/OPENHANDS.md/TAKT.md/
-# agents/ 等）を網羅していない（pr_governance.sh 自身が既に持つ近似をそのまま引き継いだため）。
+# GOV_RE: 統治・強制機構の中核（development-process.md「1.」対象パス表の Class A 行と対応）。
+# AB_RE : Class A ∪ B（同表の Class A 行 + architecture/・adr/ を追加）。
+# 2026-08-24: 従来ここには「development-process.md「1.」の全項目（CODEX.md/OPENHANDS.md/
+# TAKT.md/agents/ 等）を網羅していない」という既知の限界があり、これらのみを変更する PR が
+# Class A と判定されず差分規模上限の対象外になっていた（pr_governance.sh 側の同一欠落と対に
+# なっていた fail-open）。対象パス表を正本として両者を揃え、限界を解消した。
+# 以後、本 regex と pr_governance.sh の $gov / $ab は同一集合を表す（乖離は selftest.sh が検出）。
 GOV_RE = re.compile(
     r"^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|"
-    r"\.specify/memory/constitution\.md|governance/|standards/|\.github/|"
-    r"AGENTS\.md|CLAUDE\.md|GEMINI\.md|SKILLS\.md|Taskfile\.yml|lefthook\.yml|"
-    r"\.mise\.toml|scripts/)"
+    r"\.specify/memory/constitution\.md|development-process\.md|governance/|standards/|\.github/|"
+    r"AGENTS\.md|CLAUDE\.md|GEMINI\.md|CODEX\.md|OPENHANDS\.md|TAKT\.md|agents/|"
+    r"SKILLS\.md|Taskfile\.yml|lefthook\.yml|\.mise\.toml|scripts/)"
 )
 AB_RE = re.compile(
-    r"^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|governance/|"
-    r"standards/|\.github/|AGENTS\.md|CLAUDE\.md|GEMINI\.md|SKILLS\.md|"
-    r"architecture/|adr/|Taskfile\.yml|lefthook\.yml|\.mise\.toml|scripts/)"
+    r"^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|development-process\.md|governance/|"
+    r"standards/|\.github/|AGENTS\.md|CLAUDE\.md|GEMINI\.md|CODEX\.md|OPENHANDS\.md|TAKT\.md|"
+    r"agents/|SKILLS\.md|architecture/|adr/|Taskfile\.yml|lefthook\.yml|\.mise\.toml|scripts/)"
 )
 
 # --- 除外リスト（生成物・ロックファイル。WU08-02）。実例のみ列挙し仮説上のパターンは含めない。 ---

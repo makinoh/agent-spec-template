@@ -51,8 +51,20 @@ base="${BASE_SHA:-origin/main}"; head="${HEAD_SHA:-HEAD}"
 changed="$(git diff --name-only "$base" "$head" 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null || true)"
 [ -n "$changed" ] || { warn "no diff detected — skipping"; ok "PR governance"; exit 0; }
 
-gov='^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|\.specify/memory/constitution\.md|governance/|standards/|\.github/|AGENTS\.md|CLAUDE\.md|GEMINI\.md|SKILLS\.md|Taskfile\.yml|lefthook\.yml|\.mise\.toml|scripts/)'
-ab='^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|governance/|standards/|\.github/|AGENTS\.md|CLAUDE\.md|GEMINI\.md|SKILLS\.md|architecture/|adr/|Taskfile\.yml|lefthook\.yml|\.mise\.toml|scripts/)'
+# --- パス分類（development-process.md「1.」対象パス表の Class A 行と 1:1 で対応させる） ---
+# $gov: 統治・強制機構の中核。$ab: Class A ∪ B。
+#
+# 2026-08-24 の是正（外部レビュー指摘・再現確認済み）: 従来この regex は対象パス表のうち
+# CODEX.md / OPENHANDS.md / TAKT.md / agents/** / development-process.md を欠いており、
+# **これらだけを変更する PR は permission-impact ラベルも ADR 参照も要求されずに素通りしていた**
+# （CODEX.md 単独変更で exit 0 になることを隔離環境で再現）。前三者は AI エージェントの実行指示
+# ファイルであり、constitution.md「6. 権限・統治への変更」が権限昇格防止の対象として名指ししている
+# 場所である＝AI が自らの自律範囲を無審査で書き換えられる経路になっていた。
+# development-process.md は変更クラス判定基準・承認者定足数・差分規模上限の正本でありながら、
+# 対象パス表にも CODEOWNERS にも本 regex にも登録が無く、どの保護機構にも属していなかった。
+# 対象パス表を唯一の正本とし、ここはその機械的写像である（乖離は selftest.sh の陰性テストで検出する）。
+gov='^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|\.specify/memory/constitution\.md|development-process\.md|governance/|standards/|\.github/|AGENTS\.md|CLAUDE\.md|GEMINI\.md|CODEX\.md|OPENHANDS\.md|TAKT\.md|agents/|SKILLS\.md|Taskfile\.yml|lefthook\.yml|\.mise\.toml|scripts/)'
+ab='^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|development-process\.md|governance/|standards/|\.github/|AGENTS\.md|CLAUDE\.md|GEMINI\.md|CODEX\.md|OPENHANDS\.md|TAKT\.md|agents/|SKILLS\.md|architecture/|adr/|Taskfile\.yml|lefthook\.yml|\.mise\.toml|scripts/)'
 
 if echo "$changed" | grep -Eq "$gov"; then
   if [ "${CI:-}" = "true" ]; then

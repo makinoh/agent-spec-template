@@ -156,6 +156,21 @@ run_case "pr_governance.sh: class:A PR の可逆性欄が未記載（テンプ�
   'printf "dummy change\n" >> README.md && git add -A && git -c user.email=s@l -c user.name=s commit -qm dummy_reversibility_case' \
   'CI=true PR_LABELS="class:A" PR_BODY="$pr_body_reversibility_placeholder" bash scripts/checks/pr_governance.sh'
 
+# ---------- 統治パス分類の網羅性（development-process.md「1.」対象パス表 ↔ $gov / $ab の同期） ----------
+# 2026-08-24 の外部レビューで、対象パス表に Class A として明記されている
+#   CODEX.md / OPENHANDS.md / TAKT.md / agents/** / development-process.md
+# が pr_governance.sh の $gov / $ab と check_diff_size.py の GOV_RE / AB_RE の**双方から欠落**しており、
+# これらだけを変更する PR が permission-impact ラベルも ADR 参照も要求されずに exit 0 で通ることが
+# 隔離環境で再現された（AI エージェント指示ファイルを無審査で書き換えられる経路）。
+# 表と実装の乖離は「赤くならない」ため最も気づきにくい。ここで各パスを 1 件ずつ陰性テストし、
+# 将来の追加・改名で再び乖離したら selftest が落ちるようにする。
+# 注: 検査は git diff ベースのため、各ケースは対象ファイルのみを変更したコミットを作る。
+for gov_path in CODEX.md OPENHANDS.md TAKT.md agents/README.md development-process.md; do
+  run_case "pr_governance.sh: 統治パス '$gov_path' の変更に permission-impact ラベルが無い（対象パス表との同期）" "" \
+    "printf '\n<!-- selftest probe -->\n' >> '$gov_path' && git add -A && git -c user.email=s@l -c user.name=s commit -qm 'selftest: gov path probe'" \
+    'CI=true PR_AUTHOR=human PR_LABELS="" PR_BODY="" bash scripts/checks/pr_governance.sh'
+done
+
 run_case "markdown.sh: Markdown Lint 違反" "markdownlint-cli2" \
   "printf '\n\`\`\`\nno language\n\`\`\`\n' >> glossary.md" \
   'bash scripts/checks/markdown.sh'
@@ -288,6 +303,14 @@ run_case "diff-size.sh: 閾値設定時に上限超過を検出する（syntheti
   'yes "diff-size selftest synthetic line" | head -50 >> governance/waivers/README.md &&
    git add -A >/dev/null 2>&1 &&
    git -c user.email=s@l -c user.name=s commit -qm "selftest: synthetic diff-size violation" >/dev/null 2>&1' \
+  'DIFF_SIZE_LIMIT_CLASS_A=10 bash scripts/checks/diff-size.sh'
+
+# check_diff_size.py の GOV_RE も対象パス表と同期していること（pr_governance.sh 側と対で欠落していた）。
+# エージェント指示ファイルが Class A と分類されなければ差分規模上限が一切適用されない。
+run_case "diff-size.sh: エージェント指示ファイル（CODEX.md）を Class A として分類し上限を適用する" "python3" \
+  'yes "diff-size selftest synthetic line" | head -50 >> CODEX.md &&
+   git add -A >/dev/null 2>&1 &&
+   git -c user.email=s@l -c user.name=s commit -qm "selftest: agent instruction file diff" >/dev/null 2>&1' \
   'DIFF_SIZE_LIMIT_CLASS_A=10 bash scripts/checks/diff-size.sh'
 
 # ---------- diff-size.sh の gate-linked waiver（既存リポジトリ導入で使う逃げ道。scripts/waivers.py） ----------

@@ -17,7 +17,7 @@
 
 | 対象パス / 変更種別 | クラス | 補足 |
 | --- | --- | --- |
-| `constitution.md`、`.specify/memory/constitution.md`、`governance/**`、`standards/**`、`.github/**`（CI/CD・CODEOWNERS・workflows・PRテンプレート）、`AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、`CODEX.md`、`OPENHANDS.md`、`TAKT.md`、`agents/**`、`SKILLS.md`、`adr-rules.md`、`adr-template.md`、`adr-template-minimal.md`、`Taskfile.yml`、`lefthook.yml`、`.mise.toml`、`scripts/**`（`scripts/dev/**` を除く） | **A** | 統治・強制機構（エージェント指示ファイル・品質ゲート実体を含む）。CODEOWNERS＋権限影響ラベル必須 |
+| `constitution.md`、`.specify/memory/constitution.md`、`development-process.md`（本書）、`governance/**`、`standards/**`、`.github/**`（CI/CD・CODEOWNERS・workflows・PRテンプレート）、`AGENTS.md`、`CLAUDE.md`、`GEMINI.md`、`CODEX.md`、`OPENHANDS.md`、`TAKT.md`、`agents/**`、`SKILLS.md`、`adr-rules.md`、`adr-template.md`、`adr-template-minimal.md`、`Taskfile.yml`、`lefthook.yml`、`.mise.toml`、`scripts/**`（`scripts/dev/**` を除く） | **A** | 統治・強制機構（エージェント指示ファイル・品質ゲート実体を含む）。CODEOWNERS＋権限影響ラベル必須 |
 | ADR の Status を `accepted` へ遷移 | **A** | 承認は人間必須（憲章「6.」） |
 | 認証・認可・秘密情報、DBスキーマ／マイグレーション、インフラ構成、リリース、本番データ操作・不可逆操作、依存の新規追加・メジャー更新・ライセンス変更 | **A** | |
 | `architecture/**`、公開API/公開インターフェースの変更（破壊的・後方互換追加とも）、フレームワーク／DB選定、フォルダ構成変更 | **B** | 原則 ADR 化（adr-rules.md） |
@@ -26,6 +26,8 @@
 | `knowledge/**`、`memory/**`、`metrics/**`、`glossary.md`、`**/*.md`（統治文書を除く）、コメント、フォーマット、`README.md` | **D** | 品質ゲート全通過時に自己反映可（standards/ai-governance.md の許可条件下）。`knowledge/**`・`memory/**` が他文書の依拠する規範的知識となった場合はレビューアが昇格先のクラスへ引き上げる |
 
 > **dependabot による GitHub Actions の版数更新**: `.github/workflows/**` の `uses:` 行のみを書き換える dependabot の PR は、**Class A のまま**（`permission-impact` ラベル ＋ CODEOWNERS 承認は必須）ですが、「ADR 参照または ADR不要理由」の**記載要件のみ**を免除します（[ADR-0006](adr/adr-0006-dependabot-governance-carveout.md)）。本表が依存のパッチ／マイナー更新を Class C（ADR 原則不要）としていることとの整合であり、人間レビューは免除しません。免除条件（作成者・パス・差分行の三重）は `scripts/checks/pr_governance.sh` が機械判定します。
+>
+> **本表と機械分類の同期（2026-08-24 追加）**: 本表は `scripts/checks/pr_governance.sh` の `$gov` / `$ab` と `scripts/check_diff_size.py` の `GOV_RE` / `AB_RE` の**正本**です。両者は本表の Class A 行の機械的写像であり、乖離は fail-open（統治文書を変更しても permission-impact ラベル・ADR 参照・差分規模上限が要求されない状態）になります。実際に 2026-08-24 まで `CODEX.md` / `OPENHANDS.md` / `TAKT.md` / `agents/**` / `development-process.md` が両実装から欠落しており、これらのみを変更する PR がすべての統治ゲートを素通りしていました（外部レビュー指摘・再現確認済み）。本表に行を追加・変更する際は、両実装と `.github/CODEOWNERS`、および `scripts/checks/selftest.sh` の対応する陰性テストを同時に更新してください（MUST）。
 >
 > 公開インターフェースの識別基準は standards/api-standards.md または architecture/* を正本とします（未整備時は Class B 側に倒す）。
 > `scripts/**` は既定で Class A（品質ゲートの実体）。**ゲート・統治に関与しない**開発補助のみ `scripts/dev/**` として Class C に置けます（過剰ゲートの回避）。ゲート・CI・統治に少しでも関与するスクリプトは `scripts/dev/` に置かず Class A とします（強制を弱めない。憲章「自己修正ループの防止」）。

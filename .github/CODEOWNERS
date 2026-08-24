@@ -16,6 +16,10 @@
 /adr-rules.md                         @org/governance-approvers
 /adr-template.md                      @org/governance-approvers
 /adr-template-minimal.md              @org/governance-approvers
+# development-process.md は変更クラス判定基準・承認者定足数・差分規模上限の正本。
+# 2026-08-24 まで本ファイルにも対象パス表にも pr_governance.sh の regex にも登録が無く、
+# どの保護機構にも属していなかった（外部レビュー指摘）。ここを緩めれば全 Class 判定が緩む。
+/development-process.md               @org/governance-approvers
 
 # --- 統治・強制機構（標準・CI/CD・エージェント指示）: 統治＋セキュリティ ---
 /standards/**                         @org/governance-approvers @org/security
