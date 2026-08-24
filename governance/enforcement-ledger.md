@@ -79,7 +79,7 @@
 
 ### [0.15.0] - 2026-08-24（Proposed）
 
-正本記録: 既存プロジェクトへの導入（brownfield）経路の新設（[ADOPTION-EXISTING.md](../ADOPTION-EXISTING.md)）
+正本記録: 既存プロジェクトへの導入（brownfield）経路の整備。手順書は後続 PR で `ADOPTION-EXISTING.md` として追加する（本エントリ時点では未追加のためリンクしない）
 
 **Changed（台帳の行・強制手段・整備状況の変更なし。既存ゲートの適用範囲の明確化）**
 
@@ -97,7 +97,7 @@
 
 ### [0.14.0] - 2026-08-24（Proposed）
 
-正本記録: 既存プロジェクトへの導入（brownfield）経路の新設（[ADOPTION-EXISTING.md](../ADOPTION-EXISTING.md)）
+正本記録: 既存プロジェクトへの導入（brownfield）経路の整備。手順書は後続 PR で `ADOPTION-EXISTING.md` として追加する（本エントリ時点では未追加のためリンクしない）
 
 **Fixed（統治文書と実装の乖離。#46 の記述を更新）**
 
