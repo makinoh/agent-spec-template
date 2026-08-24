@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build / type-check / test.
+# Lint / build / type-check / test.
 #
 # 解決順序（sast.sh / arch-boundaries.sh と同一の「ツールを固定しない」設計）:
 #   1. 環境変数 BUILD_CMD（例: "make ci" / "pnpm -r test" / "tox -e py312"）
@@ -22,7 +22,7 @@
 # 何を実行したかは常に出力し、黙って別物を実行したように見えないようにする。
 set -eu
 . scripts/lib/common.sh
-say "Build / type / test"
+say "Lint / build / type / test"
 
 BUILD_TOOL_CMD="${BUILD_CMD:-}"
 if [ -z "$BUILD_TOOL_CMD" ] && [ -x "scripts/dev/build-tool.sh" ]; then
@@ -49,6 +49,50 @@ else
     if have pytest; then pytest; else warn "pytest not configured"; fi
   fi
   [ "$ran" -eq 1 ] || warn "no code stack detected — build/test skipped (activates when a manifest is added)"
+fi
+
+# --- フォーマッタ／リンタ／型チェック（強制台帳 #56 / standards/coding-standards.md「1.」） ---
+#
+# 背景（2026-08-24 新設。外部レビュー指摘）: coding-standards.md「1.」は
+# 「スタックごとにフォーマッタ／リンタを採用し CI で強制するべき（SHOULD）」と委譲しているが、
+# 本テンプレートは lint の雛形（.eslintrc / ruff.toml / .golangci.yml 等）を一切同梱しておらず、
+# 本スクリプトにも lint の実行経路が無かった（`npm run typecheck --if-present` は採用者が
+# スクリプトを定義しなければ何も起きない）。さらにこの配線漏れは ADOPTION.md「ステップ 8」の
+# 未配線ゲート一覧にも強制台帳にも登録されておらず、**誠実な開示リストの唯一の穴**だった。
+# 命名規則・エラー処理の一貫性はレビュー負荷に直結するため、SAST（#40）・アーキ境界（#52）と
+# 同じ「休眠/活性化＋差し替え可能なツール解決」で配線できるようにする。
+#
+# なぜ既定のリンタ設定を同梱しないか: 採用スタックにより適切なツールも規則も異なり、
+# 統治文書に特定製品名を書かない方針（security-standards.md「8.」と同じ NG-05）に従う。
+# 解決順序:
+#   1. 環境変数 LINT_CMD（例: "npm run lint" / "ruff check . && ruff format --check ." / "golangci-lint run"）
+#   2. 実行可能な scripts/dev/lint-tool.sh
+# どちらも無く、かつコードスタックを検出した場合は「不合格」ではなく「未配線」である。
+# サイレントに合格させない（憲章「8. ブートストラップ規定」）。
+LINT_TOOL_CMD="${LINT_CMD:-}"
+if [ -z "$LINT_TOOL_CMD" ] && [ -x "scripts/dev/lint-tool.sh" ]; then
+  LINT_TOOL_CMD="scripts/dev/lint-tool.sh"
+fi
+
+lint_stack=0
+if [ -f package.json ]; then lint_stack=1; fi
+if [ -f go.mod ]; then lint_stack=1; fi
+if [ -f pom.xml ]; then lint_stack=1; fi
+if [ -f build.gradle ] || [ -f build.gradle.kts ]; then lint_stack=1; fi
+if [ -f pyproject.toml ] || [ -f requirements.txt ] || [ -f setup.py ]; then lint_stack=1; fi
+
+if [ -n "$LINT_TOOL_CMD" ]; then
+  say "running configured lint command: $LINT_TOOL_CMD"
+  # shellcheck disable=SC2086
+  eval "$LINT_TOOL_CMD"
+  ok "lint"
+elif [ "$lint_stack" -eq 1 ]; then
+  warn "code stack detected but no linter/formatter is wired yet."
+  warn "set \$LINT_CMD, or add an executable scripts/dev/lint-tool.sh, to activate style/type enforcement."
+  warn "this is a tracked bootstrap gap — see governance/enforcement-ledger.md #56 and"
+  warn "standards/coding-standards.md「1.」（ADOPTION.md「ステップ 8」も参照）."
+else
+  warn "no code stack detected — lint skipped (dormant; activates when a manifest is added)"
 fi
 
 # TODO(adoption): カバレッジ閾値の強制は未実装（強制台帳 #15b / testing-standards.md「1.」）。
