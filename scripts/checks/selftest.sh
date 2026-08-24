@@ -290,6 +290,50 @@ run_case "diff-size.sh: 閾値設定時に上限超過を検出する（syntheti
    git -c user.email=s@l -c user.name=s commit -qm "selftest: synthetic diff-size violation" >/dev/null 2>&1' \
   'DIFF_SIZE_LIMIT_CLASS_A=10 bash scripts/checks/diff-size.sh'
 
+# ---------- diff-size.sh の gate-linked waiver（既存リポジトリ導入で使う逃げ道。scripts/waivers.py） ----------
+# 統治文書（development-process.md「5.」／台帳 #46）が案内する「時限的な適用除外」が、
+# (1) 有効な waiver でのみ通過し、(2) 失効・プレースホルダ・Class 違いでは通過しないことを両方向で確認する。
+# governance-metrics 側と同じ規約を共有しているため、片側だけ壊れる回帰をここで捕まえる。
+mk_diff_violation='yes "diff-size selftest synthetic line" | head -50 >> governance/waivers/README.md'
+mk_waiver() { # $1=target_check $2=expires
+  printf -- "---\nid: WV-9999\ntarget_check: %s\nstatus: Active\nexpires: %s\n---\n\n# selftest waiver (negative-test fixture only)\n" \
+    "$1" "$2" > governance/waivers/wv-9999-selftest-diff-size.md
+}
+commit_all='git add -A >/dev/null 2>&1 && git -c user.email=s@l -c user.name=s commit -qm "selftest: diff-size waiver fixture" >/dev/null 2>&1'
+
+run_case "diff-size.sh: 失効した waiver は上限超過を正当化しない（無条件バイパスの禁止）" "python3" \
+  "$mk_diff_violation && mk_waiver diff-size.class-a 2020-01-01 && $commit_all" \
+  'DIFF_SIZE_LIMIT_CLASS_A=10 bash scripts/checks/diff-size.sh'
+
+run_case "diff-size.sh: expires がプレースホルダ（TBD-HUMAN）の waiver は無効" "python3" \
+  "$mk_diff_violation && mk_waiver diff-size.class-a TBD-HUMAN && $commit_all" \
+  'DIFF_SIZE_LIMIT_CLASS_A=10 bash scripts/checks/diff-size.sh'
+
+run_case "diff-size.sh: Class B 向け waiver は Class A の超過を通過させない（対象ゲートの取り違え防止）" "python3" \
+  "$mk_diff_violation && mk_waiver diff-size.class-b 2099-01-01 && $commit_all" \
+  'DIFF_SIZE_LIMIT_CLASS_A=10 bash scripts/checks/diff-size.sh'
+
+# 陽性方向: 有効な waiver では通過すること（逃げ道が実在することの確認。ここが落ちると
+# 統治文書の案内どおりに waiver を書いても PR が通らず、採用者はゲートを外す方へ流れる）。
+if command -v python3 >/dev/null 2>&1; then
+  restore
+  eval "$mk_diff_violation" >/dev/null 2>&1 || true
+  mk_waiver diff-size.class-a 2099-01-01
+  eval "$commit_all" || true
+  set +e; DIFF_SIZE_LIMIT_CLASS_A=10 bash scripts/checks/diff-size.sh >/dev/null 2>&1; rc_waiver_ok=$?; set -e
+  restore
+  if [ "$rc_waiver_ok" -eq 0 ]; then
+    printf '    [検出] diff-size.sh: 有効な waiver は上限超過を許容して exit 0（案内された逃げ道が実在する）\n'
+    pass=$((pass + 1))
+  else
+    err "見逃し: diff-size.sh が有効な waiver を認識しなかった（exit=$rc_waiver_ok）— 統治文書の案内と実装が乖離している"
+    fail=$((fail + 1))
+  fi
+else
+  warn "skip: diff-size.sh の waiver 陽性確認（python3 が無いため判定できない）"
+  skipped=$((skipped + 1))
+fi
+
 # 対象外の明示（黙って落とさない）
 warn "対象外: links.sh（lychee・ネットワーク依存）／deps.sh（trivy・脆弱性DB依存）／視覚回帰（ブラウザ必須）"
 
