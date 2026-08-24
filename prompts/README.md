@@ -36,7 +36,7 @@ draft → active → deprecated（→ superseded_by）
 - 本番の個人データ・顧客機密・秘密情報をプロンプト例に含めてはなりません（MUST NOT。[standards/security-standards.md](../standards/security-standards.md)「2.」）。合成データを用います。
 - ツール／外部送信を伴うプロンプトは [standards/ai-governance.md](../standards/ai-governance.md)「6. ツール／MCP 実行境界」に従います。間接的プロンプトインジェクション（外部文書・ツール出力経由）を脅威として扱い、[governance/risk-register/](../governance/risk-register/) に登録します（SHOULD）。
 - 変更クラス: `prompts/**` は Class C（人間承認必須・挙動に影響。[development-process.md](../development-process.md)「1.」）。
-- プロンプトの改廃は `last_review` を更新し、重要なものは [evaluations/](evaluations/) に回帰テストを置きます（SHOULD）。検査は [scripts/checks/prompts.sh](../scripts/checks/prompts.sh) が `status` / `owner` / `last_review` の有無を機械点検します（資産追加時に活性化）。
+- プロンプトの改廃は `last_review` を更新し、重要なものは [evaluations/](evaluations/) に回帰テストを置きます（SHOULD）。検査は [scripts/checks/prompts.sh](../scripts/checks/prompts.sh) が `status` / `owner` / `last_review` の**有無・値の非空・`status` の語彙・`last_review` の日付妥当性（未来日を含む）**を機械点検します（資産追加時に活性化）。2026-08-24 まではキーの存在しか見ておらず、値が空でも `last_review` が 1999 年でも合格していました（外部レビュー指摘）。**陳腐化の上限日数は採用組織が確定します（`TBD-HUMAN`）**——環境変数 `PROMPT_REVIEW_MAX_AGE_DAYS`（整数）を設定した場合のみ超過を hard-fail し、未設定時は最古の経過日数を表示するに留めます（強制台帳 #21）。
 
 ## 収録資産
 

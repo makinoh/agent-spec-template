@@ -171,6 +171,33 @@ for gov_path in CODEX.md OPENHANDS.md TAKT.md agents/README.md development-proce
     'CI=true PR_AUTHOR=human PR_LABELS="" PR_BODY="" bash scripts/checks/pr_governance.sh'
 done
 
+# ---------- prompts.sh（台帳 #21）: キーの存在しか見ていなかった旧実装の回帰防止 ----------
+# 2026-08-24 の外部レビュー指摘: 旧実装は行が「キー:」で始まるかだけを検査しており、値を空にしても
+# status を管理語彙の外にしても last_review を 1999 年にしても合格した（再現確認済み）。
+# 「陳腐化検知に用いる」と自ら書いた項目が日付として解釈すらされていなかった。
+PROMPT_FIXTURE=prompts/workflows/ui-01-claude-design.md
+
+run_case "prompts.sh: front-matter の値が空（キーの存在だけでは通さない）" "python3" \
+  "sed -i 's/^owner: .*/owner:/' $PROMPT_FIXTURE" \
+  'bash scripts/checks/prompts.sh'
+
+run_case "prompts.sh: status が管理語彙の外" "python3" \
+  "sed -i 's/^status: .*/status: bogus/' $PROMPT_FIXTURE" \
+  'bash scripts/checks/prompts.sh'
+
+run_case "prompts.sh: last_review が日付として解釈できない" "python3" \
+  "sed -i 's/^last_review: .*/last_review: not-a-date/' $PROMPT_FIXTURE" \
+  'bash scripts/checks/prompts.sh'
+
+run_case "prompts.sh: last_review が未来日" "python3" \
+  "sed -i 's/^last_review: .*/last_review: 2999-01-01/' $PROMPT_FIXTURE" \
+  'bash scripts/checks/prompts.sh'
+
+# 陳腐化の上限は既定で未設定（TBD-HUMAN）のため、diff-size と同じく selftest 内で閾値を注入し、
+# 比較ロジック自体が動くことを確認する（実運用の値は採用組織が確定する）。
+run_case "prompts.sh: 陳腐化の上限を設定したとき経過超過を検出する" "python3" \
+  ':' \
+  'PROMPT_REVIEW_MAX_AGE_DAYS=1 bash scripts/checks/prompts.sh'
 run_case "markdown.sh: Markdown Lint 違反" "markdownlint-cli2" \
   "printf '\n\`\`\`\nno language\n\`\`\`\n' >> glossary.md" \
   'bash scripts/checks/markdown.sh'
