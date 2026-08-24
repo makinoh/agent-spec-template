@@ -1,7 +1,8 @@
 # AIガバナンス標準（AI Governance Standard）
 
-* Version: 0.2.0（Proposed / ドラフト）
+* Version: 0.3.0（Proposed / ドラフト）
 * Date: 2026-04-01
+* Last amended: 2026-08-24
 * 上位規範: constitution.md（開発憲章）
 
 本書は、AI 運用の詳細方針の正本（SSoT）であり、**憲章（原則）→ 本書（詳細方針）→ AGENTS.md（実行指示）** の中間層です（憲章「2. 文書管理階層」「6.」）。憲章と矛盾する場合は憲章が優先します（MUST）。本書自体は統治・強制機構であり、その変更は Class A です。
@@ -88,7 +89,25 @@ AIエージェントが利用するツール（MCP サーバ・CLI・スクリ�
 * 間接的プロンプトインジェクション（外部文書・ツール出力経由の指示混入）を脅威として扱い、[../governance/risk-register/](../governance/risk-register/) に登録し、ツール出力を無条件に信頼しないべきです（SHOULD）。
 * エージェントの作業記憶 `memory/` は非規範のステージングであり、確定知見は正本（`adr/`・`knowledge/` 等）へ昇格させます（SHOULD）。`memory/` に本番の個人データ・機密を書き込んではなりません（MUST NOT）。
 
-## 8. 改正履歴
+## 8. 外部監査アンカー（参照規範。憲章「2. 文書管理階層」の裾野）
+
+本書「1.〜7.」は本テンプレート固有の実行指示です。これらが業界標準・政府機関の公表文書とどう対応するかを外部の監査者・採用組織が確認できるよう、以下を**情報提供の参照**として記載します（MUST/MUST NOT ではなく SHOULD。本節の追加は既存条項を撤廃・変更しません）。
+
+* **NIST SP 800-218A**（Secure Software Development Practices for Generative AI and Dual-Use Foundation Models: An SSDF Community Profile。2024-07-26 公開、Executive Order 14110 に基づき NIST が策定）: SP 800-218（SSDF）を生成AI・基盤モデル向けに拡張したコミュニティプロファイル。AI モデル開発ライフサイクル全体（データ管理・訓練・評価・展開）に関する実務を追加で規定する。本書「1.」（AI の自律範囲）「4.」（アイデンティティと権限）「6.」（ツール／MCP 実行境界）を採用組織の該当プラクティスへ対応付けたい場合の外部参照として用いるべきです（SHOULD）。対応付け表の作成・維持は本節の対象外（採用組織が必要に応じて作成する）。
+* **CoSAI Risk Map（CoSAI-RM）**（Coalition for Secure AI、OASIS Open Project。Google の SAIF を起源とするコミュニティ運営のリスク分類）: AI 開発ライフサイクルを Data / Infrastructure / Model / Application の4層に分け、各層の資産・リスク・コントロールを Persona（Model Creator / Model Consumer / Application Developer 等）ごとに関連付ける動的なグラフ構造を持つ。MITRE ATLAS・NIST AI RMF への相互参照を含む。standards/security-standards.md「2. AI 入力境界マトリクス」の機密区分判断や、governance/risk-register/ へのリスク登録の粒度を検討する際の外部参照として用いるべきです（SHOULD）。
+* 上記2件はいずれも**規範文書または分類法**であり、機械強制ゲートではありません。本書・constitution.md に強制ルールとして直接組み込む場合は、対応する MUST/MUST NOT を新設し、governance/ の手続き（本書冒頭）に従わなければなりません（MUST）。本節は「参照してよい」を定めるにとどまり、「参照した」ことを義務化しません。
+* **AI 生成コードのセキュアコーディング・ガイダンス資産**（例: CoSAI Project CodeGuard 等、AI コーディングエージェント向けにセキュアコーディング規範をルール化し複数エージェント形式へ変換する OSS フレームワーク）は、standards/security-standards.md「8. 第一者コードの静的解析（SAST）」が担う**事後的検出**（生成されたコードの脆弱性パターン検査）とは異なり、**予防的**（生成時点でのガイダンス注入）に位置づけられ、両者は代替関係ではなく補完関係にあります。採用組織が [SKILLS.md](../SKILLS.md) の枠組みでこの種のガイダンス資産をスキル化するかどうかは、本書「1.」の「AI は起案してよい」範囲内で検討してよく（MAY）、本書は特定製品を指定しません（NG-05 と同趣旨。governance/proposals/gp-0012-external-framework-alignment.md「3.1」）。
+
+---
+
+## 9. 改正履歴
+
+### [0.3.0] - 2026-08-24（Proposed）
+
+正本記録: [governance/proposals/gp-0012-external-framework-alignment.md](../governance/proposals/gp-0012-external-framework-alignment.md)
+
+* 「8. 外部監査アンカー（参照規範）」を新設。外部レビューが提案した層別フレームワーク採用（CoSAI CodeGuard / OSPS Baseline / OPA・Semgrep+Allstar / NIST SP 800-218A / CoSAI-RM）の妥当性検証を受け、NIST SP 800-218A・CoSAI Risk Map を情報提供の参照として追加し、CoSAI Project CodeGuard 等のガイダンス資産は SAST と代替関係でなく補完関係であることを明記した。特定製品を MUST/MUST NOT の対象にはしていない（NG-05 準拠）。
+* **増分の根拠**: 新設節は既存の MUST/MUST NOT を撤廃・変更しない（すべて SHOULD の参照案内）ため MINOR。
 
 ### [0.2.0] - 2026-08-20（Proposed）
 
