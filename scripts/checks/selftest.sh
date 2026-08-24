@@ -407,10 +407,17 @@ fi
 # gitleaks の private-key ルールは `-----BEGIN[ A-Z0-9_-]{0,100}PRIVATE KEY` を照合するため、
 # `%s` を挟んだ本ファイルの記述は照合されない。
 # gitleaks detect は既定で git 履歴を走査するため、注入はコミットまで行う。
+#
+# 拡張子は .txt を用いる（.pem/.key は .gitignore が除外するため、実際には committed 一次確認済み: 2026-08-24）:
+# `.pem` 拡張子で作成した初版は `.gitignore`（`*.pem`/`*.key`）に無視され、`git add -A` が
+# 無言で何もステージせず `git commit` が「nothing to commit」で失敗し、フィクスチャが一度も
+# コミットされないまま gitleaks が「検出なし」を返す false green を引き起こしていた（CI で
+# 再現。mutate の失敗は元々 `>/dev/null 2>&1` で握り潰され、selftest 自体は「見逃し」として
+# 正しく報告していたが原因の特定に至らなかった）。
 run_case "secrets.sh: 秘密情報（秘密鍵ブロック）の混入" "gitleaks" \
-  'printf -- "-----BEGIN %s PRIVATE KEY-----\nMIIBOgIBAAJBAKj34selftestfixtureonlynotarealkey0000000000000000\n-----END %s PRIVATE KEY-----\n" RSA RSA > selftest-secret-fixture.pem &&
-   git add -A >/dev/null 2>&1 &&
-   git -c user.email=s@l -c user.name=s commit -qm "selftest: synthetic secret" >/dev/null 2>&1' \
+  'printf -- "-----BEGIN %s PRIVATE KEY-----\nMIIBOgIBAAJBAKj34selftestfixtureonlynotarealkey0000000000000000\n-----END %s PRIVATE KEY-----\n" RSA RSA > selftest-secret-fixture.txt &&
+   git add -A &&
+   git -c user.email=s@l -c user.name=s commit -qm "selftest: synthetic secret"' \
   'bash scripts/checks/secrets.sh'
 # ---------- adr-immutability.sh（台帳 #8）: Accepted ADR の不変性 ----------
 # 「変更履歴」以外の本文を書き換えた場合に落ちること。base 側で既に accepted である ADR を選ぶ
