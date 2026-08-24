@@ -178,6 +178,33 @@ for gov_path in CODEX.md OPENHANDS.md TAKT.md agents/README.md development-proce
     'CI=true PR_AUTHOR=human PR_LABELS="" PR_BODY="" bash scripts/checks/pr_governance.sh'
 done
 
+# ---------- prompts.sh（台帳 #21）: キーの存在しか見ていなかった旧実装の回帰防止 ----------
+# 2026-08-24 の外部レビュー指摘: 旧実装は行が「キー:」で始まるかだけを検査しており、値を空にしても
+# status を管理語彙の外にしても last_review を 1999 年にしても合格した（再現確認済み）。
+# 「陳腐化検知に用いる」と自ら書いた項目が日付として解釈すらされていなかった。
+PROMPT_FIXTURE=prompts/workflows/ui-01-claude-design.md
+
+run_case "prompts.sh: front-matter の値が空（キーの存在だけでは通さない）" "python3" \
+  "sed -i 's/^owner: .*/owner:/' $PROMPT_FIXTURE" \
+  'bash scripts/checks/prompts.sh'
+
+run_case "prompts.sh: status が管理語彙の外" "python3" \
+  "sed -i 's/^status: .*/status: bogus/' $PROMPT_FIXTURE" \
+  'bash scripts/checks/prompts.sh'
+
+run_case "prompts.sh: last_review が日付として解釈できない" "python3" \
+  "sed -i 's/^last_review: .*/last_review: not-a-date/' $PROMPT_FIXTURE" \
+  'bash scripts/checks/prompts.sh'
+
+run_case "prompts.sh: last_review が未来日" "python3" \
+  "sed -i 's/^last_review: .*/last_review: 2999-01-01/' $PROMPT_FIXTURE" \
+  'bash scripts/checks/prompts.sh'
+
+# 陳腐化の上限は既定で未設定（TBD-HUMAN）のため、diff-size と同じく selftest 内で閾値を注入し、
+# 比較ロジック自体が動くことを確認する（実運用の値は採用組織が確定する）。
+run_case "prompts.sh: 陳腐化の上限を設定したとき経過超過を検出する" "python3" \
+  ':' \
+  'PROMPT_REVIEW_MAX_AGE_DAYS=1 bash scripts/checks/prompts.sh'
 run_case "markdown.sh: Markdown Lint 違反" "markdownlint-cli2" \
   "printf '\n\`\`\`\nno language\n\`\`\`\n' >> glossary.md" \
   'bash scripts/checks/markdown.sh'
@@ -428,6 +455,37 @@ run_case "adr-immutability.sh: Accepted ADR の本文（変更履歴以外）の
    git add -A >/dev/null 2>&1 &&
    git -c user.email=s@l -c user.name=s commit -qm "selftest: accepted ADR mutation" >/dev/null 2>&1' \
   'BASE_SHA=HEAD~1 bash scripts/checks/adr-immutability.sh'
+# ---------- build.sh の lint 配線（台帳 #56。休眠/活性化とツール解決） ----------
+# lint は本テンプレートに実行経路そのものが無かった（外部レビュー指摘）。#40・#52・#55 と同型に、
+# 「実リンタは未配線でも、活性化検出とツール解決は正しく動く」ことを担保する。
+# 注: BUILD_CMD を no-op に固定し、スタック自動検出（npm ci 等）が走らないようにする。
+restore
+printf '{"name":"selftest","private":true}\n' > package.json
+set +e; out_lint_gap="$(BUILD_CMD=true bash scripts/checks/build.sh 2>&1)"; rc_lint_gap=$?; set -e
+restore
+if [ "$rc_lint_gap" -eq 0 ] && printf '%s' "$out_lint_gap" | grep -q "no linter/formatter is wired yet"; then
+  printf '    [検出] build.sh: コードスタック検出時に lint 未配線を警告して exit 0（黙って緑にしない）\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: build.sh の lint 未配線警告が出ない（exit=$rc_lint_gap）— 整備済みに見えて何も検査しない状態"
+  fail=$((fail + 1))
+fi
+
+run_case "build.sh: 配線されたリンタの失敗を握り潰さない" "" \
+  'printf "{\"name\":\"selftest\",\"private\":true}\n" > package.json' \
+  'BUILD_CMD=true LINT_CMD="exit 5" bash scripts/checks/build.sh'
+
+restore
+printf '{"name":"selftest","private":true}\n' > package.json
+set +e; BUILD_CMD=true LINT_CMD="true" bash scripts/checks/build.sh >/dev/null 2>&1; rc_lint_ok=$?; set -e
+restore
+if [ "$rc_lint_ok" -eq 0 ]; then
+  printf '    [検出] build.sh: リンタ成功時に過検知しない（陽性対照）\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: build.sh がリンタ成功時に落ちた（exit=$rc_lint_ok）— 偽陽性はゲート不信の原因になる"
+  fail=$((fail + 1))
+fi
 # 対象外の明示（黙って落とさない）
 warn "対象外: links.sh（lychee・ネットワーク依存）／deps.sh の脆弱性スキャン部分（trivy・脆弱性DB依存。ライセンス部分は検査済み）／視覚回帰（ブラウザ必須）／build.sh・deps-audit.sh（採用スタックまたは外部 API に依存し、本テンプレート単体では違反を注入できない）／adoption.sh（助言専用で verify を失敗させない設計のため陰性テストの対象にならない。設計上の除外）"
 
