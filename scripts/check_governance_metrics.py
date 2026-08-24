@@ -47,7 +47,9 @@ CI からは呼ばれない）。
 
 governance/waivers/*.md のうち、フロントマターが次をすべて満たすものを
 「本チェック向けの有効な waiver」とみなす（governance/waivers/README.md
-「機械可読な紐付け」節を参照。詳細規約はそちらを正本とする）。
+「機械可読な紐付け」節を参照。詳細規約はそちらを正本とする）。照合ロジックそのものは
+scripts/waivers.py へ集約した（check_diff_size.py と共有する。規約の解釈が2箇所へ
+分岐することを防ぐ。SSoT）。
 
     target_check: governance-metrics.mechanized-rate   （本チェックの固定識別子）
     status: Active                                      （大小文字を区別しない）
@@ -74,11 +76,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
 SNAPSHOT = ROOT / "metrics" / "governance-health-snapshot.json"
-WAIVERS_DIR = ROOT / "governance" / "waivers"
 
 sys.path.insert(0, str(SCRIPTS))
 from check_enforcement_ledger import DATE_RE, GATE_BOOTSTRAP, load_rows  # noqa: E402  (WU-02 のパーサ/正規表現を再利用)
-from generate_adr_index import parse_frontmatter  # noqa: E402  (既存のフロントマター簡易パーサを再利用)
+from waivers import find_active_waiver  # noqa: E402  (gate-linked waiver の照合は scripts/waivers.py が正本)
 
 MECH_TOKENS = ("構造的強制", "機械強制")
 TARGET_CHECK_ID = "governance-metrics.mechanized-rate"
@@ -129,28 +130,6 @@ def write_snapshot(metrics: dict) -> None:
     print(f"✓ wrote baseline: {metrics['mechanized_norms']}/{metrics['total_norms']} → {SNAPSHOT}")
 
 
-def find_active_waiver(today: str) -> str | None:
-    if not WAIVERS_DIR.exists():
-        return None
-    for f in sorted(WAIVERS_DIR.glob("*.md")):
-        if f.name == "README.md":
-            continue
-        fm = parse_frontmatter(f.read_text(encoding="utf-8"))
-        if not fm:
-            continue
-        if str(fm.get("target_check", "")).strip() != TARGET_CHECK_ID:
-            continue
-        if str(fm.get("status", "")).strip().lower() != "active":
-            continue
-        expires = str(fm.get("expires", "")).strip()
-        if not DATE_RE.match(expires):
-            continue  # プレースホルダ・空欄は無効（無期限バイパスの防止）
-        if expires < today:
-            continue  # 失効済み
-        return f.name
-    return None
-
-
 def main() -> int:
     if "--write-baseline" in sys.argv[1:]:
         write_snapshot(compute_metrics())
@@ -184,7 +163,7 @@ def main() -> int:
         return 0
 
     today = datetime.date.today().isoformat()
-    waiver = find_active_waiver(today)
+    waiver = find_active_waiver(TARGET_CHECK_ID, today)
     if waiver:
         print(
             f"⚠ 機械強制率が baseline を下回っていますが、有効な waiver を検出しました: "
