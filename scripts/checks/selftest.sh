@@ -388,8 +388,34 @@ else
   err "見逃し: deps.sh がライセンススキャナ成功時に落ちた（exit=$rc_lic_ok）— 偽陽性はゲート不信の原因になる"
   fail=$((fail + 1))
 fi
+# ---------- secrets.sh（台帳 #1）: 最も優先度の高い MUST NOT に陰性テストが無かった ----------
+# 2026-08-24 の外部レビュー指摘: #29（機械強制と定義したルールは違反を検出できなければならない）自体に
+# 適用漏れがあり、`secrets.sh` と `adr-immutability.sh` は陰性テストが無いうえ「対象外」の開示にも
+# 含まれていなかった。除外理由として挙げていた「ネットワーク依存」は gitleaks には当てはまらない
+# （正規表現ベースでオフライン動作する）ため、技術的制約ではなく単なる漏れだった。
+#
+# フィクスチャは実行時に組み立てる: 秘密の“形”をした文字列を本ファイルへ literal で書くと、
+# 本リポジトリ自身の git 履歴が gitleaks に検出されてしまう（自傷）。printf の書式指定子で
+# 分割し、`-----BEGIN ... PRIVATE KEY-----` が本ファイル内に連続して現れないようにする。
+# gitleaks の private-key ルールは `-----BEGIN[ A-Z0-9_-]{0,100}PRIVATE KEY` を照合するため、
+# `%s` を挟んだ本ファイルの記述は照合されない。
+# gitleaks detect は既定で git 履歴を走査するため、注入はコミットまで行う。
+run_case "secrets.sh: 秘密情報（秘密鍵ブロック）の混入" "gitleaks" \
+  'printf -- "-----BEGIN %s PRIVATE KEY-----\nMIIBOgIBAAJBAKj34selftestfixtureonlynotarealkey0000000000000000\n-----END %s PRIVATE KEY-----\n" RSA RSA > selftest-secret-fixture.pem &&
+   git add -A >/dev/null 2>&1 &&
+   git -c user.email=s@l -c user.name=s commit -qm "selftest: synthetic secret" >/dev/null 2>&1' \
+  'bash scripts/checks/secrets.sh'
+# ---------- adr-immutability.sh（台帳 #8）: Accepted ADR の不変性 ----------
+# 「変更履歴」以外の本文を書き換えた場合に落ちること。base 側で既に accepted である ADR を選ぶ
+# （adr-0005 / adr-0006 が accepted。proposed→accepted 遷移 PR には適用されない仕様のため）。
+# base/head を明示して git 依存を確定させる（BASE_SHA が無いと merge-base origin/main に依存する）。
+run_case "adr-immutability.sh: Accepted ADR の本文（変更履歴以外）の改変" "" \
+  'printf "\n本文の不正な追記（selftest フィクスチャ）。\n" >> adr/adr-0005-css-token-enforcement.md &&
+   git add -A >/dev/null 2>&1 &&
+   git -c user.email=s@l -c user.name=s commit -qm "selftest: accepted ADR mutation" >/dev/null 2>&1' \
+  'BASE_SHA=HEAD~1 bash scripts/checks/adr-immutability.sh'
 # 対象外の明示（黙って落とさない）
-warn "対象外: links.sh（lychee・ネットワーク依存）／deps.sh（trivy・脆弱性DB依存）／視覚回帰（ブラウザ必須）"
+warn "対象外: links.sh（lychee・ネットワーク依存）／deps.sh の脆弱性スキャン部分（trivy・脆弱性DB依存。ライセンス部分は検査済み）／視覚回帰（ブラウザ必須）／build.sh・deps-audit.sh（採用スタックまたは外部 API に依存し、本テンプレート単体では違反を注入できない）／adoption.sh（助言専用で verify を失敗させない設計のため陰性テストの対象にならない。設計上の除外）"
 
 cd "$REPO_ROOT"
 say "自己診断: 検出 ${pass} 件 / 見逃し ${fail} 件 / skip ${skipped} 件"
