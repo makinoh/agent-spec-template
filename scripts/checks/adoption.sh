@@ -102,4 +102,48 @@ if [ -n "$default_branch" ] && [ "$default_branch" != "main" ]; then
   warns=1
 fi
 
+# 6) 未配線ゲートの活性化状況（ADOPTION.md「ステップ 8」の表と 1:1 で対応させる）
+#
+#    2026-08-24 の外部レビュー指摘: ADOPTION.md「ステップ 8」は配線が必要なゲートを表で列挙して
+#    いるのに、本スクリプトはそのどれも点検していなかった（点検対象は CODEOWNERS・マシンID・
+#    ブランチ保護・統治履歴・ブランチ名の 5 系統のみ）。「文書に書いたが点検していない」状態は、
+#    採用者が配線を怠っても誰も気づかないことを意味する。表と点検項目を一致させる。
+#
+#    設計上の注意: 本スクリプトは助言（warn）であり verify を失敗させない（本ファイル冒頭）。
+#    したがってここでの検出は「落とす機構」ではない。ゲート本体（sast.sh / arch-boundaries.sh /
+#    build.sh / deps.sh）も未配線時は警告して exit 0 するため、配線漏れで CI が赤くなることは無い。
+#    これは意図的な設計だが、その帰結は正直に述べる必要がある（憲章「8. ブートストラップ規定」）。
+#
+#    休眠中のゲートについては警告しない（コードの無い採用で無関係な警告を出さないため）。
+#    ゲート本体と同一の検出条件を用いる。
+code_stack=0
+for m in package.json go.mod pom.xml build.gradle build.gradle.kts pyproject.toml requirements.txt setup.py; do
+  [ -f "$m" ] && code_stack=1
+done
+dep_stack=0
+for m in package.json go.mod pom.xml build.gradle build.gradle.kts pyproject.toml requirements.txt setup.py Gemfile Cargo.toml composer.json; do
+  [ -f "$m" ] && dep_stack=1
+done
+
+unwired() { # $1=説明 $2=台帳番号 $3=配線方法
+  warn "未配線: $1（強制台帳 $2）— $3"
+  warns=1
+}
+
+if [ "$code_stack" -eq 1 ]; then
+  [ -n "${SAST_CMD:-}" ] || [ -x "scripts/dev/sast-tool.sh" ] \
+    || unwired "SAST（第一者コードの静的解析）" "#40" "ADR でツールを選定し \$SAST_CMD または scripts/dev/sast-tool.sh を配線する"
+  [ -n "${ARCH_BOUNDARY_CMD:-}" ] || [ -x "scripts/dev/arch-boundary-tool.sh" ] \
+    || unwired "アーキテクチャ境界（循環依存の検出）" "#52" "\$ARCH_BOUNDARY_CMD または scripts/dev/arch-boundary-tool.sh を配線する"
+  [ -n "${LINT_CMD:-}" ] || [ -x "scripts/dev/lint-tool.sh" ] \
+    || unwired "フォーマッタ／リンタ／型チェック" "#56" "\$LINT_CMD または scripts/dev/lint-tool.sh を配線する"
+  [ "${COVERAGE_ENFORCED:-}" = "1" ] \
+    || unwired "カバレッジ閾値" "#15b" "採用スタックで閾値を配線し COVERAGE_ENFORCED=1 を設定する"
+fi
+
+if [ "$dep_stack" -eq 1 ]; then
+  [ -n "${LICENSE_SCAN_CMD:-}" ] || [ -x "scripts/dev/license-tool.sh" ] || [ -n "${LICENSE_FAIL_SEVERITY:-}" ] \
+    || unwired "依存ライセンスの検査" "#55" "許可/禁止ライセンスを ADR で確定し \$LICENSE_SCAN_CMD / scripts/dev/license-tool.sh / \$LICENSE_FAIL_SEVERITY のいずれかを配線する"
+fi
+
 [ "$warns" -eq 0 ] && ok "adoption wiring" || ok "adoption wiring (warnings — 本番運用前に解消)"

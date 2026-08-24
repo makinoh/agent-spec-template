@@ -95,10 +95,17 @@
 | 差分規模の上限（人間ゲートの実質化） | **本テンプレート自身は Class A=200行／Class B=400行で hard-fail 済み**（`governance-gate.yml`）。採用組織はこの値をそのまま使うか、自組織のレビュー体制に合わせて上書きする | 値を変更する場合は `.github/workflows/governance-gate.yml` の env `DIFF_SIZE_LIMIT_CLASS_A` / `DIFF_SIZE_LIMIT_CLASS_B`（整数）を編集する | #46 |
 | ビルド・テストの入口（`build.sh`） | リポジトリ直下でのスタック自動検出（`npm ci` / `pytest` 等）。新規採用向けの既定 | 既存の入口（Makefile / monorepo / tox 等）を持つ場合は環境変数 `BUILD_CMD`（または実行可能な `scripts/dev/build-tool.sh`）を設定する。終了コードはそのまま伝播する（緩和ではない） | #15b |
 | 秘密情報スキャンの baseline（`secrets.sh`） | 全 git 履歴を走査（既定）。既存リポジトリでは過去の混入を必ず検出する | 既存リポジトリでは `.gitleaks-baseline.json` を作成し、**記録された資格情報をすべてローテーション**した上で `governance/exceptions/` に登録する（[ADOPTION-EXISTING.md](ADOPTION-EXISTING.md)「3.1」） | #1 |
+| 依存ライセンスの検査（`deps.sh`） | **2026-08-24 新設**。マニフェスト検出・ツール解決ロジックのみ実装。実ポリシー未配線。従来はテンプレートに一切存在しなかった | 許可/禁止ライセンスと配布形態ごとのコピーレフト受容範囲を ADR で確定し（[standards/security-standards.md](standards/security-standards.md)「6.1」）、環境変数 `LICENSE_SCAN_CMD`（または実行可能な `scripts/dev/license-tool.sh`、または `LICENSE_FAIL_SEVERITY`）を CI に設定 | #55 |
+| フォーマッタ／リンタ／型チェック（`build.sh`） | **2026-08-24 新設**。スタック検出・ツール解決ロジックのみ実装。実リンタ・実設定は未配線。lint 設定の雛形（`.eslintrc` / `ruff.toml` / `.golangci.yml` 等）は同梱していない | 採用スタックのフォーマッタ／リンタ／型チェッカを選定し、環境変数 `LINT_CMD`（または実行可能な `scripts/dev/lint-tool.sh`）を CI に設定（[standards/coding-standards.md](standards/coding-standards.md)「1.1」） | #56 |
+| カバレッジ閾値（`build.sh`） | 未実装。毎回 `coverage gate NOT enforced yet` を警告する | 採用スタックで閾値を配線し（`pytest --cov-fail-under` / `jest coverageThreshold` / `go cover` / JaCoCo 等）、`COVERAGE_ENFORCED=1` を CI に設定 | #15b |
 | ブランチ保護の点検（adoption.sh） | `GITHUB_TOKEN` では管理者読み取り権限が無く「確認不能」warn のまま | 管理者読み取り権限を持つ PAT をシークレット `ADMIN_READ_TOKEN` に設定（`.github/workflows/verify.yml` と `governance-gate.yml` の両方が参照） | #22 |
 | 統治健全性メトリクス（機械強制率の非減少） | 実装済み・稼働中。基準値は `metrics/governance-health-snapshot.json` | 採用後の初回セットアップで `python3 scripts/check_governance_metrics.py --write-baseline` を実行し、自組織の初期状態を基準値として記録し直す（本テンプレート同梱の基準値のままだと自組織の追加変更を正しく評価できない） | #44/#45 |
 | 機械強制率低下の正当な例外（waiver） | 実装済み・稼働中。現時点で該当 waiver は 0 件 | 正当な理由で機械強制率が一時的に下がる場合は [governance/waivers/README.md](governance/waivers/README.md)「機械可読な紐付け」に従って waiver を発行する（無期限は禁止） | #44/#45 |
 | 憲章の批准状態 | constitution.md は v0.8.0 だが `governance/decisions/` の批准最高版は v0.3.0 のまま（advisory 警告が出る） | 0.4.0〜0.8.0 の内容を採用可否ごと点検し、採用する場合は `governance/decisions/` へ確定記録（gd-0005 等）を追加して批准する | #51 |
+
+> **本表と機械点検の一致（2026-08-24）**: 上表の各項目は `scripts/checks/adoption.sh` が点検します（該当ゲートが**活性化している**ときのみ警告します。コードの無い採用では休眠します）。従来 `adoption.sh` は CODEOWNERS・マシンID・ブランチ保護・統治履歴・ブランチ名の 5 系統しか見ておらず、**本表に書いた配線項目をひとつも点検していませんでした**（外部レビュー指摘）。
+>
+> ただし `adoption.sh` は助言（warn）であり `task verify` を失敗させません。ゲート本体（`sast.sh` / `arch-boundaries.sh` / `build.sh` / `deps.sh`）も未配線時は警告して `exit 0` します。**したがって配線漏れで CI が赤くなることは決してありません。** これは「コードの無い採用でゲートを失敗させない」ための意図的な設計ですが、その帰結として**配線を怠っても誰も止めない**ことは正直に述べておきます。本表は放置してよいチェックリストではありません。
 
 ## ステップ 9. 本テンプレート自身の統治履歴を初期化する（重要）
 
