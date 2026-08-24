@@ -87,6 +87,13 @@
   保護対象ブランチ名の不一致の検出を追加した。いずれも従来まったく機械点検が無く文書に書いてあるだけだった。
   既定ブランチが `main` でない既存リポジトリでは CI が一度も起動せず**沈黙して**強制が働かない（fail-open）ため、
   赤くならないぶん最も気づきにくく、検出価値が高い。
+* `.github/workflows/verify.yml` の `pull_request` トリガに `types: [opened, synchronize, reopened, edited]` を
+  明示した（#19 関連）。既定の activity types は `edited` を含まないため、ベースブランチの付け替え
+  （stacked PR で上流マージ後に GitHub が自動で行う）では `verify` が**一度も起動しなかった**。
+  `governance-gate.yml` は `edited` を列挙しており起動するため、「governance-gate だけが緑」の PR が生まれる。
+  必須チェックの登録漏れ（#22 の休眠）と重なると `verify` を通さずマージできる（fail-open）。
+  差分規模の上限（#46）が PR 分割＝stacked PR を促す以上、本テンプレートはこの経路を常用させるため、
+  「整備済みに見えて機能していない」状態だった（#50 と同種の構造的欠陥）。本 PR スタックの #38 で実地に発生した。
 * `scripts/checks/build.sh`（#15b 関連）に `BUILD_CMD` / `scripts/dev/build-tool.sh` による入口の差し替えを、
   `scripts/checks/secrets.sh`（#1 関連）に gitleaks の `--baseline-path` 連携を追加した。いずれも既定動作は
   変更せず、**終了コードはそのまま伝播**するため強制は弱まらない（緩和ではない）。baseline 適用中は件数とともに
