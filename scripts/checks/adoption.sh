@@ -146,4 +146,18 @@ if [ "$dep_stack" -eq 1 ]; then
     || unwired "依存ライセンスの検査" "#55" "許可/禁止ライセンスを ADR で確定し \$LICENSE_SCAN_CMD / scripts/dev/license-tool.sh / \$LICENSE_FAIL_SEVERITY のいずれかを配線する"
 fi
 
+# 7) 承認者の力量要件（development-process.md「5.1」MUST: 力量要件列を空欄のまま運用してはならない）
+#
+#    2026-08-26 の外部レビュー指摘: development-process.md「5.」の承認マトリクスは「力量要件」列を
+#    採用組織が確定するプレースホルダ `TBD-HUMAN` で出荷しており、「5.1」はこれを空欄のまま運用
+#    してはならないと定める（MUST NOT）。しかし本チェックは CODEOWNERS の `@org/*`（1）・
+#    マシンID の `@bot/*`（2）は検知するのに、承認者の力量が未確定であることは検知していなかった
+#    （非対称）。採用組織が CODEOWNERS を実在チームへ置換すればこの非対称な沈黙により「配線完了」
+#    と誤認しうる——承認者は決まったが、その承認者が対象領域を判定できる力量を持つかは誰も
+#    確認していない、という統治上もっとも痛い抜け穴が最後まで気づかれない（強制台帳 #58）。
+if [ -f development-process.md ] && grep -qF '| `TBD-HUMAN` |' development-process.md; then
+  warn "development-process.md「5.」承認マトリクスの力量要件列に 'TBD-HUMAN' が残存（development-process.md「5.1」MUST。Class A/B について採用組織が確定する。強制台帳 #58）"
+  warns=1
+fi
+
 [ "$warns" -eq 0 ] && ok "adoption wiring" || ok "adoption wiring (warnings — 本番運用前に解消)"
