@@ -549,6 +549,35 @@ else
   err "見逃し: build.sh がリンタ成功時に落ちた（exit=$rc_lint_ok）— 偽陽性はゲート不信の原因になる"
   fail=$((fail + 1))
 fi
+
+# ---------- build.sh の自動テスト存在確認（台帳 #15a。2026-08-26 新設。外部レビュー指摘） ----------
+# package.json に "test" スクリプトが定義されていない場合、`npm test --if-present` は無言で
+# exit 0 を返す。lint 未配線（#56）・カバレッジ未強制（#15b）と異なり一切警告が出ず、
+# 「テストが1件も無いのに自動テスト MUST が無言で合格する」状態だった（再現確認済み）。
+restore
+printf '{"name":"selftest","private":true}\n' > package.json
+set +e; out_test_gap="$(BUILD_CMD=true bash scripts/checks/build.sh 2>&1)"; rc_test_gap=$?; set -e
+restore
+if [ "$rc_test_gap" -eq 0 ] && printf '%s' "$out_test_gap" | grep -q "no test script/test files were found"; then
+  printf '    [検出] build.sh: コードスタック検出時にテスト不在を警告する（黙って合格にしない）\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: build.sh がテスト不在を警告しない（exit=$rc_test_gap）— テストが0件でも自動テストMUSTが無言で合格する"
+  fail=$((fail + 1))
+fi
+
+restore
+printf '{"name":"selftest","private":true,"scripts":{"test":"true"}}\n' > package.json
+set +e; out_test_ok="$(BUILD_CMD=true bash scripts/checks/build.sh 2>&1)"; rc_test_ok=$?; set -e
+restore
+if [ "$rc_test_ok" -eq 0 ] && ! printf '%s' "$out_test_ok" | grep -q "no test script/test files were found"; then
+  printf '    [検出] build.sh: test スクリプト定義済みならテスト不在警告を出さない（陽性対照）\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: build.sh が test スクリプト定義済みでも誤ってテスト不在警告を出した（過検知）"
+  fail=$((fail + 1))
+fi
+
 # 対象外の明示（黙って落とさない）
 warn "対象外: links.sh（lychee・ネットワーク依存）／deps.sh の脆弱性スキャン部分（trivy・脆弱性DB依存。ライセンス部分は検査済み）／視覚回帰（ブラウザ必須）／build.sh・deps-audit.sh（採用スタックまたは外部 API に依存し、本テンプレート単体では違反を注入できない）／adoption.sh（助言専用で verify を失敗させない設計のため陰性テストの対象にならない。設計上の除外）"
 
