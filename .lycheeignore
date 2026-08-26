@@ -4,3 +4,9 @@
 # AWS Prescriptive Guidance（constitution.md の参考文献）は自動リクエストに 403 Forbidden を返す。
 # ページ自体は有効なため、この URL のみ除外する（ドメイン全体は除外しない）。
 https://docs\.aws\.amazon\.com/prescriptive-guidance/latest/architectural-decision-records/welcome\.html
+
+# dataconomy.com（governance/proposals/gp-0012-external-framework-alignment.md の参考文献。
+# Cisco Project CodeGuard の OSS 化に関する記事）は自動リクエストに 403 Forbidden を返す
+# （CI 環境からの直接アクセスでも UA を変えても再現。データセンター IP 帯のブロックとみられる）。
+# ページ自体は有効なため、この URL のみ除外する（ドメイン全体は除外しない）。
+https://dataconomy\.com/2025/10/17/ciscos-project-codeguard-brings-owasp-grade-security-to-ai-coding-assistants/
