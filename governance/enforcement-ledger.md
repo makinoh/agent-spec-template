@@ -1,6 +1,6 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.17.0（Proposed / ドラフト）
+* Version: 0.18.0（Proposed / ドラフト）
 * Date: 2026-04-01
 * Last amended: 2026-08-26
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
@@ -29,7 +29,7 @@
 | 12 | 作成者≠承認者・include administrators・force-push 禁止（6章/8章） | MUST | 構造的強制（ブランチ保護） | — | **整備中** — include administrators（`enforce_admins`）／force-push 禁止／ブランチ削除禁止／linear history／会話解決必須は **設定済み**。**作成者≠承認者は未整備**（コラボレータ 1 名のため構造的に成立せず。waiver/exception は安全・統治の核に適用不可のため、[RISK-0001](risk-register/risk-0001-single-maintainer-separation-of-duties.md) として受容・期限付き再評価。RISK-0001 自身が `review_after: 2027-02-08` を持ち、本行における人間ゲート（暫定）相当の期限追跡を代替する） | — | — | — | `main` のブランチ保護設定 ＋ [GD-0001](decisions/gd-0001-adoption-profile-lite.md)「4.」 |
 | 13 | AI は専用マシンアイデンティティで行為（6章） | MUST | 構造的強制（アカウント分離） | — | 未整備（専用マシンアカウント未発行。`agents/README.md` の `@bot/*` はテンプレート忠実性のため意図的に保持。当面は `Assisted-by:` トレーラと `ai-generated` ラベルで AI 由来を識別するが、これは能動的なゲートではなく代替の弱い統制であることに留意） | — | — | — | 組織 IdP / マシンアカウント ＋ [GD-0001](decisions/gd-0001-adoption-profile-lite.md)「5.」 |
 | 14 | AI は本書改正を単独承認しない（7章） | MUST NOT | 人間ゲート（不可避）（定足数） | (b) | 整備済み（development-process.md「5.」が承認者・定足数を定義。Lite プロファイルでは定足数 1 名のため RISK-0001 と同根の制約はあるが、規範自体（AI は自己承認しない）は本 PR 作成〜マージの実運用で遵守されている） | — | — | — | development-process.md「5.」 |
-| 15a | ビルド・型・自動テスト合格（8章/9章） | MUST | 機械強制 | — | 整備済み（スタック自動検出で活性化。コード未追加時は skip） | — | — | — | verify ジョブ → scripts/checks/build.sh |
+| 15a | ビルド・型・自動テスト合格（8章/9章） | MUST | 機械強制 | — | 整備済み（スタック自動検出で活性化。コード未追加時は skip）。**2026-08-26 追記（外部レビュー指摘）**: `npm test --if-present` 等はテストスクリプト／テストファイルが1件も無い場合、無警告で exit 0 を返す。lint 未配線（#56）・カバレッジ未強制（#15b）は警告するのに、テスト不在だけが無警告で「合格」していた（再現確認済み）。`build.sh` にテスト不在の警告を追加し是正した（lint と同型。テストの**内容**が受け入れ基準を満たすかは #37 の対象で、本行の対象外） | — | — | — | verify ジョブ → scripts/checks/build.sh |
 | 15b | カバレッジが最低基準を満たす（8章/9章） | MUST | 機械強制（閾値） | — | **未整備**（build.sh はカバレッジを強制しない。閾値・diff-cover の配線は採用スタックで実装する。整備までは人間レビューで担保） | — | — | — | scripts/checks/build.sh ＋ standards/testing-standards.md「1.」（要実装） |
 | 16 | Markdown Lint / Link Check 合格（8章） | MUST | 機械強制 | — | 整備済み（md lint は CI/ローカルで実効／Link Check は lychee 不在時ローカルでスキップ・CI で実効） | — | — | — | verify ジョブ → scripts/checks/markdown.sh・links.sh ＋ .markdownlint.jsonc |
 | 17 | README.md / AGENTS.md が存在、AGENTS が constitution を参照、ツール固有指示（CLAUDE.md / GEMINI.md / CODEX.md / OPENHANDS.md / TAKT.md / SKILLS.md）が AGENTS を参照（8章/6章） | MUST | 機械強制（存在＋参照検査） | — | 整備済み | — | — | — | verify:fast → scripts/checks/structure.sh |
@@ -79,6 +79,19 @@
 ---
 
 ## 改正履歴
+
+### [0.18.0] - 2026-08-26（Proposed）
+
+正本記録: 独立検証レビュー（`.idea/agent-spec-template-independent-review.md`。実クローン・実行での検証）の指摘に対する是正（スタック PR の2段目。base: UI統治表 fail-open 是正 [0.17.0]）。
+`scripts/checks/selftest.sh` の陰性テストは 56 件 → 58 件（見逃し 0 件）。
+
+**Changed（開示の是正。実装は変えず、台帳の記載を実態に合わせたもの）**
+
+* **#15a（自動テスト）**: `npm test --if-present` は "test" スクリプトが package.json に無い場合、無言で
+  exit 0 を返す。lint 未配線（#56）・カバレッジ未強制（#15b）は警告するのに、「コードはあってテストが
+  1件も無い」場合だけが無警告で「✓ build/test」に合格していた（再現確認済み）。`build.sh` にテスト
+  定義・テストファイルの存在確認（node/go/python/java 系スタック）を追加し、無い場合は lint と同型の
+  警告を出すようにした。
 
 ### [0.17.0] - 2026-08-26（Proposed）
 

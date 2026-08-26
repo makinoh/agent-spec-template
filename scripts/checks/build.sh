@@ -99,4 +99,36 @@ fi
 #   採用スタックで配線すること: pytest --cov-fail-under / jest coverageThreshold / go cover / JaCoCo。
 #   配線するまで「カバレッジ MUST」は人間レビューで担保する（整備済みと扱わない＝憲章「1.1」MUST NOT）。
 [ "${COVERAGE_ENFORCED:-}" = "1" ] || warn "coverage gate NOT enforced yet — wire a threshold in your stack (ledger #15b)"
+
+# --- 自動テストの存在確認（台帳 #15a。2026-08-26 新設。外部レビュー指摘） ---
+#
+# npm の `--if-present` は "test" スクリプトが package.json に定義されていない場合、何も
+# 実行せず exit 0 を返す。lint 未配線（#56）・カバレッジ未強制（#15b）は警告するのに、
+# 「コードはあるがテストが 1 件も定義されていない」場合だけが無言で「✓ build/test」に
+# 合格していた（再現確認済み）。「機械強制・整備済み」と台帳が主張する自動テストゲートが、
+# テスト不在という最も基本的なケースで実質的に何も検証しないのは開示の欠陥である
+# （憲章「8. ブートストラップ規定」）。lint と同型に、テスト定義の有無だけをここで検査する
+# （テストの**内容**が受け入れ基準を満たすかは #37 の対象。機械検証できない）。
+test_stack=0; test_present=0
+if [ -f package.json ]; then
+  test_stack=1
+  grep -Eq '"test"[[:space:]]*:' package.json && test_present=1
+fi
+if [ -f go.mod ]; then
+  test_stack=1
+  [ -n "$(find . -name '*_test.go' -not -path '*/node_modules/*' -not -path '*/vendor/*' 2>/dev/null | head -1)" ] && test_present=1
+fi
+if [ -f pyproject.toml ] || [ -f requirements.txt ] || [ -f setup.py ]; then
+  test_stack=1
+  [ -n "$(find . \( -name 'test_*.py' -o -name '*_test.py' \) -not -path '*/node_modules/*' 2>/dev/null | head -1)" ] && test_present=1
+fi
+if [ -f pom.xml ] || [ -f build.gradle ] || [ -f build.gradle.kts ]; then
+  test_stack=1
+  [ -d src/test ] && test_present=1
+fi
+if [ "$test_stack" -eq 1 ] && [ "$test_present" -eq 0 ]; then
+  warn "code stack detected but no test script/test files were found — automated tests are not actually running."
+  warn "this is a tracked bootstrap gap — see governance/enforcement-ledger.md #15a."
+fi
+
 ok "build/test"
