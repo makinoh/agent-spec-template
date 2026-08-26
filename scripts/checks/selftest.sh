@@ -370,13 +370,28 @@ run_case "pr_governance.sh: 既知AIエージェント識別のPR作成者にai-
   'CI=true PR_AUTHOR=claude-code-bot PR_LABELS=class:A bash scripts/checks/pr_governance.sh'
 
 run_case "governance-metrics.sh: 機械強制率が baseline を下回る（waiver なし）" "python3" \
-  'sed -i "s/\"mechanized_norms\": 34/\"mechanized_norms\": 40/" metrics/governance-health-snapshot.json' \
+  'sed -i -E "s/\"mechanized_norms\": [0-9]+/\"mechanized_norms\": 9999/" metrics/governance-health-snapshot.json' \
   'bash scripts/checks/governance-metrics.sh'
 
 run_case "governance-metrics.sh: 失効済み waiver は低下を正当化しない（無条件バイパスの禁止）" "python3" \
-  'sed -i "s/\"mechanized_norms\": 34/\"mechanized_norms\": 40/" metrics/governance-health-snapshot.json &&
+  'sed -i -E "s/\"mechanized_norms\": [0-9]+/\"mechanized_norms\": 9999/" metrics/governance-health-snapshot.json &&
    mkdir -p governance/waivers &&
    printf -- "---\ntarget_check: governance-metrics.mechanized-rate\nstatus: Active\nexpires: 2020-01-01\n---\n\n# selftest waiver (expired, negative-test fixture only)\n" > governance/waivers/wv-9999-selftest-expired.md' \
+  'bash scripts/checks/governance-metrics.sh'
+
+# ---------- governance-metrics.sh の実効機械強制率（台帳 #44。2026-08-26 新設。外部レビュー指摘） ----------
+# 公称の機械強制率は「整備状況」列を見ないため、機械強制の"手段"はそのままに整備状況だけを
+# 「整備済み」→「整備中」へ後退させても（＝実ツールが抜かれても）公称率は変化せず検出できない。
+# これがまさに指摘された Goodhart 抜け道（休眠ゲートで公称値を満たせる）の裏側であり、
+# 実効機械強制率（整備済み行のみ）がこれを検出できることを確認する。
+run_case "governance-metrics.sh: 実効機械強制率の低下（整備済み→整備中への後退。公称は変化しない）" "python3" \
+  "sed -i 's/機械強制（シークレットスキャン） | — | 整備済み（CI で実効。ローカルは gitleaks 不在時スキップ） |/機械強制（シークレットスキャン） | — | 整備中（CI で実効。ローカルは gitleaks 不在時スキップ） |/' governance/enforcement-ledger.md" \
+  'bash scripts/checks/governance-metrics.sh'
+
+run_case "governance-metrics.sh: 実効機械強制率の低下に失効済み waiver は正当化しない" "python3" \
+  "sed -i 's/機械強制（シークレットスキャン） | — | 整備済み（CI で実効。ローカルは gitleaks 不在時スキップ） |/機械強制（シークレットスキャン） | — | 整備中（CI で実効。ローカルは gitleaks 不在時スキップ） |/' governance/enforcement-ledger.md &&
+   mkdir -p governance/waivers &&
+   printf -- '---\ntarget_check: governance-metrics.mechanized-rate-effective\nstatus: Active\nexpires: 2020-01-01\n---\n\n# selftest waiver (expired, negative-test fixture only)\n' > governance/waivers/wv-9999-selftest-expired-effective.md" \
   'bash scripts/checks/governance-metrics.sh'
 
 # UI ゲート: 生成物の手編集検出（2026-08-08 に誤合格が判明した箇所。回帰を防ぐ）

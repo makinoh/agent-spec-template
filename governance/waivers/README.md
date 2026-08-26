@@ -47,7 +47,8 @@
 
 | `target_check` | 対象ゲート | 意味 |
 | --- | --- | --- |
-| `governance-metrics.mechanized-rate` | [scripts/checks/governance-metrics.sh](../../scripts/checks/governance-metrics.sh) | 機械強制率が baseline を下回ることを時限的に許容する（強制台帳 #44/#45） |
+| `governance-metrics.mechanized-rate` | [scripts/checks/governance-metrics.sh](../../scripts/checks/governance-metrics.sh) | 機械強制率（公称・inclusive）が baseline を下回ることを時限的に許容する（強制台帳 #44/#45） |
+| `governance-metrics.mechanized-rate-effective` | 同上 | 機械強制率（実効・整備済み行のみ。2026-08-26 追加）が baseline を下回ることを時限的に許容する（強制台帳 #44/#45） |
 | `diff-size.class-a` | [scripts/checks/diff-size.sh](../../scripts/checks/diff-size.sh) | Class A の変更行数上限の超過を時限的に許容する（強制台帳 #46） |
 | `diff-size.class-b` | 同上 | Class B の変更行数上限の超過を時限的に許容する（強制台帳 #46） |
 
