@@ -76,16 +76,26 @@ TARGET_CHECK_ID = {"A": "diff-size.class-a", "B": "diff-size.class-b"}
 # Class A と判定されず差分規模上限の対象外になっていた（pr_governance.sh 側の同一欠落と対に
 # なっていた fail-open）。対象パス表を正本として両者を揃え、限界を解消した。
 # 以後、本 regex と pr_governance.sh の $gov / $ab は同一集合を表す（乖離は selftest.sh が検出）。
+#
+# 2026-08-26 追記（外部レビュー指摘・再現確認済み）: development-process.md「1.」の**UI統治表**
+# （「UI・デザイン領域のクラス」）が Class A と明記する `.stylelintrc.json` / `tokens/build.mjs` /
+# `Taskfile.ui.yml` の 3 件が、両 regex から欠落していた（`scripts/check-*.mjs` と
+# `scripts/checks/ui.sh` は `scripts/` プレフィクスで既にマッチしていたため気づかれにくかった）。
+# 2026-08-24 に是正した主表の欠落と同型の fail-open であり、この 3 ファイルのみを変更する PR は
+# permission-impact ラベルも ADR 参照も差分規模上限も要求されずに通過していた。UI 統治表も本 regex
+# の正本対象であることを明記し、両実装・CODEOWNERS・selftest.sh の陰性テストを同期させる。
 GOV_RE = re.compile(
     r"^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|"
     r"\.specify/memory/constitution\.md|development-process\.md|governance/|standards/|\.github/|"
     r"AGENTS\.md|CLAUDE\.md|GEMINI\.md|CODEX\.md|OPENHANDS\.md|TAKT\.md|agents/|"
-    r"SKILLS\.md|Taskfile\.yml|lefthook\.yml|\.mise\.toml|scripts/)"
+    r"SKILLS\.md|Taskfile\.yml|lefthook\.yml|\.mise\.toml|\.stylelintrc\.json|tokens/build\.mjs|"
+    r"Taskfile\.ui\.yml|scripts/(?!dev/))"
 )
 AB_RE = re.compile(
     r"^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|development-process\.md|governance/|"
     r"standards/|\.github/|AGENTS\.md|CLAUDE\.md|GEMINI\.md|CODEX\.md|OPENHANDS\.md|TAKT\.md|"
-    r"agents/|SKILLS\.md|architecture/|adr/|Taskfile\.yml|lefthook\.yml|\.mise\.toml|scripts/)"
+    r"agents/|SKILLS\.md|architecture/|adr/|Taskfile\.yml|lefthook\.yml|\.mise\.toml|"
+    r"\.stylelintrc\.json|tokens/build\.mjs|Taskfile\.ui\.yml|scripts/(?!dev/))"
 )
 
 # --- 除外リスト（生成物・ロックファイル。WU08-02）。実例のみ列挙し仮説上のパターンは含めない。 ---

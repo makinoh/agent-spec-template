@@ -63,10 +63,25 @@ changed="$(git diff --name-only "$base" "$head" 2>/dev/null || git diff --name-o
 # development-process.md は変更クラス判定基準・承認者定足数・差分規模上限の正本でありながら、
 # 対象パス表にも CODEOWNERS にも本 regex にも登録が無く、どの保護機構にも属していなかった。
 # 対象パス表を唯一の正本とし、ここはその機械的写像である（乖離は selftest.sh の陰性テストで検出する）。
-gov='^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|\.specify/memory/constitution\.md|development-process\.md|governance/|standards/|\.github/|AGENTS\.md|CLAUDE\.md|GEMINI\.md|CODEX\.md|OPENHANDS\.md|TAKT\.md|agents/|SKILLS\.md|Taskfile\.yml|lefthook\.yml|\.mise\.toml|scripts/)'
-ab='^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|development-process\.md|governance/|standards/|\.github/|AGENTS\.md|CLAUDE\.md|GEMINI\.md|CODEX\.md|OPENHANDS\.md|TAKT\.md|agents/|SKILLS\.md|architecture/|adr/|Taskfile\.yml|lefthook\.yml|\.mise\.toml|scripts/)'
+#
+# 2026-08-26 追記（外部レビュー指摘・再現確認済み）: development-process.md「1.」の**UI統治表**が
+# Class A と明記する `.stylelintrc.json` / `tokens/build.mjs` / `Taskfile.ui.yml` の 3 件が
+# 両 regex から欠落していた（`scripts/check-*.mjs` と `scripts/checks/ui.sh` は `scripts/`
+# プレフィクスで既にマッチしていたため気づかれにくかった）。2026-08-24 是正の主表欠落と同型の
+# fail-open であり、この 3 ファイルのみを変更する PR は permission-impact ラベルも ADR 参照も
+# 要求されずに通過していた。check_diff_size.py の GOV_RE / AB_RE と同期させて是正した。
+gov='^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|\.specify/memory/constitution\.md|development-process\.md|governance/|standards/|\.github/|AGENTS\.md|CLAUDE\.md|GEMINI\.md|CODEX\.md|OPENHANDS\.md|TAKT\.md|agents/|SKILLS\.md|Taskfile\.yml|lefthook\.yml|\.mise\.toml|\.stylelintrc\.json|tokens/build\.mjs|Taskfile\.ui\.yml|scripts/)'
+ab='^(constitution\.md|adr-rules\.md|adr-template(-minimal)?\.md|development-process\.md|governance/|standards/|\.github/|AGENTS\.md|CLAUDE\.md|GEMINI\.md|CODEX\.md|OPENHANDS\.md|TAKT\.md|agents/|SKILLS\.md|architecture/|adr/|Taskfile\.yml|lefthook\.yml|\.mise\.toml|\.stylelintrc\.json|tokens/build\.mjs|Taskfile\.ui\.yml|scripts/)'
 
-if echo "$changed" | grep -Eq "$gov"; then
+# development-process.md「1.」の但し書き: `scripts/**` は既定で Class A だが、ゲート・統治に
+# 関与しない開発補助のみ `scripts/dev/**` として Class C に置ける（過剰ゲートの回避）。
+# POSIX の grep -E は否定先読みを持たないため、$gov/$ab の対象からは grep -v で
+# scripts/dev/ を先に除いておく（外部レビュー指摘: 従来 $gov/$ab は `scripts/` を無条件に
+# マッチしており、この既定の Class C 逃げ道が実装上機能していなかった。安全側〔過剰ゲート〕
+# の乖離ではあるが、対象パス表と実装を一致させる）。
+changed_gov="$(printf '%s\n' "$changed" | grep -v '^scripts/dev/' || true)"
+
+if echo "$changed_gov" | grep -Eq "$gov"; then
   if [ "${CI:-}" = "true" ]; then
     echo "${PR_LABELS:-}" | grep -q "permission-impact" \
       || { err "governance/enforcement path changed: PR requires the 'permission-impact' label (＋CODEOWNERS)"; exit 1; }
@@ -103,9 +118,9 @@ is_dependabot_action_bump() {
   return 0
 }
 
-if echo "$changed" | grep -Eq "$ab" && is_dependabot_action_bump; then
+if echo "$changed_gov" | grep -Eq "$ab" && is_dependabot_action_bump; then
   warn "dependabot による Actions 版数更新のため ADR 記載要件を免除（ADR-0006。permission-impact ＋ CODEOWNERS は必須のまま）"
-elif echo "$changed" | grep -Eq "$ab"; then
+elif echo "$changed_gov" | grep -Eq "$ab"; then
   # 「ADR不要理由」は見出しの存在ではなく、プレースホルダでない実体（理由本文）を要求する。
   # PR テンプレートの未編集行（`（← …`）や空欄・`____` は不合格として扱う。
   reason="$(printf '%s\n' "${PR_BODY:-}" | sed -n 's/.*ADR不要理由[：:]//p' | head -1)"
@@ -134,7 +149,7 @@ fi
 # トリガ条件は「class:A ラベル」だけでなく「統治パスの変更（$gov）」も OR で含める。ラベル単独に
 # 依存すると、Class A に該当する変更でもラベルの付け忘れ・未付与だけで本チェックが丸ごと発火しない
 # fail-open になる（permission-impact チェックはパス由来のため fail-close。非対称だった。外部レビュー指摘）。
-if echo "${PR_LABELS:-}" | grep -q "class:A" || echo "$changed" | grep -Eq "$gov"; then
+if echo "${PR_LABELS:-}" | grep -q "class:A" || echo "$changed_gov" | grep -Eq "$gov"; then
   if section_has_content "ロールバック手順"; then :
   elif [ "${CI:-}" = "true" ]; then
     err "class:A PR must include non-placeholder content under '## ロールバック手順' in the body（development-process.md「7.」）"; exit 1
@@ -152,7 +167,7 @@ fi
 # ロールバック手順と同じ技術で「記載の有無」のみを検証する。記載内容の妥当性（設計として十分か）
 # は機械検証できないため人間ゲート（不可避）(b) 責任の引受のまま（台帳 #53）。該当なしの場合も
 # 「該当なし: 理由」を記載すればよい（ADR不要理由・ロールバック手順と同型のプレースホルダ判定）。
-if echo "${PR_LABELS:-}" | grep -q "class:A" || echo "$changed" | grep -Eq "$gov"; then
+if echo "${PR_LABELS:-}" | grep -q "class:A" || echo "$changed_gov" | grep -Eq "$gov"; then
   if section_has_content "可逆性"; then :
   elif [ "${CI:-}" = "true" ]; then
     err "class:A PR must include non-placeholder content under '## 可逆性' in the body（development-process.md「5.」／architecture/principles.md「5.」）"; exit 1

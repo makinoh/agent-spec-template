@@ -41,6 +41,16 @@
 /.mise.toml                           @org/governance-approvers
 /scripts/**                           @org/governance-approvers
 
+# --- UI 統治表（development-process.md「1.」UI・デザイン領域のクラス）の強制機構そのもの ---
+# 2026-08-26 追記（外部レビュー指摘・再現確認済み）: 以下3件は development-process.md の
+# UI 統治表で Class A（「強制機構そのもの。ここを緩めれば全ゲートが無効化される」）と明記され
+# ながら、2026-08-26 まで CODEOWNERS にも pr_governance.sh の $gov にも check_diff_size.py の
+# GOV_RE にも登録が無く、これらのみを変更する PR が統治ゲートを素通りしていた
+# （2026-08-24 是正の CODEX.md 等の欠落と同型の fail-open）。
+/.stylelintrc.json                    @org/governance-approvers
+/tokens/build.mjs                     @org/governance-approvers
+/Taskfile.ui.yml                      @org/governance-approvers
+
 # --- ADR 本体・アーキテクチャ設計: アーキテクチャレビュア ---
 /adr/**                               @org/architects @org/governance-approvers
 /architecture/**                      @org/architects @org/governance-approvers

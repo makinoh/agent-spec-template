@@ -1,8 +1,8 @@
 # 強制台帳（Enforcement Ledger）
 
-* Version: 0.15.0（Proposed / ドラフト）
+* Version: 0.17.0（Proposed / ドラフト）
 * Date: 2026-04-01
-* Last amended: 2026-08-24
+* Last amended: 2026-08-26
 * 上位規範: constitution.md（開発憲章「8. 機械的に検証可能なルール」）
 
 本書は、憲章の各 MUST / MUST NOT に **強制手段**（構造的強制／機械強制／人間ゲート（不可避）／人間ゲート（暫定））と **整備状況** を割り当てる台帳の正本（SSoT）です。
@@ -79,6 +79,28 @@
 ---
 
 ## 改正履歴
+
+### [0.17.0] - 2026-08-26（Proposed）
+
+正本記録: 独立検証レビュー（`.idea/agent-spec-template-independent-review.md`。実クローン・実行での検証）の指摘に対する是正。
+`scripts/checks/selftest.sh` の陰性テストは 50 件 → 56 件（見逃し 0 件）。
+
+**Fixed（統治ゲートの fail-open。#56/#40 と同型の再発）**
+
+* development-process.md「1.」の**UI統治表**（「UI・デザイン領域のクラス」）が Class A と明記する
+  `.stylelintrc.json` / `tokens/build.mjs` / `Taskfile.ui.yml` の 3 件が、`scripts/checks/pr_governance.sh`
+  の `$gov` / `$ab`、`scripts/check_diff_size.py` の `GOV_RE` / `AB_RE`、`.github/CODEOWNERS` の**すべてから**
+  欠落しており、これらのみを変更する PR が permission-impact ラベルも ADR 参照も差分規模上限も要求されずに
+  通過していた（`scripts/check-*.mjs` と `scripts/checks/ui.sh` は `scripts/` プレフィクスで既にマッチして
+  いたため気づかれにくかった）。2026-08-24 に是正した主表（CODEX.md 等）の欠落とまったく同じクラスの
+  fail-open であり、development-process.md「1.」自身が課す MUST（「本表に行を追加・変更する際は、両実装と
+  CODEOWNERS、および selftest.sh の対応する陰性テストを同時に更新してください」）の違反が現存していた。
+  3 パスを両実装・CODEOWNERSへ追加し、selftest.sh に陰性テストを追加した。
+* `scripts/**` は既定で Class A だが `scripts/dev/**`（非ゲートの開発補助）は Class C へ置ける、という
+  development-process.md「1.」の但し書きが、`$gov`/`$ab`・`GOV_RE`/`AB_RE` の実装では機能していなかった
+  （`scripts/` プレフィクスが無条件にマッチし `scripts/dev/**` も含めて Class A 判定していた）。fail-open
+  ではなく安全側（過剰ゲート）の乖離だが、対象パス表と実装を一致させた（`check_diff_size.py` は負の先読み、
+  `pr_governance.sh` は POSIX grep -E が先読みを持たないため事前フィルタで対応）。
 
 ### [0.16.0] - 2026-08-24（Proposed）
 
