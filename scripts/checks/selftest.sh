@@ -178,6 +178,69 @@ for gov_path in CODEX.md OPENHANDS.md TAKT.md agents/README.md development-proce
     'CI=true PR_AUTHOR=human PR_LABELS="" PR_BODY="" bash scripts/checks/pr_governance.sh'
 done
 
+# ---------- UI統治表（development-process.md「1.」UI・デザイン領域のクラス）との同期 ----------
+# 2026-08-26 の外部レビュー指摘: development-process.md の**UI統治表**が Class A と明記する
+#   .stylelintrc.json / tokens/build.mjs / Taskfile.ui.yml
+# が pr_governance.sh の $gov/$ab・check_diff_size.py の GOV_RE/AB_RE・.github/CODEOWNERS の
+# いずれからも欠落しており、これらだけを変更する PR がすべての統治ゲートを素通りしていた
+# （scripts/check-*.mjs・scripts/checks/ui.sh は scripts/ プレフィクスで既にマッチしていたため
+# 気づかれにくかった）。上の主表ループと同じ手法で、UI 表の3ファイルを個別に検査する。
+for gov_path in .stylelintrc.json tokens/build.mjs Taskfile.ui.yml; do
+  run_case "pr_governance.sh: UI統治パス '$gov_path' の変更に permission-impact ラベルが無い（UI統治表との同期）" "" \
+    "printf '\n/* selftest probe */\n' >> '$gov_path' && git add -A && git -c user.email=s@l -c user.name=s commit -qm 'selftest: ui gov path probe'" \
+    'CI=true PR_AUTHOR=human PR_LABELS="" PR_BODY="" bash scripts/checks/pr_governance.sh'
+done
+
+# diff-size.sh（check_diff_size.py の GOV_RE）も UI統治表と同期していること。
+run_case "diff-size.sh: UI統治パス（tokens/build.mjs）を Class A として分類し上限を適用する" "python3" \
+  'yes "diff-size selftest synthetic line" | head -50 >> tokens/build.mjs &&
+   git add -A >/dev/null 2>&1 &&
+   git -c user.email=s@l -c user.name=s commit -qm "selftest: ui governance file diff" >/dev/null 2>&1' \
+  'DIFF_SIZE_LIMIT_CLASS_A=10 bash scripts/checks/diff-size.sh'
+
+# ---------- scripts/dev/** の Class C カーブアウト（development-process.md「1.」但し書き） ----------
+# 2026-08-26 の外部レビュー指摘: $gov/$ab・GOV_RE/AB_RE は `scripts/` を無条件にマッチしており、
+# 「ゲート・統治に関与しない開発補助のみ scripts/dev/** として Class C に置ける」という対象パス表の
+# 但し書きが実装上機能していなかった（scripts/dev/ 配下を変更しても常に Class A 扱いになっていた）。
+# fail-open ではなく安全側（過剰ゲート）の乖離だが、対象パス表と実装を一致させた。
+# ここは「違反を注入して落ちる」run_case とは逆に「Class C 相当の変更が誤って Class A 扱いされない
+# こと」を確認する陽性方向のテストのため、個別に判定する。
+restore
+mkdir -p scripts/dev
+printf '#!/bin/sh\necho selftest probe\n' > scripts/dev/selftest-probe.sh
+git add -A >/dev/null 2>&1
+git -c user.email=s@l -c user.name=s commit -qm "selftest: scripts/dev carve-out probe" >/dev/null 2>&1
+set +e
+out_dev_carveout="$(CI=true PR_AUTHOR=human PR_LABELS="" PR_BODY="" bash scripts/checks/pr_governance.sh 2>&1)"
+rc_dev_carveout=$?
+set -e
+restore
+if [ "$rc_dev_carveout" -eq 0 ] && ! printf '%s' "$out_dev_carveout" | grep -q "governance path changed"; then
+  printf '    [検出] pr_governance.sh: scripts/dev/** の変更は permission-impact を要求しない（Class C カーブアウトが機能する）\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: pr_governance.sh が scripts/dev/** を誤って Class A 扱いした（exit=$rc_dev_carveout）— 対象パス表の但し書きと不一致"
+  fail=$((fail + 1))
+fi
+
+restore
+mkdir -p scripts/dev
+yes "diff-size selftest synthetic line" | head -50 > scripts/dev/selftest-probe-diffsize.sh
+git add -A >/dev/null 2>&1
+git -c user.email=s@l -c user.name=s commit -qm "selftest: scripts/dev diff-size carve-out probe" >/dev/null 2>&1
+set +e
+out_dev_diffsize="$(DIFF_SIZE_LIMIT_CLASS_A=1 bash scripts/checks/diff-size.sh 2>&1)"
+rc_dev_diffsize=$?
+set -e
+restore
+if [ "$rc_dev_diffsize" -eq 0 ]; then
+  printf '    [検出] diff-size.sh: scripts/dev/** の変更行数は Class A 上限に計上しない（Class C カーブアウトが機能する）\n'
+  pass=$((pass + 1))
+else
+  err "見逃し: diff-size.sh が scripts/dev/** を誤って Class A 上限に計上した（exit=$rc_dev_diffsize）— 対象パス表の但し書きと不一致"
+  fail=$((fail + 1))
+fi
+
 # ---------- prompts.sh（台帳 #21）: キーの存在しか見ていなかった旧実装の回帰防止 ----------
 # 2026-08-24 の外部レビュー指摘: 旧実装は行が「キー:」で始まるかだけを検査しており、値を空にしても
 # status を管理語彙の外にしても last_review を 1999 年にしても合格した（再現確認済み）。
