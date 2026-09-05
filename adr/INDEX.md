@@ -12,6 +12,7 @@
 | ADR-0004 | 配信・実行基盤の選定 | proposed | project | 2026-08-09 | [adr-0004-cloudflare-deployment-target.md](adr-0004-cloudflare-deployment-target.md) |
 | ADR-0005 | CSS の記述方式とデザイントークン強制の手段 | accepted | project | 2026-08-08 | [adr-0005-css-token-enforcement.md](adr-0005-css-token-enforcement.md) |
 | ADR-0006 | dependabot による Actions 版数更新の統治要件（ADR 記載要件のカーブアウト） | accepted | project | 2026-08-08 | [adr-0006-dependabot-governance-carveout.md](adr-0006-dependabot-governance-carveout.md) |
+| ADR-0007 | 図表記法の選定（論理図は Mermaid、物理構成図は CI レンダリング） | proposed | project | 2026-09-05 | [adr-0007-diagram-notation-selection.md](adr-0007-diagram-notation-selection.md) |
 
 ## 関係グラフ
 
@@ -20,3 +21,4 @@
 - `ADR-0003` —relates_to→ `ADR-0005`
 - `ADR-0004` —relates_to→ `ADR-0003`
 - `ADR-0005` —relates_to→ `ADR-0003`
+- `ADR-0007` —relates_to→ `ADR-0008`
