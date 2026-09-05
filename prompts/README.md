@@ -40,6 +40,12 @@ draft → active → deprecated（→ superseded_by）
 
 ## 収録資産
 
+### 図表記法・外部公開統治の導入（`workflows/doc-diagram-and-external-publication-governance.md`）
+
+図表記法（論理図＝Mermaid／物理構成図＝CI レンダリング）と、外部ドキュメントツールへの複製統治
+（SSoT は Git、複製は opt-in の派生コピー）を standards/ADR/playbooks/強制台帳へ導入するための
+起票プロンプトです。詳細は [workflows/doc-diagram-and-external-publication-governance.md](workflows/doc-diagram-and-external-publication-governance.md) を参照してください。
+
 ### UI 再現性シーケンス（`workflows/ui-*`）
 
 憲章「10.1 UI 再現性」を実運用するためのプロンプト列です。**順序に意味があります**。

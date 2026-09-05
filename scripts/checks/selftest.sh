@@ -32,14 +32,32 @@ trap cleanup EXIT
 # 追跡ファイルを「作業ツリーの内容で」複製する（HEAD ではない。未コミットの変更も検査対象にする）
 git ls-files -z | tar -cf - --null -T - 2>/dev/null | tar -xf - -C "$WORK"
 cd "$WORK"
-# 実在の waiver（governance/waivers/*.md、README.md を除く）は複製から除去する。
+git init -q .
+git add -A >/dev/null 2>&1
+git -c user.email=selftest@local -c user.name=selftest commit -qm asis >/dev/null 2>&1
+
+# ---------- 陽性対照: 無傷の複製がすべて通ること ----------
+# 実在の waiver（governance/waivers/*.md）を剥がす**前**の、現在の真の作業ツリー状態に対して行う。
+# 陽性対照の目的は「今のゲート設定が今のリポジトリに対して実際に緑であること」の確認であり、
+# 現に有効な waiver（例: governance-metrics.mechanized-rate の一時的な低下を正当化する waiver）は
+# その「今の状態」の一部である。下で行う waiver 剥がしは陰性テストのマスキング防止用の別目的
+# （直後のコメント参照）であり、剥がした後の状態を陽性対照に使うと、waiver が正当化しているはずの
+# 現在の合法な状態そのものがハーネス故障として誤検出される（2026-09-05: governance-metrics 向けの
+# 実 waiver が初めて存在した際にこの誤りが顕在化し是正。原因側＝ハーネスの前提を修正した。
+# governance-metrics.sh 自体や waiver 機構を緩めてはいない）。
+# ここが落ちる場合はハーネスの故障であり、陰性テストの結果は信用できない。
+for c in structure adr adr-content frontmatter prompts enforcement-ledger sast arch-boundaries pr_governance governance-metrics constitution-sync ratification-sync; do
+  set +e; bash "scripts/checks/$c.sh" >/dev/null 2>&1; rc=$?; set -e
+  [ "$rc" -eq 0 ] || { err "陽性対照の失敗: scripts/checks/$c.sh が無傷の複製で落ちた（ハーネス故障）"; exit 1; }
+done
+
+# 実在の waiver（governance/waivers/*.md、README.md を除く）は、これ以降の陰性テスト用 baseline から除去する。
 # 本物の有効な waiver が残っていると、find_active_waiver() のグロブが陰性テスト用に注入した
 # 不正な waiver（失効・プレースホルダ・Class違い）より先に本物を見つけてしまい、ゲートが誤って
 # 通過する（陰性テストの意図しないマスキング。governance/waivers/ が空である前提が waiver 登録の
 # 実運用開始により崩れたため 2026-08-25 に是正）。waiver 関連ケースは各ケースが
 # governance/waivers/wv-9999-*.md を個別に注入するため、実在の waiver は不要。
 find governance/waivers -maxdepth 1 -name '*.md' ! -name 'README.md' -delete 2>/dev/null || true
-git init -q .
 git add -A >/dev/null 2>&1
 git -c user.email=selftest@local -c user.name=selftest commit -qm baseline >/dev/null 2>&1
 
@@ -65,13 +83,6 @@ run_case() {
     fail=$((fail + 1))
   fi
 }
-
-# ---------- 陽性対照: 無傷の複製がすべて通ること ----------
-# ここが落ちる場合はハーネスの故障であり、陰性テストの結果は信用できない。
-for c in structure adr adr-content frontmatter prompts enforcement-ledger sast arch-boundaries pr_governance governance-metrics constitution-sync ratification-sync; do
-  set +e; bash "scripts/checks/$c.sh" >/dev/null 2>&1; rc=$?; set -e
-  [ "$rc" -eq 0 ] || { err "陽性対照の失敗: scripts/checks/$c.sh が無傷の複製で落ちた（ハーネス故障）"; exit 1; }
-done
 
 # ---------- 陰性テスト ----------
 run_case "adr.sh: ADR 命名規則違反" "" \
