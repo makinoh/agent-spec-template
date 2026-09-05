@@ -286,9 +286,9 @@ relates_to: [ADR-0008]
 
 ## 参考資料
 
-- Mermaid 公式ドキュメント（https://mermaid.js.org/）— `architecture-beta` 構文およびアイコンパック登録（`registerIconPacks()`）に関する章
-- C4 model（https://c4model.com/）— Context 図をはじめとする論理図の定義
-- PlantUML 公式サイト（https://plantuml.com/）
+- [Mermaid 公式ドキュメント](https://mermaid.js.org/) — `architecture-beta` 構文およびアイコンパック登録（`registerIconPacks()`）に関する章
+- [C4 model](https://c4model.com/) — Context 図をはじめとする論理図の定義
+- [PlantUML 公式サイト](https://plantuml.com/)
 - RFC 2119 / RFC 8174 — キーワードの解釈は constitution.md「1. RFC 2119 / RFC 8174 準拠」に従う
 - [standards/documentation-standards.md](../standards/documentation-standards.md)「2.」— 論理図・物理構成図の境界判定基準（正本）
 - [adr-rules.md](../adr-rules.md)「2. プロファイル」「3. 必須セクション」
